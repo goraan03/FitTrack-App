@@ -1,38 +1,49 @@
 import nodemailer, { type Transporter } from 'nodemailer';
-import sgMail from '@sendgrid/mail';
-import { IEmailService } from '../../Domain/services/email/IEmailService';
 
+export interface IEmailService {
+  sendOtp(to: string, code: string): Promise<void>;
+  verifyConnection(): Promise<void>;
+}
+
+/**
+ * Gmail SMTP (ili bilo koji SMTP).
+ * Obavezno koristi App Password (ne običnu lozinku).
+ */
 export class EmailService implements IEmailService {
-  private mode: 'sendgrid' | 'ethereal';
-  private transporter: Transporter | null = null;
+  private transporter: Transporter;
   private from: string;
 
   constructor() {
-    const sgApiKey = process.env.SENDGRID_API_KEY;
-    this.from = process.env.EMAIL_FROM || 'no-reply@example.com';
+    const host = process.env.SMTP_HOST;
+    const port = Number(process.env.SMTP_PORT || 465);
+    const secure = String(process.env.SMTP_SECURE || 'true').toLowerCase() === 'true' || port === 465;
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
 
-    if (sgApiKey) {
-      sgMail.setApiKey(sgApiKey);
-      this.mode = 'sendgrid';
-      // console.log('[EmailService] Mode: SendGrid');
-    } else {
-      this.mode = 'ethereal';
-      // console.log('[EmailService] Mode: Ethereal (dev)');
-    }
+    if (!host) throw new Error('SMTP_HOST nije definisan u .env');
+    if (!user) throw new Error('SMTP_USER nije definisan u .env');
+    if (!pass) throw new Error('SMTP_PASS nije definisan u .env');
+
+    this.from = process.env.EMAIL_FROM || user;
+
+    this.transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure, // true za 465, false za 587
+      auth: { user, pass },
+    });
+
+    console.log(`[EmailService] Mode: SMTP (${host}:${port}, secure=${secure})`);
   }
 
-  private async ensureEtherealTransport() {
-    if (this.transporter) return this.transporter;
-    const testAcc = await nodemailer.createTestAccount();
-    this.transporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false,
-      auth: { user: testAcc.user, pass: testAcc.pass }
-    });
-    console.log('[Ethereal] test user:', testAcc.user);
-    console.log('[Ethereal] test pass:', testAcc.pass);
-    return this.transporter;
+  async verifyConnection(): Promise<void> {
+    try {
+      await this.transporter.verify();
+      console.log('[EmailService] SMTP connection verified.');
+    } catch (e) {
+      console.error('[EmailService] SMTP verify failed:', e);
+      throw e;
+    }
   }
 
   async sendOtp(to: string, code: string): Promise<void> {
@@ -49,15 +60,12 @@ export class EmailService implements IEmailService {
       </div>
     `;
 
-    if (this.mode === 'sendgrid') {
-      await sgMail.send({ to, from: this.from, subject, text, html });
-      return;
-    }
-
-    // Ethereal (dev)
-    const t = await this.ensureEtherealTransport();
-    const info = await t.sendMail({ from: this.from, to, subject, text, html });
-    const preview = (nodemailer as any).getTestMessageUrl?.(info);
-    if (preview) console.log('[Ethereal] Preview URL:', preview);
+    await this.transporter.sendMail({
+      from: this.from,
+      to,
+      subject,
+      text,
+      html,
+    });
   }
 }

@@ -12,17 +12,25 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Repozitorijumi i servisi
+// Health check
+app.get('/healthz', (_req, res) => res.status(200).send('OK'));
+
+// DI
 const userRepo = new UserRepository();
 const challengeRepo = new AuthChallengeRepository();
 const emailService = new EmailService();
+emailService.verifyConnection().catch(() => {
+  console.error('SMTP konekcija nije verifikovana. Proveri .env podešavanja.');
+});
 const authService = new AuthService(userRepo, challengeRepo, emailService);
 
 // Kontroler
 const authController = new AuthController(authService);
+
+// Mount
 app.use('/api', authController.getRouter());
 
-const port = Number(process.env.PORT || 3000);
+const port = Number(process.env.PORT || 4000);
 app.listen(port, () => {
   console.log(`API sluša na portu ${port}`);
 });
