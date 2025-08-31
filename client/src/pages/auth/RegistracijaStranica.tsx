@@ -19,6 +19,7 @@ export default function RegistracijaStranica({ authApi }: Props) {
             <p className="text-gray-600 mt-1">Sign in to your account or create a new one</p>
           </div>
 
+        {/* Tabs */}
           <div className="grid grid-cols-2 gap-1 bg-gray-100 rounded-xl p-1 text-sm font-medium mb-6">
             <Link to="/login" className="text-center py-2 rounded-lg text-gray-600 hover:text-gray-800">
               Sign In
