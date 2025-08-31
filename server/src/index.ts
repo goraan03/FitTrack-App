@@ -19,9 +19,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Health
-app.get('/healthz', (_req, res) => res.status(200).send('OK'));
-
 // DI
 const userRepo = new UserRepository();
 const challengeRepo = new AuthChallengeRepository();
@@ -32,7 +29,7 @@ const authService = new AuthService(userRepo, challengeRepo, emailService, audit
 const adminService = new AdminService(userRepo, auditService);
 
 // Controllers
-const authController = new AuthController(authService);
+const authController = new AuthController(authService, auditService);
 const adminController = new AdminController(adminService);
 
 // Routes

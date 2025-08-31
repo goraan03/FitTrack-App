@@ -72,32 +72,32 @@ export default function RegistracijaForma({ authApi }: Props) {
   return (
     <form onSubmit={submit} className="space-y-5" autoComplete="off">
       {/* fake inputs to neutralize password managers */}
-      <input className="hidden" type="text" name="username" autoComplete="username" />
-      <input className="hidden" type="password" name="password" autoComplete="new-password" />
+      <input className="hidden" type="text" name="username" autoComplete="email" />
+      <input className="hidden" type="password" name="password" autoComplete="nova-lozinka" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Ime</label>
           <input
             type="text"
             name={`fn_${seed}`}
             autoComplete="off"
             value={ime}
             onChange={(e) => setIme(e.target.value)}
-            placeholder="First name"
+            placeholder="Ime"
             required
             className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Prezime</label>
           <input
             type="text"
             name={`ln_${seed}`}
             autoComplete="off"
             value={prezime}
             onChange={(e) => setPrezime(e.target.value)}
-            placeholder="Last name"
+            placeholder="Prezime"
             required
             className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
           />
@@ -117,23 +117,23 @@ export default function RegistracijaForma({ authApi }: Props) {
           data-1p-ignore="true"
           value={email}
           onChange={(e) => setEmail(e.target.value.trim())}
-          placeholder="Enter your email"
+          placeholder="Vaš email"
           required
           className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Lozinka</label>
         <input
           type="password"
           name={`p_${seed}`}
-          autoComplete="new-password"
+          autoComplete="nova-lozinka"
           data-lpignore="true"
           data-1p-ignore="true"
           value={lozinka}
           onChange={(e) => setLozinka(e.target.value)}
-          placeholder="Create a password"
+          placeholder="Kreiraj lozinku"
           required
           className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
         />
@@ -141,7 +141,7 @@ export default function RegistracijaForma({ authApi }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Godine</label>
           <input
             type="number"
             min={1}
@@ -150,20 +150,20 @@ export default function RegistracijaForma({ authApi }: Props) {
             autoComplete="off"
             value={age}
             onChange={(e) => setAge(e.target.value)}
-            placeholder="Age"
+            placeholder="Godine"
             className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Pol</label>
           <select
             name={`g_${seed}`}
             value={pol}
             onChange={(e) => setPol(e.target.value as "musko" | "zensko")}
             className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
           >
-            <option value="musko">Male</option>
-            <option value="zensko">Female</option>
+            <option value="musko">Muško</option>
+            <option value="zensko">Žensko</option>
           </select>
         </div>
       </div>
@@ -175,7 +175,7 @@ export default function RegistracijaForma({ authApi }: Props) {
         disabled={loading}
         className="w-full inline-flex justify-center items-center rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-200 transition disabled:opacity-60"
       >
-        {loading ? "Creating..." : "Create Account"}
+        {loading ? "Kreiranje..." : "Kreiraj nalog"}
       </button>
     </form>
   );

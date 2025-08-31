@@ -1,16 +1,19 @@
 import { Request, Response, Router } from 'express';
 import { IAuthService } from '../../Domain/services/auth/IAuthService';
 import { validacijaPodatakaAuth, validateOtp, validateChallengeId } from '../validators/auth/AuthRequestValidator';
-import { BOOT_ID, BOOT_STARTED_AT } from '../../boot/BootInfo';
 import jwt from "jsonwebtoken";
+import { BOOT_ID, BOOT_STARTED_AT } from '../../boot/BootInfo';
+import { IAuditService } from '../../Domain/services/audit/IAuditService';
 
 export class AuthController {
   private router: Router;
   private authService: IAuthService;
+  private audit: IAuditService;
 
-  constructor(authService: IAuthService) {
+  constructor(authService: IAuthService, audit: IAuditService) {
     this.router = Router();
     this.authService = authService;
+    this.audit = audit;
     this.initializeRoutes();
   }
 
@@ -42,13 +45,8 @@ export class AuthController {
       try {
         const data = await this.authService.startLogin(korisnickoIme, lozinka);
         res.status(200).json({ success: true, message: '2FA kod poslat na email', data });
-      } catch (e: any) {
-        const msg = String(e?.message || '');
-        if (msg === 'Invalid credentials') {
-          res.status(401).json({ success: false, message: 'Neispravno korisničko ime ili lozinka' });
-          return;
-        }
-        res.status(500).json({ success: false, message: 'Greška na serveru' });
+      } catch {
+        res.status(401).json({ success: false, message: 'Neispravno korisničko ime ili lozinka' });
       }
     } catch {
       res.status(500).json({ success: false, message: 'Greška na serveru' });
@@ -70,22 +68,10 @@ export class AuthController {
         res.status(200).json({ success: true, message: 'Uspešna prijava', data: token });
       } catch (e: any) {
         const msg = String(e?.message || '');
-        if (msg === 'Expired') {
-          res.status(400).json({ success: false, message: 'Kod je istekao. Zatražite novi.' });
-          return;
-        }
-        if (msg === 'Already used') {
-          res.status(400).json({ success: false, message: 'Kod je već iskorišćen.' });
-          return;
-        }
-        if (msg === 'Invalid code') {
-          res.status(401).json({ success: false, message: 'Netačan kod.' });
-          return;
-        }
-        if (msg === 'Too many attempts') {
-          res.status(429).json({ success: false, message: 'Previše pokušaja. Započnite prijavu ponovo.' });
-          return;
-        }
+        if (msg === 'Expired') { res.status(400).json({ success: false, message: 'Kod je istekao. Zatražite novi.' }); return; }
+        if (msg === 'Already used') { res.status(400).json({ success: false, message: 'Kod je već iskorišćen.' }); return; }
+        if (msg === 'Invalid code') { res.status(401).json({ success: false, message: 'Netačan kod.' }); return; }
+        if (msg === 'Too many attempts') { res.status(429).json({ success: false, message: 'Previše pokušaja. Započnite prijavu ponovo.' }); return; }
         res.status(500).json({ success: false, message: 'Greška na serveru' });
         return;
       }
@@ -105,14 +91,8 @@ export class AuthController {
         res.status(200).json({ success: true, message: 'Novi kod poslat', data });
       } catch (e: any) {
         const msg = String(e?.message || '');
-        if (msg === 'Not expired') {
-          res.status(400).json({ success: false, message: 'Kod još uvek važi. Sačekajte da istekne.' });
-          return;
-        }
-        if (msg === 'Already used') {
-          res.status(400).json({ success: false, message: 'Prethodni kod je već iskorišćen.' });
-          return;
-        }
+        if (msg === 'Not expired') { res.status(400).json({ success: false, message: 'Kod još uvek važi. Sačekajte da istekne.' }); return; }
+        if (msg === 'Already used') { res.status(400).json({ success: false, message: 'Prethodni kod je već iskorišćen.' }); return; }
         res.status(500).json({ success: false, message: 'Nije moguće poslati novi kod.' });
         return;
       }
@@ -127,6 +107,8 @@ export class AuthController {
       const rezultat = validacijaPodatakaAuth(korisnickoIme, lozinka);
 
       if (!rezultat.uspesno) {
+        // zabeleži loš unos (opciono)
+        await this.audit.log('Upozorenje', 'REGISTER_INVALID_INPUT', null, korisnickoIme || null);
         res.status(400).json({ success: false, message: rezultat.poruka });
         return;
       }
@@ -136,12 +118,16 @@ export class AuthController {
       );
 
       if (result.id !== 0) {
+        // siguran audit log uspeha (controller-level)
+        await this.audit.log('Informacija', 'REGISTER_SUCCESS', result.id, korisnickoIme);
         const token = jwt.sign(
           { id: result.id, korisnickoIme: result.korisnickoIme, uloga: result.uloga },
           process.env.JWT_SECRET ?? "", { expiresIn: '6h' }
         );
         res.status(201).json({success: true, message: 'Uspešna registracija', data: token});
       } else {
+        // siguran audit log konflikta
+        await this.audit.log('Upozorenje', 'REGISTER_CONFLICT_EXISTING_USER', null, korisnickoIme);
         res.status(409).json({success: false, message: 'Korisničko ime već postoji.'});
       }
     } catch {
