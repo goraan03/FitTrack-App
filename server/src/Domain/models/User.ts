@@ -7,6 +7,7 @@ export class User {
     public ime: string = '',
     public prezime: string = '',
     public datumRodjenja: Date | null = null,
-    public pol: 'musko' | 'zensko' | '' = ''
+    public pol: 'musko' | 'zensko' | '' = '',
+    public blokiran: boolean = false
   ) {}
 }

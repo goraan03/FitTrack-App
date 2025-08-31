@@ -4,7 +4,7 @@ import { User } from "../../Domain/models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { IAuthChallengeRepository } from "../../Domain/repositories/auth/IAuthChallengeRepository";
-import { IEmailService } from "../../Domain/services/email/IEmailService";
+import { IEmailService } from "../email/EmailService";
 import { parseOptionalDate } from "../../utils/date/DateUtils";
 
 const OTP_TTL_MS = 5 * 60 * 1000; // 5 min
@@ -36,7 +36,6 @@ export class AuthService implements IAuthService {
     this.emailService = emailService;
   }
 
-  // 2FA: KORAK 1 – pošalji OTP na email
   async startLogin(korisnickoIme: string, lozinka: string): Promise<{ challengeId: string; expiresAt: string; maskedEmail: string }> {
     const user = await this.userRepository.getByUsername(korisnickoIme);
     if (user.id === 0) throw new Error("Invalid credentials");
@@ -59,7 +58,6 @@ export class AuthService implements IAuthService {
     };
   }
 
-  // 2FA: KORAK 2 – verifikuj OTP -> izdaj JWT
   async verifyTwoFactor(challengeId: string, code: string): Promise<{ token: string }> {
     const id = Number(challengeId);
     if (!Number.isFinite(id)) throw new Error("Bad request");
@@ -82,7 +80,7 @@ export class AuthService implements IAuthService {
     if (user.id === 0) throw new Error("User not found");
 
     const token = jwt.sign(
-      { id: user.id, korisnickoIme: user.korisnickoIme, uloga: user.uloga },
+      { id: user.id, korisnickoIme: user.korisnickoIme, uloga: user.uloga, blokiran: user.blokiran },
       process.env.JWT_SECRET ?? "",
       { expiresIn: '6h' }
     );
@@ -90,7 +88,6 @@ export class AuthService implements IAuthService {
     return { token };
   }
 
-  // 2FA: RESEND – tek nakon isteka prethodnog
   async resendTwoFactor(challengeId: string): Promise<{ challengeId: string; expiresAt: string }> {
     const id = Number(challengeId);
     if (!Number.isFinite(id)) throw new Error("Bad request");
@@ -98,7 +95,10 @@ export class AuthService implements IAuthService {
     const prev = await this.challengeRepo.getById(id);
     if (!prev) throw new Error("Not found");
     if (prev.consumedAt) throw new Error("Already used");
-    if (prev.expiresAt.getTime() > Date.now()) throw new Error("Not expired");
+
+    if (prev.expiresAt.getTime() > Date.now()) {
+      throw new Error("Not expired");
+    }
 
     const code = generateOtp6();
     const codeHash = await bcrypt.hash(code, 10);
@@ -113,7 +113,6 @@ export class AuthService implements IAuthService {
     return { challengeId: String(newId), expiresAt: expiresAt.toISOString() };
   }
 
-  // Stara prijava (nije više korišćena za token, ali ostavljamo interfejs)
   async prijava(korisnickoIme: string, lozinka: string): Promise<User> {
     const user = await this.userRepository.getByUsername(korisnickoIme);
     if (user.id === 0) return new User();
@@ -122,7 +121,6 @@ export class AuthService implements IAuthService {
     return user;
   }
 
-  // Registracija: robustno parsiranje datuma (NULL ako je nevalidan)
   async registracija(
     korisnickoIme: string,
     uloga: string,
@@ -138,7 +136,7 @@ export class AuthService implements IAuthService {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(lozinka, salt);
 
-    const dob = parseOptionalDate(datumRodjenja); // null ako nije poslato ili je pogrešno
+    const dob = parseOptionalDate(datumRodjenja); // null ako je nevalidan
 
     const newUser = new User(
       0,

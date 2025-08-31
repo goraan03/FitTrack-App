@@ -12,6 +12,7 @@ export default function KontrolnaTablaAdminStranica() {
         </header>
 
         <CreateTrainerForm adminApi={adminApi} />
+
         <UsersTable adminApi={adminApi} />
       </div>
     </main>

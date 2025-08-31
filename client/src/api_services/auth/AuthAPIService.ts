@@ -2,6 +2,7 @@ import type { AuthResponse } from "../../types/auth/AuthResponse";
 import type { IAuthAPIService } from "./IAuthAPIService";
 import type { LoginStep1Response } from "../../types/auth/LoginStep1Response";
 import type { Resend2FAResponse } from "../../types/auth/Resend2FAResponse";
+import type { BootInfoResponse } from "../../types/auth/BootInfo";
 import axios, { isAxiosError } from "axios";
 
 const API_URL: string = (import.meta.env.VITE_API_URL || "") + "auth";
@@ -52,6 +53,19 @@ export const authApi: IAuthAPIService = {
       return res.data;
     } catch (err) {
       const fallback: AuthResponse = { success: false, message: "Greška pri registraciji." };
+      if (isAxiosError(err)) {
+        return { ...fallback, message: err.response?.data?.message || err.message || fallback.message };
+      }
+      return fallback;
+    }
+  },
+
+  async getBoot(): Promise<BootInfoResponse> {
+    try {
+      const res = await axios.get<BootInfoResponse>(`${API_URL}/boot`);
+      return res.data;
+    } catch (err) {
+      const fallback: BootInfoResponse = { success: false, message: "Greška pri dohvatanju BOOT ID." };
       if (isAxiosError(err)) {
         return { ...fallback, message: err.response?.data?.message || err.message || fallback.message };
       }

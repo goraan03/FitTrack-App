@@ -1,63 +1,45 @@
-import {
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import { authApi } from "./api_services/auth/AuthAPIService";
-import { ProtectedRoute } from "./components/protected_route/ProtectedRoute";
+import { Routes, Route, Navigate } from "react-router-dom";
+
 import PrijavaStranica from "./pages/auth/PrijavaStranica";
 import RegistracijaStranica from "./pages/auth/RegistracijaStranica";
-import KontrolnaTablaUserStranica from "./pages/kontrolna_tabla/KontrolnaTablaUserStranica";
-import KontrolnaTablaAdminStranica from "./pages/kontrolna_tabla/KontrolnaTablaAdminStranica";
-import NotFoundStranica from "./pages/not_found/NotFoundPage";
-import { usersApi } from "./api_services/users/UsersAPIService";
-import KontrolnaTablaTrenerStranica from "./pages/kontrolna_tabla/KontrolnaTablaTrenerStranica";
-import LogoutPage from "./pages/auth/LogoutPage";
+import NotFoundPage from "./pages/not_found/NotFoundPage";
 
-function App() {
+import { ProtectedRoute } from "./components/protected_route/ProtectedRoute";
+import { authApi } from "./api_services/auth/AuthAPIService";
+
+import AdminLayout from "./layouts/AdminLayout";
+import AdminCreateTrainerPage from "./pages/kontrolna_tabla/AdminCreateTrainerPage";
+import AdminUsersPage from "./pages/kontrolna_tabla/AdminUsersPage";
+import AdminAuditLogPage from "./pages/kontrolna_tabla/AdminAuditLogPage";
+import LegacyRedirect from "./routes/LegacyRedirect";
+
+export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<PrijavaStranica authApi={authApi} />} />
-      <Route path="/register" element={<RegistracijaStranica authApi={authApi} />} />
-      <Route path="/404" element={<NotFoundStranica />} />
-      <Route path="/logout" element={<LogoutPage />} />
-
-      {/* klijent */}
-      <Route
-        path="/user-dashboard"
-        element={
-          <ProtectedRoute requiredRole="klijent">
-            <KontrolnaTablaUserStranica />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* trener */}
-      <Route
-        path="/trener-dashboard"
-        element={
-          <ProtectedRoute requiredRole="trener">
-            <KontrolnaTablaTrenerStranica />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* admin */}
-      <Route
-        path="/admin-dashboard"
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <KontrolnaTablaAdminStranica usersApi={usersApi} />
-          </ProtectedRoute>
-        }
-      />
-
       <Route path="/" element={<Navigate to="/login" replace />} />
 
-      {/* Catch-all bez Navigate */}
-      <Route path="*" element={<NotFoundStranica />} />
+      {/* Stare/nepostojeće rute bez 404 */}
+      <Route path="/dashboard" element={<LegacyRedirect />} />
+      <Route path="/coach" element={<LegacyRedirect />} />
+
+      <Route path="/login" element={<PrijavaStranica authApi={authApi} />} />
+      <Route path="/register" element={<RegistracijaStranica authApi={authApi} />} />
+
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Navigate to="users" replace />} />
+        <Route path="create-trainer" element={<AdminCreateTrainerPage />} />
+        <Route path="users" element={<AdminUsersPage />} />
+        <Route path="audit" element={<AdminAuditLogPage />} />
+      </Route>
+
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
-
-export default App;

@@ -72,4 +72,6 @@ typings/
 # Serverless directories
 .serverless
 
+.scripts/seedAdmin.ts
+
 dist

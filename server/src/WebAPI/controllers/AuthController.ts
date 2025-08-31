@@ -1,6 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { IAuthService } from '../../Domain/services/auth/IAuthService';
 import { validacijaPodatakaAuth, validateOtp, validateChallengeId } from '../validators/auth/AuthRequestValidator';
+import { BOOT_ID, BOOT_STARTED_AT } from '../../boot/BootInfo';
 import jwt from "jsonwebtoken";
 
 export class AuthController {
@@ -14,13 +15,21 @@ export class AuthController {
   }
 
   private initializeRoutes(): void {
+    this.router.get('/auth/boot', this.getBoot.bind(this));
     this.router.post('/auth/login', this.startLogin.bind(this));
     this.router.post('/auth/verify-2fa', this.verifyTwoFactor.bind(this));
     this.router.post('/auth/resend-2fa', this.resendTwoFactor.bind(this));
     this.router.post('/auth/register', this.registracija.bind(this));
   }
 
-  // KORAK 1: username+password -> šalje OTP na email (korisnickoIme)
+  private async getBoot(_req: Request, res: Response): Promise<void> {
+    res.status(200).json({
+      success: true,
+      message: 'OK',
+      data: { bootId: BOOT_ID, startedAt: BOOT_STARTED_AT.toISOString() }
+    });
+  }
+
   private async startLogin(req: Request, res: Response): Promise<void> {
     try {
       const { korisnickoIme, lozinka } = req.body;
@@ -33,15 +42,19 @@ export class AuthController {
       try {
         const data = await this.authService.startLogin(korisnickoIme, lozinka);
         res.status(200).json({ success: true, message: '2FA kod poslat na email', data });
-      } catch {
-        res.status(401).json({ success: false, message: 'Neispravno korisničko ime ili lozinka' });
+      } catch (e: any) {
+        const msg = String(e?.message || '');
+        if (msg === 'Invalid credentials') {
+          res.status(401).json({ success: false, message: 'Neispravno korisničko ime ili lozinka' });
+          return;
+        }
+        res.status(500).json({ success: false, message: 'Greška na serveru' });
       }
     } catch {
       res.status(500).json({ success: false, message: 'Greška na serveru' });
     }
   }
 
-  // KORAK 2: unos OTP -> izdavanje tokena
   private async verifyTwoFactor(req: Request, res: Response): Promise<void> {
     try {
       const { challengeId, code } = req.body;
@@ -57,18 +70,30 @@ export class AuthController {
         res.status(200).json({ success: true, message: 'Uspešna prijava', data: token });
       } catch (e: any) {
         const msg = String(e?.message || '');
-        if (msg === 'Expired') { res.status(400).json({ success: false, message: 'Kod je istekao. Zatražite novi.' }); return; }
-        if (msg === 'Already used') { res.status(400).json({ success: false, message: 'Kod je već iskorišćen.' }); return; }
-        if (msg === 'Invalid code') { res.status(401).json({ success: false, message: 'Netačan kod.' }); return; }
-        if (msg === 'Too many attempts') { res.status(429).json({ success: false, message: 'Previše pokušaja. Započnite prijavu ponovo.' }); return; }
-        res.status(400).json({ success: false, message: 'Verifikacija neuspešna.' }); return;
+        if (msg === 'Expired') {
+          res.status(400).json({ success: false, message: 'Kod je istekao. Zatražite novi.' });
+          return;
+        }
+        if (msg === 'Already used') {
+          res.status(400).json({ success: false, message: 'Kod je već iskorišćen.' });
+          return;
+        }
+        if (msg === 'Invalid code') {
+          res.status(401).json({ success: false, message: 'Netačan kod.' });
+          return;
+        }
+        if (msg === 'Too many attempts') {
+          res.status(429).json({ success: false, message: 'Previše pokušaja. Započnite prijavu ponovo.' });
+          return;
+        }
+        res.status(500).json({ success: false, message: 'Greška na serveru' });
+        return;
       }
     } catch {
       res.status(500).json({ success: false, message: 'Greška na serveru' });
     }
   }
 
-  // RESEND: dozvoljen tek posle isteka prethodnog koda
   private async resendTwoFactor(req: Request, res: Response): Promise<void> {
     try {
       const { challengeId } = req.body;
@@ -80,16 +105,22 @@ export class AuthController {
         res.status(200).json({ success: true, message: 'Novi kod poslat', data });
       } catch (e: any) {
         const msg = String(e?.message || '');
-        if (msg === 'Not expired')  { res.status(400).json({ success: false, message: 'Kod još uvek važi. Sačekajte da istekne.' }); return; };
-        if (msg === 'Already used')  res.status(400).json({ success: false, message: 'Prethodni kod je već iskorišćen.' }); return;
-        res.status(400).json({ success: false, message: 'Nije moguće poslati novi kod.' }); return;
+        if (msg === 'Not expired') {
+          res.status(400).json({ success: false, message: 'Kod još uvek važi. Sačekajte da istekne.' });
+          return;
+        }
+        if (msg === 'Already used') {
+          res.status(400).json({ success: false, message: 'Prethodni kod je već iskorišćen.' });
+          return;
+        }
+        res.status(500).json({ success: false, message: 'Nije moguće poslati novi kod.' });
+        return;
       }
     } catch {
       res.status(500).json({ success: false, message: 'Greška na serveru' });
     }
   }
 
-  // REGISTRACIJA – po tvom originalnom ponašanju vraća token
   private async registracija(req: Request, res: Response): Promise<void> {
     try {
       const { korisnickoIme, lozinka, ime, prezime, datumRodjenja, pol } = req.body;

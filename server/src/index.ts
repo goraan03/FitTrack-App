@@ -8,27 +8,36 @@ import { EmailService } from './Services/email/EmailService';
 import { AuthService } from './Services/auth/AuthService';
 import { AuthController } from './WebAPI/controllers/AuthController';
 
+import { AuditService } from './Services/audit/AuditService';
+import { AdminService } from './Services/admin/AdminService';
+import { AdminController } from './WebAPI/controllers/AdminController';
+
+import { authenticate } from './Middlewares/authentification/AuthMiddleware';
+import { authorize } from './Middlewares/authorization/AuthorizeMiddleware';
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Health check
+// Health
 app.get('/healthz', (_req, res) => res.status(200).send('OK'));
 
 // DI
 const userRepo = new UserRepository();
 const challengeRepo = new AuthChallengeRepository();
 const emailService = new EmailService();
-emailService.verifyConnection().catch(() => {
-  console.error('SMTP konekcija nije verifikovana. Proveri .env podešavanja.');
-});
 const authService = new AuthService(userRepo, challengeRepo, emailService);
 
-// Kontroler
-const authController = new AuthController(authService);
+const auditService = new AuditService();
+const adminService = new AdminService(userRepo, auditService);
 
-// Mount
+// Controllers
+const authController = new AuthController(authService);
+const adminController = new AdminController(adminService);
+
+// Routes
 app.use('/api', authController.getRouter());
+app.use('/api', authenticate, authorize('admin'), adminController.getRouter());
 
 const port = Number(process.env.PORT || 4000);
 app.listen(port, () => {

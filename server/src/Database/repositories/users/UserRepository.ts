@@ -18,7 +18,7 @@ export class UserRepository implements IUserRepository {
         user.uloga,
         user.ime,
         user.prezime,
-        user.datumRodjenja ? toMysqlDate(user.datumRodjenja) : null, // ključna promena
+        user.datumRodjenja ? toMysqlDate(user.datumRodjenja) : null,
         user.pol
       ]);
 
@@ -31,7 +31,8 @@ export class UserRepository implements IUserRepository {
           user.ime,
           user.prezime,
           user.datumRodjenja,
-          user.pol
+          user.pol,
+          false
         );
       }
 
@@ -57,7 +58,8 @@ export class UserRepository implements IUserRepository {
           row.ime,
           row.prezime,
           row.datumRodjenja ? new Date(row.datumRodjenja) : null,
-          row.pol
+          row.pol,
+          !!row.blokiran
         );
       }
 
@@ -87,7 +89,8 @@ export class UserRepository implements IUserRepository {
           row.ime,
           row.prezime,
           row.datumRodjenja ? new Date(row.datumRodjenja) : null,
-          row.pol
+          row.pol,
+          !!row.blokiran
         );
       }
 
@@ -111,7 +114,8 @@ export class UserRepository implements IUserRepository {
         row.ime,
         row.prezime,
         row.datumRodjenja ? new Date(row.datumRodjenja) : null,
-        row.pol
+        row.pol,
+        !!row.blokiran
       ));
     } catch {
       return [];
@@ -131,7 +135,7 @@ export class UserRepository implements IUserRepository {
         user.lozinka,
         user.ime,
         user.prezime,
-        user.datumRodjenja ? toMysqlDate(user.datumRodjenja) : null, // ključna promena
+        user.datumRodjenja ? toMysqlDate(user.datumRodjenja) : null,
         user.pol,
         user.id,
       ]);
@@ -166,5 +170,35 @@ export class UserRepository implements IUserRepository {
     } catch {
       return false;
     }
+  }
+
+  async updateBasicInfo(input: {
+    id: number;
+    ime: string;
+    prezime: string;
+    datumRodjenja: Date | null;
+    pol: 'musko' | 'zensko';
+  }): Promise<boolean> {
+    const query = `
+      UPDATE users 
+      SET ime = ?, prezime = ?, datumRodjenja = ?, pol = ?
+      WHERE id = ?
+    `;
+    const [result] = await db.execute<ResultSetHeader>(query, [
+      input.ime,
+      input.prezime,
+      input.datumRodjenja ? toMysqlDate(input.datumRodjenja) : null,
+      input.pol,
+      input.id
+    ]);
+    return result.affectedRows > 0;
+  }
+
+  async setBlocked(id: number, blokiran: boolean): Promise<boolean> {
+    const [result] = await db.execute<ResultSetHeader>(
+      `UPDATE users SET blokiran = ? WHERE id = ?`,
+      [blokiran ? 1 : 0, id]
+    );
+    return result.affectedRows > 0;
   }
 }
