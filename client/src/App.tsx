@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
+import LandingPage from "./pages/landing/LandingPage";
 import PrijavaStranica from "./pages/auth/PrijavaStranica";
 import RegistracijaStranica from "./pages/auth/RegistracijaStranica";
 import NotFoundPage from "./pages/not_found/NotFoundPage";
@@ -16,9 +17,9 @@ import LegacyRedirect from "./routes/LegacyRedirect";
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<LandingPage />} />
 
-      {/* Stare/nepostojeće rute bez 404 */}
+      {/* Legacy redirects */}
       <Route path="/dashboard" element={<LegacyRedirect />} />
       <Route path="/coach" element={<LegacyRedirect />} />
 

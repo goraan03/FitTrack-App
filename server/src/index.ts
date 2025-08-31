@@ -26,9 +26,9 @@ app.get('/healthz', (_req, res) => res.status(200).send('OK'));
 const userRepo = new UserRepository();
 const challengeRepo = new AuthChallengeRepository();
 const emailService = new EmailService();
-const authService = new AuthService(userRepo, challengeRepo, emailService);
-
 const auditService = new AuditService();
+
+const authService = new AuthService(userRepo, challengeRepo, emailService, auditService);
 const adminService = new AdminService(userRepo, auditService);
 
 // Controllers

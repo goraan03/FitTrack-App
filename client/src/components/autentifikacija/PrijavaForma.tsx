@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useId } from "react";
 import type { AuthFormProps } from "../../types/props/auth_form_props/AuthFormProps";
 import { validacijaPodatakaAuth } from "../../api_services/validators/auth/AuthValidator";
 import { useAuth } from "../../hooks/auth/useAuthHook";
@@ -6,16 +6,13 @@ import { OtpInput } from "./OtpInput";
 import { PročitajVrednostPoKljuču, SačuvajVrednostPoKljuču, ObrišiVrednostPoKljuču } from "../../helpers/local_storage";
 
 type Phase = 'credentials' | 'code';
-
-type TwoFAState = {
-  challengeId: string;
-  expiresAt: string; // ISO
-  maskedEmail: string;
-};
-
+type TwoFAState = { challengeId: string; expiresAt: string; maskedEmail: string; };
 const TWO_FA_KEY = "twofa_state";
 
 export function PrijavaForma({ authApi }: AuthFormProps) {
+  // Anti-autofill: nasumična imena polja + fake inputs
+  const seed = useId().replace(/:/g, "_");
+
   const [korisnickoIme, setKorisnickoIme] = useState("");
   const [lozinka, setLozinka] = useState("");
   const [prikazi, setPrikazi] = useState(false);
@@ -30,7 +27,13 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
 
   const { login } = useAuth();
 
-  // učitaj TwoFA state iz localStorage (ako je korisnik reloadao stranicu)
+  // Uvek počni prazno kad uđeš na login
+  useEffect(() => {
+    setKorisnickoIme("");
+    setLozinka("");
+  }, []);
+
+  // TwoFA persist
   useEffect(() => {
     const raw = PročitajVrednostPoKljuču(TWO_FA_KEY);
     if (raw) {
@@ -42,9 +45,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
           setMaskedEmail(s.maskedEmail || null);
           setPhase('code');
         }
-      } catch {
-        // ignore
-      }
+      } catch {}
     }
   }, []);
 
@@ -56,18 +57,12 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
 
   useEffect(() => {
     if (!expiresAt) return;
-    const t = setInterval(() => {
-      setExpiresAt((prev) => (prev ? prev : null));
-    }, 1000);
+    const t = setInterval(() => setExpiresAt((prev) => (prev ? prev : null)), 1000);
     return () => clearInterval(t);
   }, [expiresAt]);
 
-  const persistTwoFA = (s: TwoFAState) => {
-    SačuvajVrednostPoKljuču(TWO_FA_KEY, JSON.stringify(s));
-  };
-  const clearTwoFA = () => {
-    ObrišiVrednostPoKljuču(TWO_FA_KEY);
-  };
+  const persistTwoFA = (s: TwoFAState) => SačuvajVrednostPoKljuču(TWO_FA_KEY, JSON.stringify(s));
+  const clearTwoFA = () => ObrišiVrednostPoKljuču(TWO_FA_KEY);
 
   const podnesiKredencijale = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,12 +82,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
         setMaskedEmail(odgovor.data.maskedEmail);
         setExpiresAt(odgovor.data.expiresAt);
         setPhase('code');
-
-        persistTwoFA({
-          challengeId: odgovor.data.challengeId,
-          expiresAt: odgovor.data.expiresAt,
-          maskedEmail: odgovor.data.maskedEmail,
-        });
+        persistTwoFA({ challengeId: odgovor.data.challengeId, expiresAt: odgovor.data.expiresAt, maskedEmail: odgovor.data.maskedEmail });
       } else {
         setGreska(odgovor.message || "Neuspešna prijava");
       }
@@ -109,8 +99,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
 
     if (!challengeId) {
       setGreska("Nema aktivnog izazova. Pokušajte ponovo.");
-      setPhase('credentials');
-      clearTwoFA();
+      setPhase('credentials'); clearTwoFA();
       return;
     }
     if (!/^\d{6}$/.test(otp)) {
@@ -122,10 +111,8 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
       setLoading(true);
       const res = await authApi.verify2fa(challengeId, otp);
       if (res.success && res.data) {
-        clearTwoFA();
-        login(res.data);
+        clearTwoFA(); login(res.data);
       } else {
-        // prikazi poruku sa servera (Expired / Already used / ...)
         setGreska(res.message || "Verifikacija neuspešna.");
       }
     } catch {
@@ -144,12 +131,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
         setChallengeId(res.data.challengeId);
         setExpiresAt(res.data.expiresAt);
         setOtp("");
-
-        persistTwoFA({
-          challengeId: res.data.challengeId,
-          expiresAt: res.data.expiresAt,
-          maskedEmail: maskedEmail || "",
-        });
+        persistTwoFA({ challengeId: res.data.challengeId, expiresAt: res.data.expiresAt, maskedEmail: maskedEmail || "" });
       } else {
         setGreska(res.message || "Nije moguće poslati novi kod.");
       }
@@ -162,18 +144,31 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
 
   if (phase === 'credentials') {
     return (
-      <form onSubmit={podnesiKredencijale} className="space-y-5" autoComplete="off">
+      <form
+        onSubmit={podnesiKredencijale}
+        className="space-y-5"
+        autoComplete="off"
+      >
+        {/* Fake fields to neutralize password managers */}
+        <input className="hidden" type="text" name="username" autoComplete="username" />
+        <input className="hidden" type="password" name="password" autoComplete="current-password" />
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Email adresa</label>
           <input
-            type="email"
-            name="username"
-            autoComplete="username"
+            type="text"
+            name={`u_${seed}`}
+            autoComplete="off"
+            inputMode="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            data-lpignore="true"
+            data-1p-ignore="true"
             value={korisnickoIme}
             onChange={(e) => setKorisnickoIme(e.target.value.trim())}
             placeholder="Unesite email"
             required
-            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition"
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition"
           />
         </div>
 
@@ -182,13 +177,15 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
           <div className="relative">
             <input
               type={prikazi ? "text" : "password"}
-              name="current-password"
-              autoComplete="current-password"
+              name={`p_${seed}`}
+              autoComplete="new-password"
+              data-lpignore="true"
+              data-1p-ignore="true"
               value={lozinka}
               onChange={(e) => setLozinka(e.target.value)}
               placeholder="Unesite lozinku"
               required
-              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 pr-11 text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition"
+              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 pr-11 text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition"
             />
             <button
               type="button"
@@ -216,7 +213,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full inline-flex justify-center items-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-200 transition disabled:opacity-60"
+          className="w-full inline-flex justify-center items-center rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-200 transition disabled:opacity-60"
         >
           {loading ? "Prijavljivanje..." : "Prijavi se"}
         </button>
@@ -244,7 +241,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 inline-flex justify-center items-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-200 transition disabled:opacity-60"
+          className="flex-1 inline-flex justify-center items-center rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-200 transition disabled:opacity-60"
         >
           {loading ? "Provera..." : "Potvrdi kod"}
         </button>

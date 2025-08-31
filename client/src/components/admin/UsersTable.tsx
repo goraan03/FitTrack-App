@@ -28,16 +28,14 @@ export default function UsersTable({ adminApi }: Props) {
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role, blocked]);
+  useEffect(() => { fetchUsers(); /* eslint-disable-next-line */ }, [role, blocked]);
 
   const toggleBlock = async (u: AdminUser) => {
     const res = await adminApi.setBlocked(u.id, !u.blokiran);
     if (res.success) fetchUsers();
   };
 
+  // Edit modal state
   const [editUser, setEditUser] = useState<AdminUser | null>(null);
   const [editState, setEditState] = useState({ ime: "", prezime: "", datumRodjenja: "", pol: "musko" as "musko" | "zensko" });
   const [editErr, setEditErr] = useState<string | null>(null);
@@ -74,12 +72,15 @@ export default function UsersTable({ adminApi }: Props) {
   };
 
   return (
-    <div className="bg-white border rounded-xl p-5 shadow-sm">
+    <div className="bg-white border rounded-2xl p-5 shadow-sm">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-4">
-        <h3 className="text-lg font-semibold">Korisnici</h3>
+        <div>
+          <h3 className="text-lg font-semibold">Korisnici</h3>
+          <p className="text-sm text-gray-600">Pregled i upravljanje nalozima klijenata i trenera</p>
+        </div>
         <div className="flex gap-3">
           <div>
-            <label className="text-xs text-gray-500 block">Uloga</label>
+            <label className="text-xs text-gray-500 block mb-1">Uloga</label>
             <select className="border rounded-lg px-3 py-2" value={role} onChange={e => setRole(e.target.value as any)}>
               <option value="svi">Svi</option>
               <option value="klijent">Klijenti</option>
@@ -88,11 +89,11 @@ export default function UsersTable({ adminApi }: Props) {
             </select>
           </div>
           <div>
-            <label className="text-xs text-gray-500 block">Blokirani</label>
+            <label className="text-xs text-gray-500 block mb-1">Status</label>
             <select className="border rounded-lg px-3 py-2" value={blocked} onChange={e => setBlocked(e.target.value as any)}>
               <option value="svi">Svi</option>
               <option value="da">Samo blokirani</option>
-              <option value="ne">Samo neblokirani</option>
+              <option value="ne">Samo aktivni</option>
             </select>
           </div>
           <button onClick={fetchUsers} className="px-4 py-2 rounded-lg border">Osveži</button>
@@ -105,15 +106,15 @@ export default function UsersTable({ adminApi }: Props) {
         <table className="min-w-full text-sm">
           <thead>
             <tr className="text-left bg-gray-50">
-              <th className="p-2">ID</th>
-              <th className="p-2">Email</th>
-              <th className="p-2">Uloga</th>
-              <th className="p-2">Ime</th>
-              <th className="p-2">Prezime</th>
-              <th className="p-2">Datum rođenja</th>
-              <th className="p-2">Pol</th>
-              <th className="p-2">Status</th>
-              <th className="p-2">Akcije</th>
+              <th className="p-3">ID</th>
+              <th className="p-3">Email</th>
+              <th className="p-3">Uloga</th>
+              <th className="p-3">Ime</th>
+              <th className="p-3">Prezime</th>
+              <th className="p-3">Datum rođenja</th>
+              <th className="p-3">Pol</th>
+              <th className="p-3">Status</th>
+              <th className="p-3">Akcije</th>
             </tr>
           </thead>
           <tbody>
@@ -124,25 +125,25 @@ export default function UsersTable({ adminApi }: Props) {
             ) : (
               filtered.map(u => (
                 <tr key={u.id} className="border-t">
-                  <td className="p-2">{u.id}</td>
-                  <td className="p-2">{u.korisnickoIme}</td>
-                  <td className="p-2">{u.uloga}</td>
-                  <td className="p-2">{u.ime}</td>
-                  <td className="p-2">{u.prezime}</td>
-                  <td className="p-2">{u.datumRodjenja || "-"}</td>
-                  <td className="p-2">{u.pol || "-"}</td>
-                  <td className="p-2">
+                  <td className="p-3">{u.id}</td>
+                  <td className="p-3">{u.korisnickoIme}</td>
+                  <td className="p-3">{u.uloga}</td>
+                  <td className="p-3">{u.ime}</td>
+                  <td className="p-3">{u.prezime}</td>
+                  <td className="p-3">{u.datumRodjenja || "-"}</td>
+                  <td className="p-3">{u.pol || "-"}</td>
+                  <td className="p-3">
                     {u.blokiran ? (
                       <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700">Blokiran</span>
                     ) : (
-                      <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">Aktivan</span>
+                      <span className="px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">Aktivan</span>
                     )}
                   </td>
-                  <td className="p-2 space-x-2">
-                    <button onClick={() => openEdit(u)} className="px-3 py-1 rounded-md border">Uredi</button>
+                  <td className="p-3 space-x-2">
+                    <button onClick={() => openEdit(u)} className="px-3 py-1 rounded-lg border hover:bg-gray-50">Uredi</button>
                     <button
                       onClick={() => toggleBlock(u)}
-                      className={`px-3 py-1 rounded-md ${u.blokiran ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
+                      className={`px-3 py-1 rounded-lg text-white ${u.blokiran ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'}`}
                     >
                       {u.blokiran ? 'Odblokiraj' : 'Blokiraj'}
                     </button>
@@ -156,39 +157,58 @@ export default function UsersTable({ adminApi }: Props) {
 
       {editUser && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg">
             <h4 className="text-lg font-semibold mb-4">Uredi korisnika #{editUser.id}</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm text-gray-700">Ime</label>
-                <input className="w-full border rounded-lg px-3 py-2" value={editState.ime}
-                       onChange={e => setEditState({ ...editState, ime: e.target.value })} />
+                <input
+                  className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+                  value={editState.ime}
+                  onChange={(e) => setEditState({ ...editState, ime: e.target.value })}
+                />
               </div>
               <div>
                 <label className="text-sm text-gray-700">Prezime</label>
-                <input className="w-full border rounded-lg px-3 py-2" value={editState.prezime}
-                       onChange={e => setEditState({ ...editState, prezime: e.target.value })} />
+                <input
+                  className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+                  value={editState.prezime}
+                  onChange={(e) => setEditState({ ...editState, prezime: e.target.value })}
+                />
               </div>
               <div>
                 <label className="text-sm text-gray-700">Datum rođenja</label>
-                <input className="w-full border rounded-lg px-3 py-2" type="date" value={editState.datumRodjenja}
-                       onChange={e => setEditState({ ...editState, datumRodjenja: e.target.value })} />
+                <input
+                  type="date"
+                  className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+                  value={editState.datumRodjenja}
+                  onChange={(e) => setEditState({ ...editState, datumRodjenja: e.target.value })}
+                />
               </div>
               <div>
                 <label className="text-sm text-gray-700">Pol</label>
-                <select className="w-full border rounded-lg px-3 py-2" value={editState.pol}
-                        onChange={e => setEditState({ ...editState, pol: e.target.value as "musko" | "zensko" })}>
+                <select
+                  className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+                  value={editState.pol}
+                  onChange={(e) => setEditState({ ...editState, pol: e.target.value as "musko" | "zensko" })}
+                >
                   <option value="musko">Muško</option>
                   <option value="zensko">Žensko</option>
                 </select>
               </div>
             </div>
 
-            {editErr && <div className="text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm my-3">{editErr}</div>}
+            {editErr && <div className="text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm my-4">{editErr}</div>}
 
-            <div className="mt-4 flex items-center gap-3 justify-end">
-              <button className="px-4 py-2 rounded-lg border" onClick={() => setEditUser(null)}>Otkaži</button>
-              <button disabled={editLoading} className="px-4 py-2 rounded-lg bg-indigo-600 text-white" onClick={saveEdit}>
+            <div className="mt-5 flex items-center justify-end gap-3">
+              <button className="px-4 py-2 rounded-lg border hover:bg-gray-50" onClick={() => setEditUser(null)}>
+                Otkaži
+              </button>
+              <button
+                disabled={editLoading}
+                className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm disabled:opacity-60"
+                onClick={saveEdit}
+              >
                 {editLoading ? "Čuvanje..." : "Sačuvaj"}
               </button>
             </div>

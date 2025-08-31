@@ -1,116 +1,182 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { validacijaPodatakaAuth } from "../../api_services/validators/auth/AuthValidator";
-import type { AuthFormProps } from "../../types/props/auth_form_props/AuthFormProps";
+import { useEffect, useId, useState } from "react";
+import type { IAuthAPIService } from "../../api_services/auth/IAuthAPIService";
 import { useAuth } from "../../hooks/auth/useAuthHook";
 
-export function RegistracijaForma({ authApi }: AuthFormProps) {
-  const [korisnickoIme, setKorisnickoIme] = useState("");
-  const [lozinka, setLozinka] = useState("");
-  const [potvrda, setPotvrda] = useState("");
+type Props = { authApi: IAuthAPIService };
+
+export default function RegistracijaForma({ authApi }: Props) {
+  const seed = useId().replace(/:/g, "_");
+
   const [ime, setIme] = useState("");
   const [prezime, setPrezime] = useState("");
-  const [datumRodjenja, setDatumRodjenja] = useState("");
-  const [pol, setPol] = useState<"musko" | "zensko" | "">("");
-  const [greska, setGreska] = useState("");
+  const [email, setEmail] = useState("");
+  const [lozinka, setLozinka] = useState("");
+  const [age, setAge] = useState<string>("");
+  const [pol, setPol] = useState<"musko" | "zensko">("musko");
   const [loading, setLoading] = useState(false);
+  const [greska, setGreska] = useState<string | null>(null);
 
   const { login } = useAuth();
 
-  const podnesiFormu = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setGreska("");
+  useEffect(() => {
+    // uvek prazno na mount
+    setIme(""); setPrezime(""); setEmail(""); setLozinka(""); setAge("");
+  }, []);
 
-    const validacija = validacijaPodatakaAuth(korisnickoIme, lozinka);
-    if (!validacija.uspesno) {
-      setGreska(validacija.poruka ?? "Неисправни подаци");
+  const toDob = (ageStr: string): string | undefined => {
+    if (!ageStr) return undefined;
+    const n = parseInt(ageStr, 10);
+    if (!Number.isFinite(n) || n < 1 || n > 120) return undefined;
+    const year = new Date().getFullYear() - n;
+    return `${year}-01-01`;
+  };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGreska(null);
+    if (!ime || !prezime || !email || !lozinka) {
+      setGreska("Sva polja osim godina su obavezna.");
       return;
     }
-
-    if (lozinka !== potvrda) {
-      setGreska("Лозинке се не поклапају");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setGreska("Unesite ispravan email.");
+      return;
+    }
+    if (lozinka.length < 6) {
+      setGreska("Lozinka mora imati najmanje 6 karaktera.");
       return;
     }
 
     try {
       setLoading(true);
       const odgovor = await authApi.registracija({
-        korisnickoIme,
+        korisnickoIme: email,
         lozinka,
         ime,
         prezime,
-        datumRodjenja,
-        pol
+        datumRodjenja: toDob(age),
+        pol,
       });
       if (odgovor.success && odgovor.data) {
         login(odgovor.data);
       } else {
-        setGreska(odgovor.message || "Neuspešna регистрација");
+        setGreska(odgovor.message || "Registracija neuspešna.");
       }
-    } catch (err) {
-      setGreska("Greška prilikom регистрације. Pokušajte ponovo.");
+    } catch {
+      setGreska("Greška prilikom registracije. Pokušajte ponovo.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white/70 shadow-xl rounded-2xl p-6 border">
-      <form onSubmit={podnesiFormu} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Ime */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Ime</label>
-          <input value={ime} onChange={e => setIme(e.target.value)} required className="w-full border px-3 py-2 rounded-xl" />
-        </div>
+    <form onSubmit={submit} className="space-y-5" autoComplete="off">
+      {/* fake inputs to neutralize password managers */}
+      <input className="hidden" type="text" name="username" autoComplete="username" />
+      <input className="hidden" type="password" name="password" autoComplete="new-password" />
 
-        {/* Prezime */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Prezime</label>
-          <input value={prezime} onChange={e => setPrezime(e.target.value)} required className="w-full border px-3 py-2 rounded-xl" />
+          <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+          <input
+            type="text"
+            name={`fn_${seed}`}
+            autoComplete="off"
+            value={ime}
+            onChange={(e) => setIme(e.target.value)}
+            placeholder="First name"
+            required
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+          />
         </div>
-
-        {/* Datum rodjenja */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Datum rođenja</label>
-          <input type="date" value={datumRodjenja} onChange={e => setDatumRodjenja(e.target.value)} required className="w-full border px-3 py-2 rounded-xl" />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+          <input
+            type="text"
+            name={`ln_${seed}`}
+            autoComplete="off"
+            value={prezime}
+            onChange={(e) => setPrezime(e.target.value)}
+            placeholder="Last name"
+            required
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+          />
         </div>
+      </div>
 
-        {/* Pol */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input
+          type="text"
+          name={`e_${seed}`}
+          autoComplete="off"
+          inputMode="email"
+          autoCapitalize="none"
+          spellCheck={false}
+          data-lpignore="true"
+          data-1p-ignore="true"
+          value={email}
+          onChange={(e) => setEmail(e.target.value.trim())}
+          placeholder="Enter your email"
+          required
+          className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <input
+          type="password"
+          name={`p_${seed}`}
+          autoComplete="new-password"
+          data-lpignore="true"
+          data-1p-ignore="true"
+          value={lozinka}
+          onChange={(e) => setLozinka(e.target.value)}
+          placeholder="Create a password"
+          required
+          className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Pol</label>
-          <select value={pol} onChange={e => setPol(e.target.value as any)} required className="w-full border px-3 py-2 rounded-xl">
-            <option value="">Izaberite</option>
-            <option value="musko">Muško</option>
-            <option value="zensko">Žensko</option>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+          <input
+            type="number"
+            min={1}
+            max={120}
+            name={`a_${seed}`}
+            autoComplete="off"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+            placeholder="Age"
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+          <select
+            name={`g_${seed}`}
+            value={pol}
+            onChange={(e) => setPol(e.target.value as "musko" | "zensko")}
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+          >
+            <option value="musko">Male</option>
+            <option value="zensko">Female</option>
           </select>
         </div>
+      </div>
 
-        {/* Email */}
-        <div className="sm:col-span-2">
-          <label className="block text-sm font-medium mb-1">Email</label>
-          <input type="email" value={korisnickoIme} onChange={e => setKorisnickoIme(e.target.value)} required className="w-full border px-3 py-2 rounded-xl" />
-        </div>
+      {greska && <div className="rounded-lg border border-red-200 bg-red-50 text-red-700 px-4 py-2 text-sm">{greska}</div>}
 
-        {/* Lozinka */}
-        <div>
-          <label className="block mb-1 text-sm">Lozinka</label>
-          <input type="password" value={lozinka} onChange={e => setLozinka(e.target.value)} required className="w-full border px-3 py-2 rounded-xl" />
-        </div>
-
-        {/* Potvrda */}
-        <div>
-          <label className="block mb-1 text-sm">Potvrda lozinke</label>
-          <input type="password" value={potvrda} onChange={e => setPotvrda(e.target.value)} required className="w-full border px-3 py-2 rounded-xl" />
-        </div>
-
-        {greska && <div className="sm:col-span-2 text-red-600">{greska}</div>}
-
-        <button type="submit" disabled={loading} className="sm:col-span-2 bg-indigo-600 text-white px-4 py-2 rounded-xl">
-          {loading ? "Kreiranje..." : "Kreiraj nalog"}
-        </button>
-
-        <p className="sm:col-span-2 text-center text-sm">Već imate nalog? <Link to="/login" className="text-indigo-600">Prijava</Link></p>
-      </form>
-    </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full inline-flex justify-center items-center rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-200 transition disabled:opacity-60"
+      >
+        {loading ? "Creating..." : "Create Account"}
+      </button>
+    </form>
   );
 }

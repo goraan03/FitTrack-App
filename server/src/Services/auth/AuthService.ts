@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { IAuthChallengeRepository } from "../../Domain/repositories/auth/IAuthChallengeRepository";
 import { IEmailService } from "../email/EmailService";
 import { parseOptionalDate } from "../../utils/date/DateUtils";
+import { IAuditService } from "../../Domain/services/audit/IAuditService";
 
 const OTP_TTL_MS = 5 * 60 * 1000; // 5 min
 const MAX_ATTEMPTS = 5;
@@ -29,27 +30,41 @@ export class AuthService implements IAuthService {
   private userRepository: IUserRepository;
   private challengeRepo: IAuthChallengeRepository;
   private emailService: IEmailService;
+  private audit: IAuditService;
 
-  constructor(userRepository: IUserRepository, challengeRepo: IAuthChallengeRepository, emailService: IEmailService) {
+  constructor(
+    userRepository: IUserRepository,
+    challengeRepo: IAuthChallengeRepository,
+    emailService: IEmailService,
+    audit: IAuditService
+  ) {
     this.userRepository = userRepository;
     this.challengeRepo = challengeRepo;
     this.emailService = emailService;
+    this.audit = audit;
   }
 
   async startLogin(korisnickoIme: string, lozinka: string): Promise<{ challengeId: string; expiresAt: string; maskedEmail: string }> {
     const user = await this.userRepository.getByUsername(korisnickoIme);
-    if (user.id === 0) throw new Error("Invalid credentials");
+    if (user.id === 0) {
+      await this.audit.log('Upozorenje', 'LOGIN_FAILED_BAD_CREDENTIALS', null, korisnickoIme);
+      throw new Error("Invalid credentials");
+    }
 
     const valid = await bcrypt.compare(lozinka, user.lozinka);
-    if (!valid) throw new Error("Invalid credentials");
+    if (!valid) {
+      await this.audit.log('Upozorenje', 'LOGIN_FAILED_BAD_CREDENTIALS', user.id, user.korisnickoIme);
+      throw new Error("Invalid credentials");
+    }
 
     const code = generateOtp6();
     const codeHash = await bcrypt.hash(code, 10);
     const expiresAt = new Date(Date.now() + OTP_TTL_MS);
 
     const challengeIdNum = await this.challengeRepo.create(user.id, codeHash, expiresAt);
-
     await this.emailService.sendOtp(user.korisnickoIme, code);
+
+    await this.audit.log('Informacija', 'LOGIN_2FA_CODE_SENT', user.id, user.korisnickoIme, { challengeId: challengeIdNum });
 
     return {
       challengeId: String(challengeIdNum),
@@ -64,19 +79,31 @@ export class AuthService implements IAuthService {
 
     const challenge = await this.challengeRepo.getById(id);
     if (!challenge) throw new Error("Not found");
-    if (challenge.consumedAt) throw new Error("Already used");
-    if (challenge.expiresAt.getTime() < Date.now()) throw new Error("Expired");
-    if (challenge.attempts >= MAX_ATTEMPTS) throw new Error("Too many attempts");
+
+    const user = await this.userRepository.getById(challenge.userId);
+
+    if (challenge.consumedAt) {
+      await this.audit.log('Upozorenje', '2FA_ALREADY_USED', user.id || null, user.korisnickoIme || null, { challengeId: id });
+      throw new Error("Already used");
+    }
+    if (challenge.expiresAt.getTime() < Date.now()) {
+      await this.audit.log('Upozorenje', '2FA_EXPIRED', user.id || null, user.korisnickoIme || null, { challengeId: id });
+      throw new Error("Expired");
+    }
+    if (challenge.attempts >= MAX_ATTEMPTS) {
+      await this.audit.log('Upozorenje', '2FA_TOO_MANY_ATTEMPTS', user.id || null, user.korisnickoIme || null, { challengeId: id });
+      throw new Error("Too many attempts");
+    }
 
     const ok = await bcrypt.compare(code, challenge.codeHash);
     if (!ok) {
       await this.challengeRepo.incrementAttempts(id);
+      await this.audit.log('Upozorenje', '2FA_INVALID_CODE', user.id || null, user.korisnickoIme || null, { challengeId: id });
       throw new Error("Invalid code");
     }
 
     await this.challengeRepo.markConsumed(id);
 
-    const user = await this.userRepository.getById(challenge.userId);
     if (user.id === 0) throw new Error("User not found");
 
     const token = jwt.sign(
@@ -84,6 +111,8 @@ export class AuthService implements IAuthService {
       process.env.JWT_SECRET ?? "",
       { expiresIn: '6h' }
     );
+
+    await this.audit.log('Informacija', 'LOGIN_SUCCESS', user.id, user.korisnickoIme, { challengeId: id });
 
     return { token };
   }
@@ -109,6 +138,7 @@ export class AuthService implements IAuthService {
     if (user.id === 0) throw new Error("User not found");
 
     await this.emailService.sendOtp(user.korisnickoIme, code);
+    await this.audit.log('Informacija', '2FA_RESENT', user.id, user.korisnickoIme, { prevChallengeId: id, newChallengeId: newId });
 
     return { challengeId: String(newId), expiresAt: expiresAt.toISOString() };
   }
@@ -131,12 +161,15 @@ export class AuthService implements IAuthService {
     pol: string
   ): Promise<User> {
     const exists = await this.userRepository.getByUsername(korisnickoIme);
-    if (exists.id !== 0) return new User();
+    if (exists.id !== 0) {
+      await this.audit.log('Upozorenje', 'REGISTER_CONFLICT_EXISTING_USER', exists.id, korisnickoIme);
+      return new User();
+    }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(lozinka, salt);
 
-    const dob = parseOptionalDate(datumRodjenja); // null ako je nevalidan
+    const dob = parseOptionalDate(datumRodjenja);
 
     const newUser = new User(
       0,
@@ -149,6 +182,10 @@ export class AuthService implements IAuthService {
       pol as "musko" | "zensko"
     );
 
-    return await this.userRepository.create(newUser);
+    const created = await this.userRepository.create(newUser);
+    if (created.id !== 0) {
+      await this.audit.log('Informacija', 'REGISTER_SUCCESS', created.id, korisnickoIme);
+    }
+    return created;
   }
 }
