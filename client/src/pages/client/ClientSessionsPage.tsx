@@ -1,0 +1,90 @@
+import { useEffect, useState } from "react";
+import { clientApi } from "../../api_services/client/ClientAPIService";
+import { Filter, Search } from "lucide-react";
+
+export default function ClientSessionsPage() {
+  const [list, setList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [filters, setFilters] = useState<{ type?: 'individual'|'group'|''; status?: 'free'|'full'|'' }>({ type:'', status:'free' });
+
+  const load = async () => {
+    setLoading(true);
+    const resp = await clientApi.getAvailableTerms({
+      status: filters.status || undefined,
+      type: (filters.type || undefined) as any
+    });
+    setLoading(false);
+    if (resp.success && resp.data) setList(resp.data);
+  };
+
+  useEffect(()=>{ load(); /* eslint-disable-next-line */ },[filters.type, filters.status]);
+
+  const book = async (id:number) => {
+    const r = await clientApi.book(id);
+    if (r.success) load();
+    else alert(r.message);
+  };
+
+  return (
+    <section className="space-y-6">
+      <header>
+        <h1 className="text-3xl font-extrabold tracking-tight">Training Sessions 🏋️‍♂️</h1>
+        <p className="text-gray-600">Browse and book available workout sessions</p>
+      </header>
+
+      <div className="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+          <div className="flex items-center gap-2 text-gray-700 font-semibold">
+            <Filter className="h-4 w-4" />
+            Filter & Search
+          </div>
+          <div className="flex flex-1 gap-3">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input className="w-full rounded-xl border border-gray-300 pl-9 pr-3 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Search sessions..." />
+            </div>
+            <select className="rounded-xl border border-gray-300 px-3 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" value={filters.type} onChange={e=> setFilters(f=>({...f, type:e.target.value as any}))}>
+              <option value="">All Types</option>
+              <option value="individual">Individual</option>
+              <option value="group">Group</option>
+            </select>
+            <select className="rounded-xl border border-gray-300 px-3 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" value={filters.status} onChange={e=> setFilters(f=>({...f, status:e.target.value as any}))}>
+              <option value="">All Sessions</option>
+              <option value="free">Free</option>
+              <option value="full">Full</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4">
+        {loading ? <div>Loading...</div> :
+          list.length === 0 ? (
+            <div className="text-center text-gray-500 py-10">
+              <div className="text-6xl mb-3">📅</div>
+              <div>No sessions found</div>
+            </div>
+          ) : (
+            list.map(item=>(
+              <div key={item.id} className="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4 flex items-center justify-between">
+                <div>
+                  <div className="font-semibold">{item.program.title}</div>
+                  <div className="text-sm text-gray-600">{new Date(item.startAt).toLocaleString()} • {item.type} • {item.enrolledCount}/{item.capacity}</div>
+                </div>
+                <div>
+                  {item.status==='free' ? (
+                    <button onClick={()=>book(item.id)} className="inline-flex items-center rounded-lg bg-emerald-600 text-white px-4 py-2 font-semibold hover:bg-emerald-700 transition">
+                      Book
+                    </button>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm">Full</span>
+                  )}
+                </div>
+              </div>
+            ))
+          )
+        }
+      </div>
+    </section>
+  );
+}

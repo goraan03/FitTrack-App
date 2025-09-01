@@ -2,7 +2,7 @@ import axios, { isAxiosError } from "axios";
 import type { IAdminAPIService } from "./IAdminAPIService";
 import type { ApiResponse } from "../../types/common/ApiResponse";
 import type { AdminUser } from "../../types/admin/AdminUser";
-import type { AuditLog, AuditCategory } from "../../types/admin/AuditLog";
+import type { AuditLog } from "../../types/admin/AuditLog";
 import { PročitajVrednostPoKljuču } from "../../helpers/local_storage";
 
 const API_URL = (import.meta.env.VITE_API_URL || "") + "admin";

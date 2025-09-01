@@ -1,6 +1,9 @@
+// server/src/WebAPI/controllers/AdminController.ts
 import { Request, Response, Router } from 'express';
 import { IAdminService } from '../../Domain/services/admin/IAdminService';
 import { validateCreateTrainer, validateUpdateUser } from '../validators/admin/AdminValidators';
+import { authenticate } from '../../Middlewares/authentification/AuthMiddleware';
+import { authorize } from '../../Middlewares/authorization/AuthorizeMiddleware';
 
 export class AdminController {
   private router: Router;
@@ -13,6 +16,9 @@ export class AdminController {
   }
 
   private initializeRoutes(): void {
+    // Guard za sve /admin rute
+    this.router.use('/admin', authenticate, authorize('admin'));
+
     this.router.get('/admin/users', this.listUsers.bind(this));
     this.router.post('/admin/trainers', this.createTrainer.bind(this));
     this.router.patch('/admin/users/:id/block', this.blockToggle.bind(this));
@@ -28,8 +34,7 @@ export class AdminController {
       if (typeof blokiran === 'string') filters.blokiran = blokiran === '1' || blokiran === 'true';
       const data = await this.adminService.listUsers(filters);
       res.status(200).json({ success: true, message: 'OK', data });
-    } catch (e) {
-      console.error('[AdminController.listUsers] error:', e);
+    } catch {
       res.status(500).json({ success: false, message: 'Greška na serveru' });
     }
   }
@@ -42,7 +47,6 @@ export class AdminController {
       const result = await this.adminService.createTrainer(req.body, me.id, me.korisnickoIme);
       res.status(201).json({ success: true, message: 'Trener kreiran', data: result });
     } catch (e: any) {
-      console.error('[AdminController.createTrainer] error:', e);
       const msg = String(e?.message || '');
       if (msg.includes('već postoji')) return void res.status(409).json({ success: false, message: msg });
       res.status(500).json({ success: false, message: 'Greška na serveru' });
@@ -57,8 +61,7 @@ export class AdminController {
       const me = req.user!;
       await this.adminService.setBlocked(id, !!blokiran, me.id, me.korisnickoIme);
       res.status(200).json({ success: true, message: blokiran ? 'Korisnik blokiran' : 'Korisnik odblokiran' });
-    } catch (e) {
-      console.error('[AdminController.blockToggle] error:', e);
+    } catch {
       res.status(500).json({ success: false, message: 'Greška na serveru' });
     }
   }
@@ -69,12 +72,10 @@ export class AdminController {
       if (!Number.isFinite(id) || id <= 0) { res.status(400).json({ success: false, message: 'Neispravan ID' }); return; }
       const v = validateUpdateUser(req.body);
       if (!v.ok) { res.status(400).json({ success: false, message: v.message }); return; }
-
       const me = req.user!;
       await this.adminService.updateUserBasicInfo(id, req.body, me.id, me.korisnickoIme);
       res.status(200).json({ success: true, message: 'Podaci ažurirani' });
-    } catch (e) {
-      console.error('[AdminController.updateUser] error:', e);
+    } catch {
       res.status(500).json({ success: false, message: 'Greška na serveru' });
     }
   }
@@ -86,11 +87,9 @@ export class AdminController {
       const category = (req.query.category as any) || undefined;
       const search = (req.query.search as string) || undefined;
       const userId = req.query.userId ? Number(req.query.userId) : undefined;
-
       const data = await this.adminService.getAuditLogs({ page, pageSize, category, search, userId });
       res.status(200).json({ success: true, message: 'OK', data });
-    } catch (e) {
-      console.error('[AdminController.getAudit] error:', e);
+    } catch {
       res.status(500).json({ success: false, message: 'Greška na serveru' });
     }
   }
