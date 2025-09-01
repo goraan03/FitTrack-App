@@ -11,11 +11,9 @@ export class ClientService implements IClientService {
   constructor(private audit: IAuditService) {}
 
   async chooseTrainer(userId: number, trainerId: number): Promise<void> {
-    // Provera da li je trainerId zaista trener
     const [t] = await db.execute<RowDataPacket[]>("SELECT id, uloga, CONCAT(ime,' ',prezime) as name FROM users WHERE id=? LIMIT 1", [trainerId]);
     if (t.length === 0 || t[0].uloga !== 'trener') throw new Error('Trainer not found');
 
-    // Dozvoli promenu samo ako currently NULL (prvi put)
     const [u] = await db.execute<RowDataPacket[]>("SELECT assigned_trener_id FROM users WHERE id=? LIMIT 1", [userId]);
     if (u.length === 0) throw new Error('User not found');
     if (u[0].assigned_trener_id) throw new Error('Already assigned');
@@ -53,7 +51,7 @@ export class ClientService implements IClientService {
     const events: WeeklyEvent[] = rows.map((r:any)=>{
       const s = new Date(r.startAt);
       const e = new Date(s.getTime() + r.dur*60000);
-      const day = (s.getDay()+7)%7; // 0 Sunday
+      const day = (s.getDay()+7)%7;
       const cancellable = (s.getTime() - Date.now()) >= (60*60000);
       return {
         termId: r.termId,
@@ -70,7 +68,10 @@ export class ClientService implements IClientService {
     return { events };
   }
 
-  async getAvailableTerms(userId: number, params: { fromISO?: string; toISO?: string; type?: 'individual'|'group'; programId?: number; status?: 'free'|'full' }): Promise<AvailableTerm[]> {
+  async getAvailableTerms(
+    userId: number,
+    params: { fromISO?: string; toISO?: string; type?: 'individual'|'group'; programId?: number; status?: 'free'|'full' }
+  ): Promise<AvailableTerm[]> {
     // Dozvoljeno samo za assigned trenera
     const [u] = await db.execute<RowDataPacket[]>("SELECT assigned_trener_id FROM users WHERE id=?", [userId]);
     if (!u.length || !u[0].assigned_trener_id) throw new Error('NO_TRAINER_SELECTED');
@@ -78,6 +79,7 @@ export class ClientService implements IClientService {
 
     const from = isoToDate(params.fromISO) || new Date();
     const to = isoToDate(params.toISO) || new Date(Date.now() + 30*24*3600*1000);
+
     const where: string[] = ["t.trainer_id=?","t.canceled=0","t.start_at BETWEEN ? AND ?"];
     const args: any[] = [trainerId, from, to];
 
@@ -87,15 +89,28 @@ export class ClientService implements IClientService {
     if (params.status==='full') where.push("t.enrolled_count >= t.capacity");
 
     const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT t.id, t.start_at as startAt, t.duration_min as durationMin, t.type, t.capacity, t.enrolled_count as enrolledCount,
-              p.id as programId, p.title as programTitle, p.level,
-              CONCAT(u.ime,' ',u.prezime) as trainerName, u.id as trainerId
+      `SELECT t.id,
+              t.start_at as startAt,
+              t.duration_min as durationMin,
+              t.type,
+              t.capacity,
+              t.enrolled_count as enrolledCount,
+              p.id as programId,
+              p.title as programTitle,
+              p.level,
+              CONCAT(u.ime,' ',u.prezime) as trainerName,
+              u.id as trainerId,
+              CASE WHEN e.id IS NULL THEN 0 ELSE 1 END as isEnrolled
        FROM training_terms t
        JOIN programs p ON p.id=t.program_id
        JOIN users u ON u.id=t.trainer_id
+       LEFT JOIN training_enrollments e
+              ON e.term_id = t.id
+             AND e.user_id = ?
+             AND e.status = 'enrolled'
        WHERE ${where.join(' AND ')}
        ORDER BY t.start_at ASC`,
-      args
+      [userId, ...args]
     );
 
     const out: AvailableTerm[] = rows.map((r:any)=>({
@@ -106,6 +121,7 @@ export class ClientService implements IClientService {
       capacity: r.capacity,
       enrolledCount: r.enrolledCount,
       status: (r.enrolledCount >= r.capacity) ? 'full' : 'free',
+      isEnrolled: !!Number(r.isEnrolled),
       program: { id: r.programId, title: r.programTitle, level: r.level },
       trainer: { id: r.trainerId, name: r.trainerName }
     }));
@@ -113,7 +129,7 @@ export class ClientService implements IClientService {
   }
 
   async bookTerm(userId: number, termId: number): Promise<void> {
-    // proveri term
+    // proveri term + korisnika (trener, vreme itd.)
     const [trows] = await db.execute<RowDataPacket[]>(
       `SELECT t.*, u.assigned_trener_id 
        FROM training_terms t
@@ -129,20 +145,40 @@ export class ClientService implements IClientService {
 
     const start = new Date(t.start_at);
     if ((start.getTime() - Date.now()) < 60*60000) throw new Error('TOO_LATE');
-
     if (t.canceled) throw new Error('CANCELED');
-    if (t.enrolled_count >= t.capacity) { await this.audit.log('Upozorenje', 'BOOK_CONFLICT_FULL', userId, null, { termId }); throw new Error('FULL'); }
 
-    // upis
-    try {
-      await db.execute<ResultSetHeader>(
-        "INSERT INTO training_enrollments (term_id, user_id) VALUES (?,?)",
-        [termId, userId]
-      );
-    } catch(e:any) {
-      if (String(e?.message||'').includes('uq_enr_user_term')) throw new Error('ALREADY_ENROLLED');
-      throw e;
+    // proveri da li već postoji red za ovaj user/term
+    const [erows] = await db.execute<RowDataPacket[]>(
+      "SELECT id, status FROM training_enrollments WHERE term_id=? AND user_id=? LIMIT 1",
+      [termId, userId]
+    );
+
+    if (erows.length) {
+      const e:any = erows[0];
+      if (e.status === 'enrolled') {
+        throw new Error('ALREADY_ENROLLED');
+      }
+      // re-enroll sa proverenim kapacitetom
+      if (t.enrolled_count >= t.capacity) {
+        await this.audit.log('Upozorenje', 'BOOK_CONFLICT_FULL', userId, null, { termId });
+        throw new Error('FULL');
+      }
+      await db.execute("UPDATE training_enrollments SET status='enrolled', rating=NULL, feedback=NULL WHERE id=?", [e.id]);
+      await db.execute("UPDATE training_terms SET enrolled_count = enrolled_count + 1 WHERE id=?", [termId]);
+      await this.audit.log('Informacija', 'BOOK_SUCCESS', userId, null, { termId });
+      return;
     }
+
+    // prvi upis
+    if (t.enrolled_count >= t.capacity) {
+      await this.audit.log('Upozorenje', 'BOOK_CONFLICT_FULL', userId, null, { termId });
+      throw new Error('FULL');
+    }
+
+    await db.execute<ResultSetHeader>(
+      "INSERT INTO training_enrollments (term_id, user_id) VALUES (?,?)",
+      [termId, userId]
+    );
     await db.execute("UPDATE training_terms SET enrolled_count = enrolled_count + 1 WHERE id=?", [termId]);
     await this.audit.log('Informacija', 'BOOK_SUCCESS', userId, null, { termId });
   }
@@ -158,7 +194,7 @@ export class ClientService implements IClientService {
 
     const r:any = rows[0];
     const start = new Date(r.start_at);
-    if ((start.getTime() - Date.now()) < 60*60000) throw new Error('TOO_LATE');  // posle ovog vremena zabranjeno
+    if ((start.getTime() - Date.now()) < 60*60000) throw new Error('TOO_LATE');
 
     await db.execute("UPDATE training_enrollments SET status='canceled_by_user' WHERE id=?", [r.enrId]);
     await db.execute("UPDATE training_terms SET enrolled_count = GREATEST(enrolled_count-1,0) WHERE id=?", [termId]);

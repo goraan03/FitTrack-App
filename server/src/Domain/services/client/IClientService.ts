@@ -21,6 +21,7 @@ export type AvailableTerm = {
   capacity: number;
   enrolledCount: number;
   status: TermStatus;
+  isEnrolled: boolean;  // NOVO
   program: { id: number; title: string; level: string };
   trainer: { id: number; name: string };
 };

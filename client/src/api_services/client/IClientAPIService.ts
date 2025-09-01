@@ -4,8 +4,13 @@ export type WeeklyScheduleResponse = {
 };
 export type AvailableTermsResponse = {
   success: boolean; message: string;
-  data?: { id:number; startAt:string; durationMin:number; type:'individual'|'group'; capacity:number; enrolledCount:number; status:'free'|'full';
-           program:{ id:number; title:string; level:string}; trainer:{ id:number; name:string } }[];
+  data?: {
+    id:number; startAt:string; durationMin:number; type:'individual'|'group';
+    capacity:number; enrolledCount:number; status:'free'|'full';
+    isEnrolled: boolean; // NOVO
+    program:{ id:number; title:string; level:string};
+    trainer:{ id:number; name:string }
+  }[];
 };
 export type BasicResponse = { success:boolean; message:string };
 export type HistoryResponse = { success:boolean; message:string; data?: { items: { id:number; date:string; programTitle:string; trainerName:string; status:string; rating:number|null; feedback:string|null }[], stats: { total:number; avgRating:number|null } } };

@@ -1,4 +1,3 @@
-// server/src/app.ts
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
@@ -20,7 +19,13 @@ import { ProgramsService } from './Services/programs/ProgramsService';
 import { ProgramsController } from './WebAPI/controllers/ProgramsController';
 
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: true, // reflektuj origin u dev-u
+  credentials: true,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Auth-Token'],
+}));
 app.use(express.json());
 
 // Health
@@ -43,16 +48,10 @@ const adminController = new AdminController(adminService);
 const clientController = new ClientController(clientService);
 const programsController = new ProgramsController(programsService);
 
-// Mount
-// /api/auth/* (public)
-app.use('/api', authController.getRouter());
-// /api/admin/* (zaštita se primenjuje unutar AdminController-a)
-app.use('/api', adminController.getRouter());
-// /api/client/* (zaštita se primenjuje unutar ClientController-a)
-app.use('/api', clientController.getRouter());
-app.use('/api', programsController.getRouter());
-
-const port = Number(process.env.PORT || 4000);
-app.listen(port, () => console.log(`API sluša na portu ${port}`));
+// Mount (sve pod /api)
+app.use('/api', authController.getRouter());     // /api/auth/*
+app.use('/api', adminController.getRouter());    // /api/admin/*
+app.use('/api', clientController.getRouter());   // /api/client/*
+app.use('/api', programsController.getRouter()); // /api/programs/public
 
 export default app;

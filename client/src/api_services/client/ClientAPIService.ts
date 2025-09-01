@@ -1,4 +1,3 @@
-// client/src/api_services/client/ClientAPIService.ts
 import axios from "axios";
 import { PročitajVrednostPoKljuču } from "../../helpers/local_storage";
 import type {
@@ -12,45 +11,67 @@ import type {
 
 const baseURL = (import.meta.env.VITE_API_URL || "") + "client";
 
+// Fallback čitanje tokena iz storage-a
+function getAuthToken(): string | null {
+  try {
+    return (
+      PročitajVrednostPoKljuču("authToken") ||
+      localStorage.getItem("authToken") ||
+      localStorage.getItem("token") ||
+      localStorage.getItem("jwt") ||
+      sessionStorage.getItem("authToken") ||
+      null
+    );
+  } catch {
+    return null;
+  }
+}
+
+function authHeaders() {
+  const token = getAuthToken();
+  return token ? { Authorization: `Bearer ${token}`, "X-Auth-Token": token } : {};
+}
+
 // Axios instance sa interceptorom za Authorization header
 const instance = axios.create({ baseURL });
 
 instance.interceptors.request.use((config) => {
-  const token = PročitajVrednostPoKljuču("authToken");
+  const token = getAuthToken();
   if (token) {
     config.headers = config.headers || {};
     (config.headers as any).Authorization = `Bearer ${token}`;
+    (config.headers as any)["X-Auth-Token"] = token;
   }
   return config;
 });
 
 export const clientApi: IClientAPIService = {
   async listTrainers() {
-    const res = await instance.get<TrainersResponse>("/trainers");
+    const res = await instance.get<TrainersResponse>("/trainers", { headers: authHeaders() });
     return res.data;
   },
   async chooseTrainer(trainerId: number) {
-    const res = await instance.post<BasicResponse>("/choose-trainer", { trainerId });
+    const res = await instance.post<BasicResponse>("/choose-trainer", { trainerId }, { headers: authHeaders() });
     return res.data;
   },
   async getWeeklySchedule(weekStartISO: string) {
-    const res = await instance.get<WeeklyScheduleResponse>("/schedule", { params: { weekStart: weekStartISO } });
+    const res = await instance.get<WeeklyScheduleResponse>("/schedule", { params: { weekStart: weekStartISO }, headers: authHeaders() });
     return res.data;
   },
   async getAvailableTerms(params) {
-    const res = await instance.get<AvailableTermsResponse>("/available-terms", { params });
+    const res = await instance.get<AvailableTermsResponse>("/available-terms", { params, headers: authHeaders() });
     return res.data;
   },
   async book(termId: number) {
-    const res = await instance.post<BasicResponse>("/book", { termId });
+    const res = await instance.post<BasicResponse>("/book", { termId }, { headers: authHeaders() });
     return res.data;
   },
   async cancel(termId: number) {
-    const res = await instance.post<BasicResponse>("/cancel", { termId });
+    const res = await instance.post<BasicResponse>("/cancel", { termId }, { headers: authHeaders() });
     return res.data;
   },
   async getHistory() {
-    const res = await instance.get<HistoryResponse>("/history");
+    const res = await instance.get<HistoryResponse>("/history", { headers: authHeaders() });
     return res.data;
   },
 };

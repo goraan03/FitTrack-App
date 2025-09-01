@@ -10,7 +10,7 @@ export class ProgramsController {
   }
 
   private init() {
-    // public endpoint: /programs/public
+    // final ruta: /api/programs/public
     this.router.get('/programs/public', this.listPublic.bind(this));
   }
 
@@ -19,9 +19,9 @@ export class ProgramsController {
       const q = typeof req.query.q === 'string' ? req.query.q : undefined;
       const level = (req.query.level as any) || undefined;
       const data = await this.programs.listPublic({ q, level });
-      res.json({ success:true, message:'OK', data });
+      res.json({ success: true, message: 'OK', data });
     } catch {
-      res.status(500).json({ success:false, message:'Greška na serveru' });
+      res.status(500).json({ success: false, message: 'Greška na serveru' });
     }
   }
 

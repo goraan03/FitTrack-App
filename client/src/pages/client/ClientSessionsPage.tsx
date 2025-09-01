@@ -1,29 +1,91 @@
-import { useEffect, useState } from "react";
+import axios from "axios";
+import { useEffect, useMemo, useState } from "react";
 import { clientApi } from "../../api_services/client/ClientAPIService";
 import { Filter, Search } from "lucide-react";
 
+type TermItem = {
+  id: number;
+  startAt: string;
+  durationMin: number;
+  type: 'individual' | 'group';
+  capacity: number;
+  enrolledCount: number;
+  status: 'free' | 'full';
+  isEnrolled: boolean;
+  program: { id:number; title:string; level:string };
+  trainer: { id:number; name:string };
+};
+
 export default function ClientSessionsPage() {
-  const [list, setList] = useState<any[]>([]);
+  const [list, setList] = useState<TermItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [bookingId, setBookingId] = useState<number | null>(null);
   const [filters, setFilters] = useState<{ type?: 'individual'|'group'|''; status?: 'free'|'full'|'' }>({ type:'', status:'free' });
 
   const load = async () => {
     setLoading(true);
-    const resp = await clientApi.getAvailableTerms({
-      status: filters.status || undefined,
-      type: (filters.type || undefined) as any
-    });
-    setLoading(false);
-    if (resp.success && resp.data) setList(resp.data);
+    try {
+      const resp = await clientApi.getAvailableTerms({
+        status: filters.status || undefined,
+        type: (filters.type || undefined) as any
+      });
+      if (resp.success && resp.data) setList(resp.data as TermItem[]);
+    } catch (err) {
+      const msg = axios.isAxiosError(err)
+        ? (err.response?.data as any)?.message ?? err.message
+        : 'Greška prilikom učitavanja termina';
+      alert(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(()=>{ load(); /* eslint-disable-next-line */ },[filters.type, filters.status]);
+  useEffect(() => { 
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.type, filters.status]);
 
-  const book = async (id:number) => {
-    const r = await clientApi.book(id);
-    if (r.success) load();
-    else alert(r.message);
+  const book = async (id: number) => {
+    try {
+      setBookingId(id);
+      const r = await clientApi.book(id);
+      if (r.success) await load();
+      else alert(r.message);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Došlo je do greške';
+      console.error('Book error:', err?.response?.data || err);
+      alert(msg);
+    } finally {
+      setBookingId(null);
+    }
   };
+
+  const cancelBooking = async (id: number) => {
+    try {
+      setBookingId(id);
+      const r = await clientApi.cancel(id);
+      if (r.success) await load();
+      else alert(r.message);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Došlo je do greške';
+      console.error('Cancel error:', err?.response?.data || err);
+      alert(msg);
+    } finally {
+      setBookingId(null);
+    }
+  };
+
+  const isCancellable = (startAtISO: string) =>
+    new Date(startAtISO).getTime() - Date.now() >= 60 * 60 * 1000;
+
+  // Ako želiš da "free" ne prikazuje već moje prijavljene:
+  const visibleList = useMemo(() => {
+    let items = list;
+    if (filters.status === 'free') {
+      items = items.filter(i => !i.isEnrolled);
+    }
+    return items;
+  }, [list, filters.status]);
 
   return (
     <section className="space-y-6">
@@ -59,22 +121,40 @@ export default function ClientSessionsPage() {
 
       <div className="grid gap-4">
         {loading ? <div>Loading...</div> :
-          list.length === 0 ? (
+          visibleList.length === 0 ? (
             <div className="text-center text-gray-500 py-10">
               <div className="text-6xl mb-3">📅</div>
               <div>No sessions found</div>
             </div>
           ) : (
-            list.map(item=>(
+            visibleList.map(item=>(
               <div key={item.id} className="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4 flex items-center justify-between">
                 <div>
                   <div className="font-semibold">{item.program.title}</div>
-                  <div className="text-sm text-gray-600">{new Date(item.startAt).toLocaleString()} • {item.type} • {item.enrolledCount}/{item.capacity}</div>
+                  <div className="text-sm text-gray-600">
+                    {new Date(item.startAt).toLocaleString()} • {item.type} • {item.enrolledCount}/{item.capacity}
+                  </div>
                 </div>
-                <div>
-                  {item.status==='free' ? (
-                    <button onClick={()=>book(item.id)} className="inline-flex items-center rounded-lg bg-emerald-600 text-white px-4 py-2 font-semibold hover:bg-emerald-700 transition">
-                      Book
+                <div className="flex items-center gap-2">
+                  {item.isEnrolled ? (
+                    isCancellable(item.startAt) ? (
+                      <button
+                        onClick={() => cancelBooking(item.id)}
+                        disabled={bookingId === item.id}
+                        className="inline-flex items-center rounded-lg bg-white border border-red-300 text-red-700 px-4 py-2 font-semibold hover:bg-red-50 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {bookingId === item.id ? 'Canceling…' : 'Cancel'}
+                      </button>
+                    ) : (
+                      <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm">Enrolled</span>
+                    )
+                  ) : item.status === 'free' ? (
+                    <button
+                      onClick={() => book(item.id)}
+                      disabled={bookingId === item.id}
+                      className="inline-flex items-center rounded-lg bg-emerald-600 text-white px-4 py-2 font-semibold hover:bg-emerald-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {bookingId === item.id ? 'Booking…' : 'Book'}
                     </button>
                   ) : (
                     <span className="px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm">Full</span>

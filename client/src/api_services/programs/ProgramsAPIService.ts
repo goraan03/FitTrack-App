@@ -2,7 +2,13 @@
 import axios from "axios";
 import type { IProgramsAPIService, PublicProgramsResponse } from "./IProgramsAPIService";
 
-const baseURL = (import.meta.env.VITE_API_URL || "") + "programs";
+const joinURL = (base: string, path: string) => {
+  const b = (base || '').replace(/\/+$/, '');
+  const p = (path || '').replace(/^\/+/, '');
+  return [b, p].filter(Boolean).join('/');
+};
+
+const baseURL = joinURL(import.meta.env.VITE_API_URL || '', 'programs');
 
 export const programsApi: IProgramsAPIService = {
   async listPublic(params) {
