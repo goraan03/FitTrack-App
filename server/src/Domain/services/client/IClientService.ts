@@ -1,49 +1,113 @@
-export type TermType = 'individual' | 'group';
-export type TermStatus = 'free' | 'full' | 'canceled';
+export type TrainingType = 'individual' | 'group' | 'INDIVIDUAL' | 'GROUP';
 
-export type WeeklyEvent = {
+/* WEEKLY SCHEDULE */
+export interface WeeklyEvent {
   termId: number;
   title: string;
-  day: number;          // 0-6 (Sun-Sat)
-  start: string;        // 'HH:mm'
-  end: string;          // 'HH:mm'
-  type: TermType;
+  day: number; // 0..6
+  start: string;
+  end: string;
+  type: TrainingType;
   programTitle: string;
   trainerName: string;
-  cancellable: boolean; // >= 60 min before
-};
+  cancellable: boolean;
+}
 
-export type AvailableTerm = {
+/* AVAILABLE TERMS */
+export interface AvailableTermProgram {
   id: number;
-  startAt: string;      // ISO
+  title: string;
+  level?: string | null;
+}
+
+export interface AvailableTermTrainer {
+  id: number;
+  name: string;
+}
+
+export interface AvailableTerm {
+  id: number;
+  startAt: string; // ISO
   durationMin: number;
-  type: TermType;
+  type: TrainingType;
   capacity: number;
   enrolledCount: number;
-  status: TermStatus;
-  isEnrolled: boolean;  // NOVO
-  program: { id: number; title: string; level: string };
-  trainer: { id: number; name: string };
-};
+  status: 'free' | 'full';
+  isEnrolled: boolean;
+  program: AvailableTermProgram;
+  trainer: AvailableTermTrainer;
+}
 
-export type HistoryItem = {
+/* HISTORY */
+export interface HistoryItem {
   id: number;
-  date: string;         // ISO
+  date: string; // ISO
   programTitle: string;
   trainerName: string;
-  status: 'attended'|'no_show'|'canceled_by_user';
+  status: string;
   rating: number | null;
   feedback: string | null;
-};
+}
+
+export interface HistoryStats {
+  total: number;
+  avgRating: number | null;
+}
+
+export interface HistoryData {
+  items: HistoryItem[];
+  stats: HistoryStats;
+}
+
+/* MY PROFILE (agregat) */
+export interface RatingsPoint {
+  date: string; // ISO
+  avg: number;  // 1-10
+}
+
+export interface UpcomingSession {
+  id: number;
+  title: string;
+  programName: string;
+  type: TrainingType;
+  startsAt: string; // ISO
+  durationMin: number;
+  isFull: boolean;
+  trainerName: string;
+}
+
+export interface ClientProfile {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  gender?: string | null;
+  age?: number | null;      // izračunato iz datumRodjenja
+  address?: string | null;  // nemamo u bazi — null
+  avatarUrl?: string | null;// nemamo u bazi — null
+  isBlocked: boolean;
+  stats: {
+    sessionsCompleted: number;
+    avgRating: number | null;
+    totalPrograms: number;
+    totalHours: number;
+  };
+  upcomingSessions: UpcomingSession[];
+  ratingsTrend: RatingsPoint[];
+}
 
 export interface IClientService {
-  chooseTrainer(userId: number, trainerId: number): Promise<void>;
   listTrainers(): Promise<{ id: number; name: string; email: string }[]>;
-
+  chooseTrainer(userId: number, trainerId: number): Promise<void>;
   getWeeklySchedule(userId: number, weekStartISO: string): Promise<{ events: WeeklyEvent[] }>;
-  getAvailableTerms(userId: number, params: { fromISO?: string; toISO?: string; type?: TermType; programId?: number; status?: 'free'|'full' }): Promise<AvailableTerm[]>;
+  getAvailableTerms(
+    userId: number,
+    params: { fromISO?: string; toISO?: string; type?: 'individual'|'group'; programId?: number; status?: 'free'|'full' }
+  ): Promise<AvailableTerm[]>;
   bookTerm(userId: number, termId: number): Promise<void>;
   cancelTerm(userId: number, termId: number): Promise<void>;
+  getHistory(userId: number): Promise<HistoryData>;
 
-  getHistory(userId: number): Promise<{ items: HistoryItem[]; stats: { total: number; avgRating: number | null } }>;
+  // NOVO
+  getMyProfile(userId: number): Promise<ClientProfile>;
 }

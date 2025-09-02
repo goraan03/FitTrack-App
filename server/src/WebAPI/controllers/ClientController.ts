@@ -1,4 +1,3 @@
-// server/src/WebAPI/controllers/ClientController.ts
 import { Request, Response, Router } from "express";
 import { IClientService } from "../../Domain/services/client/IClientService";
 import { authenticate } from "../../Middlewares/authentification/AuthMiddleware";
@@ -12,7 +11,6 @@ export class ClientController {
   }
 
   private init() {
-    // Guard za sve /client rute
     this.router.use('/client', authenticate, authorize('klijent'));
 
     this.router.get('/client/trainers', this.listTrainers.bind(this));
@@ -24,13 +22,16 @@ export class ClientController {
     this.router.post('/client/cancel', this.cancel.bind(this));
 
     this.router.get('/client/history', this.history.bind(this));
+
+    // NOVO: agregat profila
+    this.router.get('/client/me/profile', this.myProfile.bind(this));
   }
 
-  private getUserId(req: Request) { return (req.user as any).id; }
+  private getUserId(req: Request) { return (req as any).user?.id; }
 
   private async listTrainers(_req: Request, res: Response) {
     try { const data = await this.client.listTrainers(); res.json({ success:true, message:'OK', data }); }
-    catch { res.status(500).json({ success:false, message:'Greška na serveru' }); }
+    catch (e:any) { console.error(e); res.status(500).json({ success:false, message:'Greška na serveru' }); }
   }
 
   private async chooseTrainer(req: Request, res: Response) {
@@ -43,6 +44,7 @@ export class ClientController {
       const msg = String(e?.message || '');
       if (msg==='Trainer not found') return res.status(404).json({ success:false, message:'Trener nije pronađen' });
       if (msg==='Already assigned') return res.status(400).json({ success:false, message:'Trener je već izabran' });
+      console.error(e);
       res.status(500).json({ success:false, message:'Greška na serveru' });
     }
   }
@@ -54,6 +56,7 @@ export class ClientController {
       const data = await this.client.getWeeklySchedule(userId, weekStart);
       res.json({ success:true, message:'OK', data });
     } catch (e:any) {
+      console.error(e);
       res.status(400).json({ success:false, message: e?.message || 'Bad request' });
     }
   }
@@ -72,6 +75,7 @@ export class ClientController {
     } catch (e:any) {
       const msg = String(e?.message||'');
       if (msg==='NO_TRAINER_SELECTED') return res.status(400).json({ success:false, message:'Izaberite trenera pre pretrage termina.' });
+      console.error(e);
       res.status(500).json({ success:false, message:'Greška na serveru' });
     }
   }
@@ -87,6 +91,7 @@ export class ClientController {
       if (['TERM_NOT_FOUND','CANCELED'].includes(msg)) return res.status(404).json({ success:false, message:'Termin nije dostupan' });
       if (['FULL','TOO_LATE','ALREADY_ENROLLED','NO_TRAINER_SELECTED','DIFFERENT_TRAINER'].includes(msg))
         return res.status(400).json({ success:false, message: msg==='FULL'?'Termin je popunjen': msg==='TOO_LATE'?'Rok za prijavu je istekao': msg==='ALREADY_ENROLLED'?'Već ste prijavljeni na ovaj termin': msg==='NO_TRAINER_SELECTED'?'Izaberite trenera pre prijave': 'Termin pripada drugom treneru' });
+      console.error(e);
       res.status(500).json({ success:false, message:'Greška na serveru' });
     }
   }
@@ -101,6 +106,7 @@ export class ClientController {
       const msg = String(e?.message||'');
       if (msg==='NOT_ENROLLED') return res.status(400).json({ success:false, message:'Niste prijavljeni na ovaj termin' });
       if (msg==='TOO_LATE') return res.status(400).json({ success:false, message:'Rok za otkazivanje je istekao' });
+      console.error(e);
       res.status(500).json({ success:false, message:'Greška na serveru' });
     }
   }
@@ -110,8 +116,21 @@ export class ClientController {
       const userId = this.getUserId(req);
       const data = await this.client.getHistory(userId);
       res.json({ success:true, message:'OK', data });
-    } catch {
+    } catch (e:any) {
+      console.error(e);
       res.status(500).json({ success:false, message:'Greška na serveru' });
+    }
+  }
+
+  // NOVO: /client/me/profile
+  private async myProfile(req: Request, res: Response) {
+    try {
+      const userId = this.getUserId(req);
+      const data = await this.client.getMyProfile(userId);
+      res.json({ success: true, message: 'OK', data });
+    } catch (e:any) {
+      console.error(e);
+      res.status(500).json({ success: false, message: e?.message || 'Greška na serveru' });
     }
   }
 

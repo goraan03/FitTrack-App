@@ -70,7 +70,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
 
     const valid = validacijaPodatakaAuth(korisnickoIme, lozinka);
     if (!valid.uspesno) {
-      setGreska(valid.poruka ?? "Неисправни подаци");
+      setGreska(valid.poruka ?? "Credentials not valid");
       return;
     }
 
@@ -84,10 +84,10 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
         setPhase('code');
         persistTwoFA({ challengeId: odgovor.data.challengeId, expiresAt: odgovor.data.expiresAt, maskedEmail: odgovor.data.maskedEmail });
       } else {
-        setGreska(odgovor.message || "Neuspešna prijava");
+        setGreska(odgovor.message || "Login failed");
       }
     } catch {
-      setGreska("Greška prilikom prijave. Pokušajte ponovo.");
+      setGreska("Error during login. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -98,12 +98,12 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
     setGreska("");
 
     if (!challengeId) {
-      setGreska("Nema aktivnog izazova. Pokušajte ponovo.");
+      setGreska("No active challenge. Please try again.");
       setPhase('credentials'); clearTwoFA();
       return;
     }
     if (!/^\d{6}$/.test(otp)) {
-      setGreska("Kod mora imati tačno 6 cifara.");
+      setGreska("Code must be exactly 6 digits.");
       return;
     }
 
@@ -113,10 +113,10 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
       if (res.success && res.data) {
         clearTwoFA(); login(res.data);
       } else {
-        setGreska(res.message || "Verifikacija neuspešna.");
+        setGreska(res.message || "Verification failed.");
       }
     } catch {
-      setGreska("Greška prilikom verifikacije. Pokušajte ponovo.");
+      setGreska("Error during verification. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -133,10 +133,10 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
         setOtp("");
         persistTwoFA({ challengeId: res.data.challengeId, expiresAt: res.data.expiresAt, maskedEmail: maskedEmail || "" });
       } else {
-        setGreska(res.message || "Nije moguće poslati novi kod.");
+        setGreska(res.message || "Unable to resend code.");
       }
     } catch {
-      setGreska("Greška pri slanju novog koda.");
+      setGreska("Error while resending code.");
     } finally {
       setLoading(false);
     }
@@ -166,7 +166,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
             data-1p-ignore="true"
             value={korisnickoIme}
             onChange={(e) => setKorisnickoIme(e.target.value.trim())}
-            placeholder="Unesite email"
+            placeholder="Enter email"
             required
             className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition"
           />
@@ -183,7 +183,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
               data-1p-ignore="true"
               value={lozinka}
               onChange={(e) => setLozinka(e.target.value)}
-              placeholder="Unesite lozinku"
+              placeholder="Enter password"
               required
               className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 pr-11 text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition"
             />
@@ -191,7 +191,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
               type="button"
               onClick={() => setPrikazi((p) => !p)}
               className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
-              aria-label={prikazi ? "Sakrij lozinku" : "Prikaži lozinku"}
+              aria-label={prikazi ? "Hide password" : "Show password"}
               tabIndex={-1}
             >
               {prikazi ? (
@@ -215,7 +215,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
           disabled={loading}
           className="w-full inline-flex justify-center items-center rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-200 transition disabled:opacity-60"
         >
-          {loading ? "Prijavljivanje..." : "Prijavi se"}
+          {loading ? "Logging in..." : "Log in"}
         </button>
       </form>
     );
@@ -224,11 +224,11 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
   return (
     <form onSubmit={podnesiKod} className="space-y-5" autoComplete="off">
       <div className="text-sm text-gray-700">
-        Unesite 6-cifreni kod koji smo poslali na: <span className="font-semibold">{maskedEmail}</span>
+        Enter the 6-digit code we sent to: <span className="font-semibold">{maskedEmail}</span>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Verifikacioni kod</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Verification Code</label>
         <OtpInput value={otp} onChange={(v) => setOtp(v.replace(/\D/g, '').slice(0, 6))} />
         <div className="mt-2 text-sm text-gray-600">
           {secondsLeft > 0 ? `Kod ističe za ${secondsLeft}s` : "Kod je istekao."}
@@ -243,7 +243,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
           disabled={loading}
           className="flex-1 inline-flex justify-center items-center rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-200 transition disabled:opacity-60"
         >
-          {loading ? "Provera..." : "Potvrdi kod"}
+          {loading ? "Verifying..." : "Confirm Code"}
         </button>
 
         <button
@@ -252,7 +252,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
           onClick={resend}
           className="px-4 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
         >
-          Pošalji novi kod
+          Resend Code
         </button>
       </div>
 
@@ -261,7 +261,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
         className="text-sm text-gray-500 hover:text-gray-700 underline"
         onClick={() => { setPhase('credentials'); setOtp(""); setGreska(""); clearTwoFA(); }}
       >
-        Vrati se na unos kredencijala
+        Back to credential entry
       </button>
     </form>
   );
