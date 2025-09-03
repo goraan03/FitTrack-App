@@ -23,6 +23,8 @@ import ClientProfilePage from "./pages/client/ClientProfilePage";
 import ChooseTrainerPage from "./pages/client/ChooseTrainerPage";
 import ClientProgramsPage from "./pages/client/ClientProgramsPage";
 
+//SVUDA PROTECTED ROUTES
+
 export default function App() {
   return (
     <Routes>

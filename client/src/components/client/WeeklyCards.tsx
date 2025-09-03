@@ -1,10 +1,9 @@
-// client/src/components/client/WeeklyCards.tsx
 import { addDays, format } from "date-fns";
 
 export type WeeklyCardItem = {
   id: number;
   title: string;
-  day: number;                 // JS getDay: 0=Sun..6=Sat
+  day: number;   
   start: string;               // 'HH:mm'
   end: string;                 // 'HH:mm'
   type: 'individual' | 'group';
@@ -14,7 +13,7 @@ export type WeeklyCardItem = {
 };
 
 type Props = {
-  weekStart: Date;             // Monday of the week
+  weekStart: Date;
   items: WeeklyCardItem[];
   onCancel?: (id: number) => void;
   onDetails?: (id: number) => void;

@@ -28,14 +28,13 @@ export default function UsersTable({ adminApi }: Props) {
     }
   };
 
-  useEffect(() => { fetchUsers(); /* eslint-disable-next-line */ }, [role, blocked]);
+  useEffect(() => { fetchUsers(); }, [role, blocked]);
 
   const toggleBlock = async (u: AdminUser) => {
     const res = await adminApi.setBlocked(u.id, !u.blokiran);
     if (res.success) fetchUsers();
   };
 
-  // Edit modal state
   const [editUser, setEditUser] = useState<AdminUser | null>(null);
   const [editState, setEditState] = useState({ ime: "", prezime: "", datumRodjenja: "", pol: "musko" as "musko" | "zensko" });
   const [editErr, setEditErr] = useState<string | null>(null);
@@ -158,10 +157,10 @@ export default function UsersTable({ adminApi }: Props) {
       {editUser && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg">
-            <h4 className="text-lg font-semibold mb-4">Uredi korisnika #{editUser.id}</h4>
+            <h4 className="text-lg font-semibold mb-4">Edit User #{editUser.id}</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-gray-700">Ime</label>
+                <label className="text-sm text-gray-700">Name</label>
                 <input
                   className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
                   value={editState.ime}
@@ -169,7 +168,7 @@ export default function UsersTable({ adminApi }: Props) {
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-700">Prezime</label>
+                <label className="text-sm text-gray-700">Surname</label>
                 <input
                   className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
                   value={editState.prezime}
@@ -177,7 +176,7 @@ export default function UsersTable({ adminApi }: Props) {
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-700">Datum rođenja</label>
+                <label className="text-sm text-gray-700">Date of Birth</label>
                 <input
                   type="date"
                   className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
@@ -186,14 +185,14 @@ export default function UsersTable({ adminApi }: Props) {
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-700">Pol</label>
+                <label className="text-sm text-gray-700">Gender</label>
                 <select
                   className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
                   value={editState.pol}
                   onChange={(e) => setEditState({ ...editState, pol: e.target.value as "musko" | "zensko" })}
                 >
-                  <option value="musko">Muško</option>
-                  <option value="zensko">Žensko</option>
+                  <option value="musko">Male</option>
+                  <option value="zensko">Female</option>
                 </select>
               </div>
             </div>
@@ -202,7 +201,7 @@ export default function UsersTable({ adminApi }: Props) {
 
             <div className="mt-5 flex items-center justify-end gap-3">
               <button className="px-4 py-2 rounded-lg border hover:bg-gray-50" onClick={() => setEditUser(null)}>
-                Otkaži
+                Cancel
               </button>
               <button
                 disabled={editLoading}
