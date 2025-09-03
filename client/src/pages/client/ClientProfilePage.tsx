@@ -12,8 +12,19 @@ import {
   Tooltip,
   Legend,
   Filler,
+  Title,
 } from "chart.js";
-ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Legend, Filler);
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Tooltip,
+  Legend,
+  Filler,
+  Title
+);
 
 function Avatar({ name, src }: { name: string; src?: string | null }) {
   const initials = useMemo(() => {
@@ -84,8 +95,22 @@ export default function ClientProfilePage() {
   const chartOptions = useMemo(
     () => ({
       responsive: true,
-      scales: { y: { suggestedMin: 0, suggestedMax: 10, ticks: { stepSize: 1 } } },
-      plugins: { legend: { display: false }, tooltip: { intersect: false, mode: "index" as const } },
+      maintainAspectRatio: false,
+      scales: { 
+        y: { 
+          beginAtZero: true,
+          suggestedMin: 0, 
+          suggestedMax: 10, 
+          ticks: { stepSize: 1 } 
+        } 
+      },
+      plugins: { 
+        legend: { display: false }, 
+        tooltip: { 
+          intersect: false, 
+          mode: "index" as const 
+        } 
+      },
     }),
     []
   );
@@ -175,12 +200,12 @@ export default function ClientProfilePage() {
               </div>
 
               {/* Progress Chart */}
-              <div className="lg:col-span-2 rounded-2xl ring-1 ring-gray-200 bg-white p-6 shadow-sm">
+              <div className="lg:col-span-2 rounded-2xl ring-1 ring-gray-200 bg-white p-6 shadow-sm flex flex-col">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-gray-900">Progress</h3>
                   <span className="text-xs text-gray-500">Average rating over time</span>
                 </div>
-                <div className="mt-4 h-64">
+                <div className="mt-4 flex-grow relative">
                   {data.ratingsTrend?.length ? (
                     <Line data={chartData} options={chartOptions} />
                   ) : (
