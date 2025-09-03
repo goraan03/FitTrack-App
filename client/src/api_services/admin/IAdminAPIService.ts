@@ -18,7 +18,6 @@ export interface IAdminAPIService {
     input: { ime: string; prezime: string; datumRodjenja?: string | null; pol: 'musko' | 'zensko' }
   ): Promise<ApiResponse<null>>;
 
-  // NOVO
   getAuditLogs(params: {
     page?: number;
     pageSize?: number;

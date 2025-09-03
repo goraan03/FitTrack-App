@@ -13,7 +13,6 @@ import type {
 
 const baseURL = (import.meta.env.VITE_API_URL || "") + "client";
 
-// Fallback čitanje tokena
 function getAuthToken(): string | null {
   try {
     return (
@@ -34,7 +33,6 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}`, "X-Auth-Token": token } : {};
 }
 
-// Axios instance
 const instance = axios.create({ baseURL });
 
 instance.interceptors.request.use((config) => {
@@ -89,7 +87,6 @@ export const clientApi: IClientAPIService = {
     return res.data;
   },
 
-  // NOVO – agregat profila
   async getMyProfile() {
     const res = await instance.get<MyProfileResponse>("/me/profile", { headers: authHeaders() });
     return res.data;

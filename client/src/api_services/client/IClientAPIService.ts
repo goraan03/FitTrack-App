@@ -140,9 +140,9 @@ export interface ClientProfile {
   lastName: string;
   email: string;
   gender?: string | null;
-  age?: number | null;      // izračunato iz datumRodjenja
-  address?: string | null;  // nemamo u bazi — ostaje null
-  avatarUrl?: string | null;// nemamo u bazi — ostaje null
+  age?: number | null;
+  address?: string | null;
+  avatarUrl?: string | null;
   isBlocked: boolean;
   stats: ClientProfileStats;
   upcomingSessions: UpcomingSession[];
@@ -155,7 +155,6 @@ export interface MyProfileResponse {
   data: ClientProfile;
 }
 
-/* SERVICE INTERFEJS */
 export interface IClientAPIService {
   listTrainers(): Promise<TrainersResponse>;
   chooseTrainer(trainerId: number): Promise<BasicResponse>;
@@ -165,6 +164,5 @@ export interface IClientAPIService {
   cancel(termId: number): Promise<BasicResponse>;
   getHistory(): Promise<HistoryResponse>;
 
-  // NOVO
   getMyProfile(): Promise<MyProfileResponse>;
 }

@@ -70,7 +70,6 @@ export default function RegistracijaForma({ authApi }: Props) {
 
   return (
     <form onSubmit={submit} className="space-y-5" autoComplete="off">
-      {/* fake inputs to neutralize password managers */}
       <input className="hidden" type="text" name="username" autoComplete="email" />
       <input className="hidden" type="password" name="password" autoComplete="nova-lozinka" />
 

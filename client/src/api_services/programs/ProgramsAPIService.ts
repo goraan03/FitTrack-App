@@ -1,4 +1,3 @@
-// client/src/api_services/programs/ProgramsAPIService.ts
 import axios from "axios";
 import type { IProgramsAPIService, PublicProgramsResponse } from "./IProgramsAPIService";
 

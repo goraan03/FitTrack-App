@@ -11,6 +11,8 @@ import { IAuditService } from "../../Domain/services/audit/IAuditService";
 const OTP_TTL_MS = 5 * 60 * 1000; // 5 min
 const MAX_ATTEMPTS = 5;
 
+
+//STAVITI U HELPERS
 const generateOtp6 = () => String(Math.floor(Math.random() * 1_000_000)).padStart(6, '0');
 
 const maskEmail = (emailLike: string) => {
@@ -44,6 +46,7 @@ export class AuthService implements IAuthService {
     this.audit = audit;
   }
 
+  //IZBACITI GRESKE
   async startLogin(korisnickoIme: string, lozinka: string): Promise<{ challengeId: string; expiresAt: string; maskedEmail: string }> {
     const user = await this.userRepository.getByUsername(korisnickoIme);
     if (user.id === 0) {

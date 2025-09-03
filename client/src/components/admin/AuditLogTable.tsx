@@ -5,6 +5,7 @@ import { Filter, Search, ChevronLeft, ChevronRight, Info, AlertTriangle, XOctago
 
 type Props = { adminApi: IAdminAPIService };
 
+//posebna comp
 const CatBadge = ({ c }: { c: AuditCategory }) => {
   const map: Record<AuditCategory, string> = {
     Informacija: "bg-emerald-100 text-emerald-800",
@@ -35,13 +36,12 @@ export default function AuditLogTable({ adminApi }: Props) {
     if (res.success && res.data) { setItems(res.data.items); setTotal(res.data.total); }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, category]);
+  useEffect(() => { load(); }, [page, category]);
 
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <section className="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm">
-      {/* Filter bar */}
       <div className="p-4 sm:p-5 border-b">
         <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
           <div className="flex items-center gap-2 text-gray-700 font-semibold">
@@ -79,7 +79,6 @@ export default function AuditLogTable({ adminApi }: Props) {
         </div>
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
@@ -115,7 +114,6 @@ export default function AuditLogTable({ adminApi }: Props) {
         </table>
       </div>
 
-      {/* Pagination */}
       <div className="p-4 border-t flex items-center justify-between">
         <span className="text-sm text-gray-600">
           Stranica {page} / {pages} ({total} stavki)

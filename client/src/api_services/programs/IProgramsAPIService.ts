@@ -1,4 +1,3 @@
-// client/src/api_services/programs/IProgramsAPIService.ts
 export type PublicProgram = {
   id: number;
   title: string;

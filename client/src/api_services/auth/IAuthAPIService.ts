@@ -16,6 +16,5 @@ export interface IAuthAPIService {
     pol: string;
   }): Promise<AuthResponse>;
 
-  // NOVO
   getBoot(): Promise<BootInfoResponse>;
 }

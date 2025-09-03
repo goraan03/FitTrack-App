@@ -141,23 +141,6 @@ export default function ClientDashboardPage() {
   const [tab, setTab] = useState<'progress' | 'recent'>('progress');
 
   // Chart data
-  const chartData = useMemo(() => {
-    const points = profile?.ratingsTrend ?? [];
-    return {
-      labels: points.map((p) => new Date(p.date).toLocaleDateString()),
-      datasets: [
-        {
-          label: "Prosek ocena",
-          data: points.map((p) => p.avg ?? 0),
-          fill: true,
-          backgroundColor: "rgba(16, 185, 129, 0.15)",
-          borderColor: "#10B981",
-          tension: 0.35,
-          pointRadius: 3,
-        },
-      ],
-    };
-  }, [profile]);
 
   const chartOptions = useMemo(
     () => ({

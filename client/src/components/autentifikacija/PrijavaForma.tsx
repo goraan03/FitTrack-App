@@ -149,7 +149,6 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
         className="space-y-5"
         autoComplete="off"
       >
-        {/* Fake fields to neutralize password managers */}
         <input className="hidden" type="text" name="username" autoComplete="username" />
         <input className="hidden" type="password" name="password" autoComplete="current-password" />
 

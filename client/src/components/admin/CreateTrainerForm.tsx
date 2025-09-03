@@ -50,7 +50,6 @@ export default function CreateTrainerForm({ adminApi }: Props) {
       </header>
 
       <form onSubmit={submit} className="space-y-5" autoComplete="off">
-        {/* fake anti-autofill */}
         <input className="hidden" type="text" name="username" autoComplete="username" />
         <input className="hidden" type="password" name="password" autoComplete="new-password" />
 

@@ -44,6 +44,8 @@ export class ClientService implements IClientService {
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 7);
 
+    //pozivanje iz repo i izbegavanje JOIN
+
     const [rows] = await db.execute<RowDataPacket[]>(
       `SELECT e.term_id as termId, t.start_at as startAt, t.duration_min as dur, t.type, 
               p.title as programTitle, CONCAT(u.ime,' ',u.prezime) as trainerName

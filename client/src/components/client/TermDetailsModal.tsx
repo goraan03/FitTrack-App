@@ -1,4 +1,3 @@
-// client/src/components/client/TermDetailsModal.tsx
 import { format } from "date-fns";
 
 type TermDetails = {
