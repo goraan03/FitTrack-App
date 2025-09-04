@@ -3,14 +3,8 @@ import type { IAdminAPIService } from "./IAdminAPIService";
 import type { ApiResponse } from "../../types/common/ApiResponse";
 import type { AdminUser } from "../../types/admin/AdminUser";
 import type { AuditLog } from "../../types/admin/AuditLog";
-import { PročitajVrednostPoKljuču } from "../../helpers/local_storage";
-
+import { authHeader } from "../../helpers/admin/authHeader";
 const API_URL = (import.meta.env.VITE_API_URL || "") + "admin";
-
-const authHeader = () => {
-  const token = PročitajVrednostPoKljuču("authToken");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
 
 export const adminApi: IAdminAPIService = {
   async listUsers(filters) {

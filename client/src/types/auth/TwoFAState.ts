@@ -1,0 +1,1 @@
+export type TwoFAState = { challengeId: string; expiresAt: string; maskedEmail: string; };

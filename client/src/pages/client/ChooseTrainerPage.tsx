@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
-import { clientApi } from "../../api_services/client/ClientAPIService";
+import type { IClientAPIService } from "../../api_services/client/IClientAPIService";
 
-export default function ChooseTrainerPage() {
+interface ChooseTrainerPageProps {
+  clientApi: IClientAPIService;
+}
+
+export default function ChooseTrainerPage({ clientApi }: ChooseTrainerPageProps) {
   const [list, setList] = useState<{id:number; name:string; email:string}[]>([]);
   const [loading, setLoading] = useState(false);
 

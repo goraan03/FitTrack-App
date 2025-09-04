@@ -1,15 +1,5 @@
 import { format } from "date-fns";
-
-type TermDetails = {
-  id: number;
-  title: string;
-  startAt: string;        // ISO
-  endAt: string;          // ISO
-  type: 'individual' | 'group';
-  trainerName?: string;
-  programTitle?: string;
-  exercises?: string[];
-};
+import type { TermDetails } from "../../models/client/TermDetails";
 
 type Props = {
   open: boolean;

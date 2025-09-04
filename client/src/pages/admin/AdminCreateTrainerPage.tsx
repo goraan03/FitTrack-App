@@ -2,7 +2,11 @@ import CreateTrainerForm from "../../components/admin/CreateTrainerForm";
 import { adminApi } from "../../api_services/admin/AdminAPIService";
 import { UserPlus } from "lucide-react";
 
-export default function AdminCreateTrainerPage() {
+interface AdminCreateTrainerPageProps {
+  adminApi: typeof adminApi;
+}
+
+export default function AdminCreateTrainerPage({ adminApi }: AdminCreateTrainerPageProps) {
   return (
     <div className="space-y-6">
       <header>

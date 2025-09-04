@@ -10,10 +10,11 @@ import { ProtectedRoute } from "./components/protected_route/ProtectedRoute";
 import { authApi } from "./api_services/auth/AuthAPIService";
 
 import AdminLayout from "./layouts/AdminLayout";
-import AdminCreateTrainerPage from "./pages/kontrolna_tabla/AdminCreateTrainerPage";
-import AdminUsersPage from "./pages/kontrolna_tabla/AdminUsersPage";
-import AdminAuditLogPage from "./pages/kontrolna_tabla/AdminAuditLogPage";
+import AdminCreateTrainerPage from "./pages/admin/AdminCreateTrainerPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminAuditLogPage from "./pages/admin/AdminAuditLogPage";
 import LegacyRedirect from "./routes/LegacyRedirect";
+import { adminApi } from "./api_services/admin/AdminAPIService";
 
 import ClientLayout from "./layouts/ClientLayout";
 import ClientDashboardPage from "./pages/client/ClientDashboardPage";
@@ -22,6 +23,8 @@ import ClientHistoryPage from "./pages/client/ClientHistoryPage";
 import ClientProfilePage from "./pages/client/ClientProfilePage";
 import ChooseTrainerPage from "./pages/client/ChooseTrainerPage";
 import ClientProgramsPage from "./pages/client/ClientProgramsPage";
+import { clientApi } from "./api_services/client/ClientAPIService";
+import { programsApi } from "./api_services/programs/ProgramsAPIService";
 
 //SVUDA PROTECTED ROUTES
 
@@ -49,9 +52,9 @@ export default function App() {
         }
       >
         <Route index element={<Navigate to="users" replace />} />
-        <Route path="create-trainer" element={<AdminCreateTrainerPage />} />
-        <Route path="users" element={<AdminUsersPage />} />
-        <Route path="audit" element={<AdminAuditLogPage />} />
+        <Route path="create-trainer" element={<AdminCreateTrainerPage adminApi={adminApi} />} />
+        <Route path="users" element={<AdminUsersPage adminApi={adminApi} />} />
+        <Route path="audit" element={<AdminAuditLogPage adminApi={adminApi} />} />
       </Route>
 
       {/* Client (klijent) */}
@@ -64,12 +67,12 @@ export default function App() {
         }
       >
         <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<ClientDashboardPage />} />
-        <Route path="sessions" element={<ClientSessionsPage />} />
-        <Route path="programs" element={<ClientProgramsPage />} />
-        <Route path="history" element={<ClientHistoryPage />} />
-        <Route path="profile" element={<ClientProfilePage />} />
-        <Route path="choose-trainer" element={<ChooseTrainerPage />} />
+        <Route path="dashboard" element={<ClientDashboardPage clientApi={clientApi} />} />
+        <Route path="sessions" element={<ClientSessionsPage clientApi={clientApi} />} />
+        <Route path="programs" element={<ClientProgramsPage programsApi={programsApi} />} />
+        <Route path="history" element={<ClientHistoryPage clientApi={clientApi}/>} />
+        <Route path="profile" element={<ClientProfilePage clientApi={clientApi} />} />
+        <Route path="choose-trainer" element={<ChooseTrainerPage clientApi={clientApi} />} />
       </Route>
 
       {/* 404 */}

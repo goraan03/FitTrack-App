@@ -1,10 +1,14 @@
 // client/src/pages/client/ClientProgramsPage.tsx
 import { useEffect, useState } from "react";
-import { programsApi } from "../../api_services/programs/ProgramsAPIService";
-import type { PublicProgram } from "../../api_services/programs/IProgramsAPIService";
+import type { IProgramsAPIService } from "../../api_services/programs/IProgramsAPIService";
 import { Search } from "lucide-react";
+import type { PublicProgram } from "../../types/programs/PublicProgram";
 
-export default function ClientProgramsPage() {
+interface ClientProgramsPageProps {
+  programsApi: IProgramsAPIService;
+}
+
+export default function ClientProgramsPage({ programsApi }: ClientProgramsPageProps) {
   const [items, setItems] = useState<PublicProgram[]>([]);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState("");

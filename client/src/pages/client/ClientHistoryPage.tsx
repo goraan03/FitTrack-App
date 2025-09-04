@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
-import { clientApi } from "../../api_services/client/ClientAPIService";
+import type { IClientAPIService } from "../../api_services/client/IClientAPIService";
 //DI!!!
 //npm run build PROVERA GRESAKA
 
-export default function ClientHistoryPage() {
+interface ClientHistoryPageProps {
+  clientApi: IClientAPIService;
+}
+
+export default function ClientHistoryPage({ clientApi }: ClientHistoryPageProps) {
   const [items, setItems] = useState<any[]>([]);
   const [stats, setStats] = useState<{ total:number; avgRating:number|null }>({ total:0, avgRating:null });
 

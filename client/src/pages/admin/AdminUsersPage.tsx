@@ -2,7 +2,11 @@ import UsersTable from "../../components/admin/UsersTable";
 import { adminApi } from "../../api_services/admin/AdminAPIService";
 import { Users } from "lucide-react";
 
-export default function AdminUsersPage() {
+interface AdminUsersPageProps {
+  adminApi: typeof adminApi;
+}
+
+export default function AdminUsersPage({ adminApi }: AdminUsersPageProps) {
   return (
     <div className="space-y-6">
       <header className="flex items-end justify-between">

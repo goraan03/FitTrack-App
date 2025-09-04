@@ -2,21 +2,13 @@ import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { clientApi } from "../../api_services/client/ClientAPIService";
 import { Filter, Search } from "lucide-react";
+import type { TermItem } from "../../types/client/TermItem";
 
-type TermItem = {
-  id: number;
-  startAt: string;
-  durationMin: number;
-  type: 'individual' | 'group';
-  capacity: number;
-  enrolledCount: number;
-  status: 'free' | 'full';
-  isEnrolled: boolean;
-  program: { id:number; title:string; level:string };
-  trainer: { id:number; name:string };
-};
+interface ClientSessionsPageProps {
+  clientApi: typeof clientApi;
+}
 
-export default function ClientSessionsPage() {
+export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProps) {
   const [list, setList] = useState<TermItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [bookingId, setBookingId] = useState<number | null>(null);
@@ -29,7 +21,7 @@ export default function ClientSessionsPage() {
         status: filters.status || undefined,
         type: (filters.type || undefined) as any
       });
-      if (resp.success && resp.data) setList(resp.data as TermItem[]);
+      if (resp.success && resp.data) setList(resp.data as unknown as TermItem[]);
     } catch (err) {
       const msg = axios.isAxiosError(err)
         ? (err.response?.data as any)?.message ?? err.message

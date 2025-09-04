@@ -1,16 +1,6 @@
-import { addDays, format } from "date-fns";
-
-export type WeeklyCardItem = {
-  id: number;
-  title: string;
-  day: number;   
-  start: string;               // 'HH:mm'
-  end: string;                 // 'HH:mm'
-  type: 'individual' | 'group';
-  cancellable: boolean;
-  programTitle?: string;
-  trainerName?: string;
-};
+import { format } from "date-fns";
+import type { WeeklyCardItem } from "../../models/client/WeeklyCardItem";
+import { toDate } from "../../helpers/client/toDate";
 
 type Props = {
   weekStart: Date;
@@ -18,15 +8,6 @@ type Props = {
   onCancel?: (id: number) => void;
   onDetails?: (id: number) => void;
 };
-
-function toDate(weekStart: Date, jsDay: number, hhmm: string) {
-  // ui day shift: Mon=0...Sun=6
-  const uiDay = (jsDay + 6) % 7;
-  const d = addDays(new Date(weekStart), uiDay);
-  const [h, m] = hhmm.split(":").map(Number);
-  d.setHours(h || 0, m || 0, 0, 0);
-  return d;
-}
 
 export default function WeeklyCards({ weekStart, items, onCancel, onDetails }: Props) {
   const sorted = [...items].sort((a, b) => {
@@ -64,7 +45,6 @@ export default function WeeklyCards({ weekStart, items, onCancel, onDetails }: P
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                {/* FIX: obojena cela pilula (bez ugnježdenog spana) */}
                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${badge}`}>
                   {it.type === "group" ? "Group" : "Individual"}
                 </span>

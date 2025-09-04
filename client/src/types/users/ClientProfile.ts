@@ -1,8 +1,13 @@
-export type TrainingType = 'INDIVIDUAL' | 'GROUP';
+//Razdeliti ovaj fajl
+
+import type { ClientProfileStats } from "../../models/client/ClientProfileStats";
+
+export type TrainingType = "INDIVIDUAL" | "GROUP";
+export type Gender = "male" | "female" | "other" | null;
 
 export interface RatingsPoint {
-  date: string; // ISO
-  avg: number;  // 1-10
+  date: string;          // ISO
+  avg: number | null;    // API često može da vrati null, pa ga dozvolimo
 }
 
 export interface UpcomingSession {
@@ -10,7 +15,7 @@ export interface UpcomingSession {
   title: string;
   programName: string;
   type: TrainingType;
-  startsAt: string;   // ISO
+  startsAt: string;      // ISO
   durationMin: number;
   isFull: boolean;
   trainerName: string;
@@ -21,17 +26,12 @@ export interface ClientProfile {
   firstName: string;
   lastName: string;
   email: string;
-  gender?: 'male' | 'female' | 'other';
-  age?: number;
-  address?: string;
+  gender?: Gender;             // dozvoljen null i undefined
+  age?: number | null;
+  address?: string | null;
   avatarUrl?: string | null;
   isBlocked: boolean;
-  stats: {
-    sessionsCompleted: number;
-    avgRating: number | null;
-    totalPrograms: number;
-    totalHours: number;
-  };
+  stats: ClientProfileStats;
   upcomingSessions: UpcomingSession[];
   ratingsTrend: RatingsPoint[];
 }

@@ -1,24 +1,10 @@
 import { useEffect, useState } from "react";
 import type { IAdminAPIService } from "../../api_services/admin/IAdminAPIService";
 import type { AuditLog, AuditCategory } from "../../types/admin/AuditLog";
-import { Filter, Search, ChevronLeft, ChevronRight, Info, AlertTriangle, XOctagon } from "lucide-react";
+import { Filter, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { CatBadge } from "./CatBadge";
 
 type Props = { adminApi: IAdminAPIService };
-
-//posebna comp
-const CatBadge = ({ c }: { c: AuditCategory }) => {
-  const map: Record<AuditCategory, string> = {
-    Informacija: "bg-emerald-100 text-emerald-800",
-    Upozorenje: "bg-amber-100 text-amber-800",
-    Greška: "bg-red-100 text-red-800",
-  };
-  const Icon = c === "Informacija" ? Info : c === "Upozorenje" ? AlertTriangle : XOctagon;
-  return (
-    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${map[c]}`}>
-      <Icon className="h-3.5 w-3.5" /> {c}
-    </span>
-  );
-};
 
 export default function AuditLogTable({ adminApi }: Props) {
   const [items, setItems] = useState<AuditLog[]>([]);

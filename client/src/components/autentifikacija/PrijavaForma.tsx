@@ -3,10 +3,10 @@ import type { AuthFormProps } from "../../types/props/auth_form_props/AuthFormPr
 import { validacijaPodatakaAuth } from "../../api_services/validators/auth/AuthValidator";
 import { useAuth } from "../../hooks/auth/useAuthHook";
 import { OtpInput } from "./OtpInput";
-import { PročitajVrednostPoKljuču, SačuvajVrednostPoKljuču, ObrišiVrednostPoKljuču } from "../../helpers/local_storage";
+import { PročitajVrednostPoKljuču, SačuvajVrednostPoKljuču, ObrišiVrednostPoKljuču } from "../../helpers/localStorage/local_storage";
+import type { Phase } from "../../types/auth/Phase";
+import type { TwoFAState } from "../../types/auth/TwoFAState";
 
-type Phase = 'credentials' | 'code';
-type TwoFAState = { challengeId: string; expiresAt: string; maskedEmail: string; };
 const TWO_FA_KEY = "twofa_state";
 
 export function PrijavaForma({ authApi }: AuthFormProps) {

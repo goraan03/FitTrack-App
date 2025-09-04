@@ -1,14 +1,14 @@
 import { ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
-type BrandProps = {
+type Props = {
   showText?: boolean;
   to?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
 };
 
-export default function Brand({ showText = true, to = "/", size = "md", className = "" }: BrandProps) {
+export default function Brand({ showText = true, to = "/", size = "md", className = "" }: Props) {
   const sizes = {
     sm: { box: "h-8 w-8", icon: "h-4 w-4", text: "text-lg" },
     md: { box: "h-9 w-9", icon: "h-5 w-5", text: "text-xl" },

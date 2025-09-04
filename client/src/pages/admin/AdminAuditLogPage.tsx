@@ -2,7 +2,11 @@ import AuditLogTable from "../../components/admin/AuditLogTable";
 import { adminApi } from "../../api_services/admin/AdminAPIService";
 import { FileText } from "lucide-react";
 
-export default function AdminAuditLogPage() {
+interface AdminAuditLogPageProps {
+  adminApi: typeof adminApi;
+}
+
+export default function AdminAuditLogPage({ adminApi }: AdminAuditLogPageProps) {
   return (
     <div className="space-y-6">
       <header>

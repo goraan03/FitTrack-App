@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { clientApi } from "../../api_services/client/ClientAPIService";
 import { format, startOfWeek, addDays } from "date-fns";
-import WeeklyCards, { type WeeklyCardItem } from "../../components/client/WeeklyCards";
 import TermDetailsModal from "../../components/client/TermDetailsModal";
 import WeekSwitcher from "../../components/client/WeekSwitcher";
-
-// Chart
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -17,19 +13,22 @@ import {
   Legend,
   Filler,
 } from "chart.js";
-import type { ClientProfile, HistoryItem } from "../../api_services/client/IClientAPIService";
+import type { WeeklyCardItem } from "../../models/client/WeeklyCardItem";
+import type { ClientProfile } from "../../types/users/ClientProfile";
+import type { HistoryItem } from "../../models/client/HistoryItem";
+import WeeklyCards from "../../components/client/WeeklyCards";
+import { hhmmToMinutes } from "../../helpers/client/hhmmToMinutes";
+import type { IClientAPIService } from "../../api_services/client/IClientAPIService";
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Legend, Filler);
 
 const normalizeType = (t: unknown): 'individual' | 'group' =>
   String(t).toLowerCase() === 'individual' ? 'individual' : 'group';
 
-function hhmmToMinutes(hhmm: string) {
-  const [h, m] = hhmm.split(":").map(Number);
-  const total = (h || 0) * 60 + (m || 0);
-  return Number.isFinite(total) ? total : 0;
+interface ClientDashboardPageProps {
+  clientApi: IClientAPIService;
 }
 
-export default function ClientDashboardPage() {
+export default function ClientDashboardPage({ clientApi }: ClientDashboardPageProps) {
   const [weekStart, setWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [events, setEvents] = useState<WeeklyCardItem[]>([]);
   const [detailsOpen, setDetailsOpen] = useState(false);

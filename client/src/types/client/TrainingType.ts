@@ -1,0 +1,1 @@
+export type TrainingType = 'individual' | 'group' | 'INDIVIDUAL' | 'GROUP';

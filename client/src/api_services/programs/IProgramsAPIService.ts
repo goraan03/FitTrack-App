@@ -1,17 +1,6 @@
-export type PublicProgram = {
-  id: number;
-  title: string;
-  description: string | null;
-  level: 'beginner'|'intermediate'|'advanced';
-  trainerId: number;
-  trainerName: string;
-};
-export type PublicProgramsResponse = {
-  success: boolean;
-  message: string;
-  data?: PublicProgram[];
-};
+import type { ProgramLevelList } from "../../types/programs/ProgramLevelList";
+import type { PublicProgramsResponse } from "../../types/programs/PublicProgramsResponse";
 
 export interface IProgramsAPIService {
-  listPublic(params?: { q?: string; level?: 'beginner'|'intermediate'|'advanced' }): Promise<PublicProgramsResponse>;
+  listPublic(params?: ProgramLevelList): Promise<PublicProgramsResponse>;
 }

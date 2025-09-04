@@ -1,49 +1,13 @@
-import axios from "axios";
-import { PročitajVrednostPoKljuču } from "../../helpers/local_storage";
-import type {
-  IClientAPIService,
-  WeeklyScheduleResponse,
-  AvailableTermsResponse,
-  BasicResponse,
-  HistoryResponse,
-  TrainersResponse,
-  MyProfileResponse,
-  AvailableTermsQuery,
-} from "./IClientAPIService";
-
-const baseURL = (import.meta.env.VITE_API_URL || "") + "client";
-
-function getAuthToken(): string | null {
-  try {
-    return (
-      PročitajVrednostPoKljuču("authToken") ||
-      localStorage.getItem("authToken") ||
-      localStorage.getItem("token") ||
-      localStorage.getItem("jwt") ||
-      sessionStorage.getItem("authToken") ||
-      null
-    );
-  } catch {
-    return null;
-  }
-}
-
-function authHeaders() {
-  const token = getAuthToken();
-  return token ? { Authorization: `Bearer ${token}`, "X-Auth-Token": token } : {};
-}
-
-const instance = axios.create({ baseURL });
-
-instance.interceptors.request.use((config) => {
-  const token = getAuthToken();
-  if (token) {
-    config.headers = config.headers || {};
-    (config.headers as any).Authorization = `Bearer ${token}`;
-    (config.headers as any)["X-Auth-Token"] = token;
-  }
-  return config;
-});
+import type { IClientAPIService } from "./IClientAPIService";
+import type { BasicResponse } from "../../types/client/BasicResposne";
+import type { TrainersResponse } from "../../types/client/TrainersResponse";
+import type { WeeklyScheduleResponse } from "../../types/client/WeeklyScheduleResponse";
+import type { AvailableTermsResponse } from "../../types/client/AvailableTermsResponse";
+import type { AvailableTermsQuery } from "../../types/client/AvailableTermsQuery";
+import type { HistoryResponse } from "../../types/client/HistoryResponse";
+import type { MyProfileResponse } from "../../types/client/MyProfileResponse";
+import { authHeaders } from "../../helpers/client/authHeaders";
+import { instance } from "../../helpers/client/instanceClient";
 
 export const clientApi: IClientAPIService = {
   async listTrainers() {

@@ -1,11 +1,7 @@
 import axios from "axios";
-import type { IProgramsAPIService, PublicProgramsResponse } from "./IProgramsAPIService";
-
-const joinURL = (base: string, path: string) => {
-  const b = (base || '').replace(/\/+$/, '');
-  const p = (path || '').replace(/^\/+/, '');
-  return [b, p].filter(Boolean).join('/');
-};
+import type { IProgramsAPIService } from "./IProgramsAPIService";
+import type { PublicProgramsResponse } from "../../types/programs/PublicProgramsResponse";
+import { joinURL } from "../../helpers/programs/joinURL";
 
 const baseURL = joinURL(import.meta.env.VITE_API_URL || '', 'programs');
 
