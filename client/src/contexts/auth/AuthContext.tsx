@@ -94,7 +94,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       SačuvajVrednostPoKljuču(AUTH_TOKEN_KEY, newToken);
       if (bootId) SačuvajVrednostPoKljuču(AUTH_BOOT_KEY, bootId);
     } else {
-      console.error('Nevazeci ili istekao token');
+      console.error('Not valid or expired token');
     }
   };
 

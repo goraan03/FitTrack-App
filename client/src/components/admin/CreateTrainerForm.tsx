@@ -44,8 +44,8 @@ export default function CreateTrainerForm({ adminApi }: Props) {
           <UserPlus className="h-5 w-5" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold">Kreiranje trenera</h3>
-          <p className="text-gray-600 text-sm">Dodajte novog trenera u sistem</p>
+          <h3 className="text-lg font-semibold">Create a Trainer</h3>
+          <p className="text-gray-600 text-sm">Add a new trainer to the system</p>
         </div>
       </header>
 
@@ -55,7 +55,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-sm text-gray-700">Ime</label>
+            <label className="text-sm text-gray-700">First Name</label>
             <input
               className="w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
               autoComplete="off"
@@ -66,7 +66,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
             />
           </div>
           <div>
-            <label className="text-sm text-gray-700">Prezime</label>
+            <label className="text-sm text-gray-700">Last Name</label>
             <input
               className="w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
               autoComplete="off"
@@ -79,7 +79,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
         </div>
 
         <div>
-          <label className="text-sm text-gray-700">Email (korisničko ime)</label>
+          <label className="text-sm text-gray-700">Email (Username)</label>
           <input
             className="w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
             type="text"
@@ -93,7 +93,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
         </div>
 
         <div>
-          <label className="text-sm text-gray-700">Lozinka</label>
+          <label className="text-sm text-gray-700">Password</label>
           <input
             className="w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
             type="password"
@@ -108,7 +108,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-sm text-gray-700">Datum rođenja (opciono)</label>
+            <label className="text-sm text-gray-700">Date of Birth (optional)</label>
             <input
               className="w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
               type="date"
@@ -119,14 +119,14 @@ export default function CreateTrainerForm({ adminApi }: Props) {
             />
           </div>
           <div>
-            <label className="text-sm text-gray-700">Pol</label>
+            <label className="text-sm text-gray-700">Gender</label>
             <select
               className="w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
               value={form.pol}
               onChange={(e) => setForm({ ...form, pol: e.target.value as "musko" | "zensko" })}
             >
-              <option value="musko">Muško</option>
-              <option value="zensko">Žensko</option>
+              <option value="musko">Male</option>
+              <option value="zensko">Female</option>
             </select>
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
             disabled={loading}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm"
           >
-            {loading ? "Kreiranje..." : "Kreiraj trenera"}
+            {loading ? "Creating..." : "Create Trainer"}
           </button>
         </div>
       </form>

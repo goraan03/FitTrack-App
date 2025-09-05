@@ -74,28 +74,28 @@ export default function UsersTable({ adminApi }: Props) {
     <div className="bg-white border rounded-2xl p-5 shadow-sm">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-4">
         <div>
-          <h3 className="text-lg font-semibold">Korisnici</h3>
-          <p className="text-sm text-gray-600">Pregled i upravljanje nalozima klijenata i trenera</p>
+          <h3 className="text-lg font-semibold">Users</h3>
+          <p className="text-sm text-gray-600">Overview and management of client and trainer accounts</p>
         </div>
         <div className="flex gap-3">
           <div>
-            <label className="text-xs text-gray-500 block mb-1">Uloga</label>
+            <label className="text-xs text-gray-500 block mb-1">Role</label>
             <select className="border rounded-lg px-3 py-2" value={role} onChange={e => setRole(e.target.value as any)}>
-              <option value="svi">Svi</option>
-              <option value="klijent">Klijenti</option>
-              <option value="trener">Treneri</option>
-              <option value="admin">Admini</option>
+              <option value="svi">All</option>
+              <option value="klijent">Clients</option>
+              <option value="trener">Trainers</option>
+              <option value="admin">Admins</option>
             </select>
           </div>
           <div>
             <label className="text-xs text-gray-500 block mb-1">Status</label>
             <select className="border rounded-lg px-3 py-2" value={blocked} onChange={e => setBlocked(e.target.value as any)}>
-              <option value="svi">Svi</option>
-              <option value="da">Samo blokirani</option>
-              <option value="ne">Samo aktivni</option>
+              <option value="svi">All</option>
+              <option value="da">Only Blocked</option>
+              <option value="ne">Only Active</option>
             </select>
           </div>
-          <button onClick={fetchUsers} className="px-4 py-2 rounded-lg border">Osveži</button>
+          <button onClick={fetchUsers} className="px-4 py-2 rounded-lg border">Refresh</button>
         </div>
       </div>
 
@@ -107,20 +107,20 @@ export default function UsersTable({ adminApi }: Props) {
             <tr className="text-left bg-gray-50">
               <th className="p-3">ID</th>
               <th className="p-3">Email</th>
-              <th className="p-3">Uloga</th>
-              <th className="p-3">Ime</th>
-              <th className="p-3">Prezime</th>
-              <th className="p-3">Datum rođenja</th>
-              <th className="p-3">Pol</th>
+              <th className="p-3">Role</th>
+              <th className="p-3">First Name</th>
+              <th className="p-3">Last Name</th>
+              <th className="p-3">Date of Birth</th>
+              <th className="p-3">Gender</th>
               <th className="p-3">Status</th>
-              <th className="p-3">Akcije</th>
+              <th className="p-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td className="p-3" colSpan={9}>Učitavanje...</td></tr>
+              <tr><td className="p-3" colSpan={9}>Loading...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td className="p-3" colSpan={9}>Nema rezultata</td></tr>
+              <tr><td className="p-3" colSpan={9}>No results found</td></tr>
             ) : (
               filtered.map(u => (
                 <tr key={u.id} className="border-t">
@@ -133,13 +133,13 @@ export default function UsersTable({ adminApi }: Props) {
                   <td className="p-3">{u.pol || "-"}</td>
                   <td className="p-3">
                     {u.blokiran ? (
-                      <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700">Blokiran</span>
+                      <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700">Blocked</span>
                     ) : (
-                      <span className="px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">Aktivan</span>
+                      <span className="px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">Active</span>
                     )}
                   </td>
                   <td className="p-3 space-x-2">
-                    <button onClick={() => openEdit(u)} className="px-3 py-1 rounded-lg border hover:bg-gray-50">Uredi</button>
+                    <button onClick={() => openEdit(u)} className="px-3 py-1 rounded-lg border hover:bg-gray-50">Edit</button>
                     <button
                       onClick={() => toggleBlock(u)}
                       className={`px-3 py-1 rounded-lg text-white ${u.blokiran ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'}`}

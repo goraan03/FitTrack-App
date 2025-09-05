@@ -32,14 +32,14 @@ export default function AuditLogTable({ adminApi }: Props) {
         <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
           <div className="flex items-center gap-2 text-gray-700 font-semibold">
             <Filter className="h-4 w-4" />
-            Filter & Pretraživanje
+            Filter and Search
           </div>
           <div className="flex flex-1 gap-3">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 className="w-full rounded-xl border border-gray-300 pl-9 pr-3 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
-                placeholder="Pretraži akciju ili email..."
+                placeholder="Search action or email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && (setPage(1), load())}
@@ -50,16 +50,16 @@ export default function AuditLogTable({ adminApi }: Props) {
               value={category}
               onChange={(e) => { setCategory(e.target.value as any); setPage(1); }}
             >
-              <option value="">Sve</option>
-              <option value="Informacija">Informacija</option>
-              <option value="Upozorenje">Upozorenje</option>
-              <option value="Greška">Greška</option>
+              <option value="">All</option>
+              <option value="Informacija">Information</option>
+              <option value="Upozorenje">Warning</option>
+              <option value="Greška">Error</option>
             </select>
             <button
               className="px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
               onClick={() => { setPage(1); load(); }}
             >
-              Primeni
+              Apply
             </button>
           </div>
         </div>
@@ -69,18 +69,18 @@ export default function AuditLogTable({ adminApi }: Props) {
         <table className="min-w-full text-sm">
           <thead>
             <tr className="bg-gray-50 text-left">
-              <th className="p-3 font-semibold text-gray-700">Vreme</th>
-              <th className="p-3 font-semibold text-gray-700">Kategorija</th>
-              <th className="p-3 font-semibold text-gray-700">Akcija</th>
-              <th className="p-3 font-semibold text-gray-700">Korisnik</th>
-              <th className="p-3 font-semibold text-gray-700">Detalji</th>
+              <th className="p-3 font-semibold text-gray-700">Time</th>
+              <th className="p-3 font-semibold text-gray-700">Category</th>
+              <th className="p-3 font-semibold text-gray-700">Action</th>
+              <th className="p-3 font-semibold text-gray-700">User</th>
+              <th className="p-3 font-semibold text-gray-700">Details</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td className="p-4" colSpan={5}>Učitavanje...</td></tr>
+              <tr><td className="p-4" colSpan={5}>Loading...</td></tr>
             ) : items.length === 0 ? (
-              <tr><td className="p-6 text-gray-500" colSpan={5}>Nema logova</td></tr>
+              <tr><td className="p-6 text-gray-500" colSpan={5}>No logs found</td></tr>
             ) : (
               items.map(r => (
                 <tr key={r.id} className="border-t hover:bg-gray-50/60">
@@ -102,7 +102,7 @@ export default function AuditLogTable({ adminApi }: Props) {
 
       <div className="p-4 border-t flex items-center justify-between">
         <span className="text-sm text-gray-600">
-          Stranica {page} / {pages} ({total} stavki)
+          Page {page} / {pages} ({total} items)
         </span>
         <div className="flex gap-2">
           <button
@@ -110,14 +110,14 @@ export default function AuditLogTable({ adminApi }: Props) {
             disabled={page <= 1}
             onClick={() => setPage(p => Math.max(1, p - 1))}
           >
-            <ChevronLeft className="h-4 w-4" /> Preth
+            <ChevronLeft className="h-4 w-4" /> Prev
           </button>
           <button
             className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border disabled:opacity-50"
             disabled={page >= pages}
             onClick={() => setPage(p => Math.min(pages, p + 1))}
           >
-            Sledeća <ChevronRight className="h-4 w-4" />
+            Next <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       </div>

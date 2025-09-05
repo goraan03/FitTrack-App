@@ -88,14 +88,14 @@ export default function RegistracijaForma({ authApi }: Props) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Surname</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
           <input
             type="text"
             name={`ln_${seed}`}
             autoComplete="off"
             value={prezime}
             onChange={(e) => setPrezime(e.target.value)}
-            placeholder="Surname"
+            placeholder="Last Name"
             required
             className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
           />
@@ -126,7 +126,7 @@ export default function RegistracijaForma({ authApi }: Props) {
         <input
           type="password"
           name={`p_${seed}`}
-          autoComplete="nova-lozinka"
+          autoComplete="new-password"
           data-lpignore="true"
           data-1p-ignore="true"
           value={lozinka}

@@ -10,7 +10,6 @@ import type { TwoFAState } from "../../types/auth/TwoFAState";
 const TWO_FA_KEY = "twofa_state";
 
 export function PrijavaForma({ authApi }: AuthFormProps) {
-  // Anti-autofill: nasumična imena polja + fake inputs
   const seed = useId().replace(/:/g, "_");
 
   const [korisnickoIme, setKorisnickoIme] = useState("");
@@ -27,13 +26,11 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
 
   const { login } = useAuth();
 
-  // Uvek počni prazno kad uđeš na login
   useEffect(() => {
     setKorisnickoIme("");
     setLozinka("");
   }, []);
 
-  // TwoFA persist
   useEffect(() => {
     const raw = PročitajVrednostPoKljuču(TWO_FA_KEY);
     if (raw) {
@@ -230,7 +227,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
         <label className="block text-sm font-medium text-gray-700 mb-2">Verification Code</label>
         <OtpInput value={otp} onChange={(v) => setOtp(v.replace(/\D/g, '').slice(0, 6))} />
         <div className="mt-2 text-sm text-gray-600">
-          {secondsLeft > 0 ? `Kod ističe za ${secondsLeft}s` : "Kod je istekao."}
+          {secondsLeft > 0 ? `Code expires in ${secondsLeft}s` : "Code has expired."}
         </div>
       </div>
 

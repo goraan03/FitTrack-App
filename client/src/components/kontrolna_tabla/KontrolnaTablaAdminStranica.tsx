@@ -7,8 +7,8 @@ export default function KontrolnaTablaAdminStranica() {
     <main className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         <header>
-          <h1 className="text-2xl font-bold">Admin kontrolna tabla</h1>
-          <p className="text-gray-600">Kreirajte trenere, pregledajte i upravljajte korisnicima.</p>
+          <h1 className="text-2xl font-bold">Admin control panel</h1>
+          <p className="text-gray-600">Create trainers, view and manage users.</p>
         </header>
 
         <CreateTrainerForm adminApi={adminApi} />

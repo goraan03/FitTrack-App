@@ -34,7 +34,6 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
 
   useEffect(() => { 
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.type, filters.status]);
 
   const book = async (id: number) => {
@@ -44,7 +43,7 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
       if (r.success) await load();
       else alert(r.message);
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Došlo je do greške';
+      const msg = err?.response?.data?.message || err?.message || 'An error occurred';
       console.error('Book error:', err?.response?.data || err);
       alert(msg);
     } finally {
@@ -59,7 +58,7 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
       if (r.success) await load();
       else alert(r.message);
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Došlo je do greške';
+      const msg = err?.response?.data?.message || err?.message || 'An error occurred';
       console.error('Cancel error:', err?.response?.data || err);
       alert(msg);
     } finally {
@@ -70,7 +69,6 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
   const isCancellable = (startAtISO: string) =>
     new Date(startAtISO).getTime() - Date.now() >= 60 * 60 * 1000;
 
-  // Ako želiš da "free" ne prikazuje već moje prijavljene:
   const visibleList = useMemo(() => {
     let items = list;
     if (filters.status === 'free') {

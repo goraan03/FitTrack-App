@@ -3,7 +3,7 @@ function SačuvajVrednostPoKljuču(key: string, value: string): boolean {
     localStorage.setItem(key, value)
     return true
   } catch (error) {
-    console.error(`Грешка при чувању у localStorage за кључ '${key}':`, error)
+    console.error(`Error saving to localStorage for key '${key}':`, error)
     return false
   }
 }
@@ -12,7 +12,7 @@ function PročitajVrednostPoKljuču(key: string): string | null {
   try {
     return localStorage.getItem(key)
   } catch (error) {
-    console.error(`Грешка при читању из localStorage за кључ '${key}':`, error)
+    console.error(`Error reading from localStorage for key '${key}':`, error)
     return null
   }
 }
@@ -22,7 +22,7 @@ function ObrišiVrednostPoKljuču(key: string): boolean {
     localStorage.removeItem(key)
     return true
   } catch (error) {
-    console.error(`Грешка при брисању из localStorage за кључ '${key}':`, error)
+    console.error(`Error deleting from localStorage for key '${key}':`, error)
     return false
   }
 }

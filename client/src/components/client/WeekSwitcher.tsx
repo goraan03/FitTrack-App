@@ -4,14 +4,13 @@ import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from "lucide-rea
 
 type Props = {
   weekStart: Date;
-  onChange: (newWeekStart: Date) => void; // očekuje Monday (weekStartsOn: 1)
+  onChange: (newWeekStart: Date) => void;
 };
 
 export default function WeekSwitcher({ weekStart, onChange }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // close on outside click
   useEffect(() => {
     function onClick(e: MouseEvent) {
       if (!ref.current) return;
@@ -34,7 +33,6 @@ export default function WeekSwitcher({ weekStart, onChange }: Props) {
 
   const pickDate = (d: Date) => onChange(startOfWeek(d, { weekStartsOn: 1 }));
 
-  // value za <input type="week"> u formatu YYYY-Www
   const weekInputValue = useMemo(() => {
     const y = format(weekStart, "yyyy");
     const w = String(getISOWeek(weekStart)).padStart(2, "0");
@@ -42,12 +40,10 @@ export default function WeekSwitcher({ weekStart, onChange }: Props) {
   }, [weekStart]);
 
   function onWeekInputChange(val: string) {
-    // val npr. "2025-W10"
     const m = /^(\d{4})-W(\d{2})$/.exec(val);
     if (!m) return;
     const year = Number(m[1]);
     const week = Number(m[2]);
-    // ISO week: Monday of week 1 is Monday of week containing Jan 4
     const jan4 = new Date(year, 0, 4);
     const week1 = startOfWeek(jan4, { weekStartsOn: 1 });
     const target = addDays(week1, (week - 1) * 7);
@@ -119,7 +115,7 @@ export default function WeekSwitcher({ weekStart, onChange }: Props) {
                   setOpen(false);
                 }}
               />
-              <div className="mt-1 text-[11px] text-gray-400">Note: input type=week nije podržan u svim browserima.</div>
+              <div className="mt-1 text-[11px] text-gray-400">Note: input type=week not supported in all browsers.</div>
             </div>
 
             <div className="flex items-center justify-between pt-2">

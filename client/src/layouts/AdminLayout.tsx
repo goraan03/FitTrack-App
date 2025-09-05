@@ -24,9 +24,9 @@ export default function AdminLayout() {
   }, [open]);
 
   const nav = [
-    { to: "/admin/create-trainer", label: "Kreiranje trenera", icon: UserPlus },
-    { to: "/admin/users", label: "Lista korisnika", icon: Users },
-    { to: "/admin/audit", label: "Audit log", icon: FileText },
+    { to: "/admin/create-trainer", label: "Create Trainer", icon: UserPlus },
+    { to: "/admin/users", label: "User List", icon: Users },
+    { to: "/admin/audit", label: "Audit Log", icon: FileText },
   ];
 
   const NavLinks = () => (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { IClientAPIService } from "../../api_services/client/IClientAPIService";
-//DI!!!
+
 //npm run build PROVERA GRESAKA
 
 interface ClientHistoryPageProps {
