@@ -1,3 +1,4 @@
 export interface IEmailService {
-  sendOtp(email: string, code: string): Promise<void>;
+  sendOtp(to: string, code: string): Promise<void>;
+  verifyConnection(): Promise<void>;
 }

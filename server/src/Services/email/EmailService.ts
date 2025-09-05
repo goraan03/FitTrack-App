@@ -1,9 +1,5 @@
 import nodemailer, { type Transporter } from 'nodemailer';
-
-export interface IEmailService {
-  sendOtp(to: string, code: string): Promise<void>;
-  verifyConnection(): Promise<void>;
-}
+import { IEmailService } from '../../Domain/services/email/IEmailService';
 
 /**
  * Gmail SMTP (ili bilo koji SMTP).

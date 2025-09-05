@@ -1,4 +1,3 @@
-// src/Domain/services/audit/IAuditService.ts
 import { AuditCategory, AuditLogItem } from "../../models/AuditLog";
 
 export interface IAuditService {

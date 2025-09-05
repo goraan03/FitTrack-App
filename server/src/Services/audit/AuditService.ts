@@ -1,4 +1,3 @@
-// src/Services/audit/AuditService.ts
 import { IAuditService } from "../../Domain/services/audit/IAuditService";
 import {
   IAuditLogRepository,
@@ -6,7 +5,7 @@ import {
 import { AuditCategory, AuditLogItem } from "../../Domain/models/AuditLog";
 
 export class AuditService implements IAuditService {
-  constructor(private readonly repo: IAuditLogRepository) {}
+  constructor(private readonly auditRepo: IAuditLogRepository) {}
 
   async log(
     category: AuditCategory,
@@ -15,7 +14,7 @@ export class AuditService implements IAuditService {
     username?: string | null,
     details?: any
   ): Promise<void> {
-    await this.repo.create({ category, action, userId, username, details });
+    await this.auditRepo.create({ category, action, userId, username, details });
   }
 
   async list(params: {
@@ -25,11 +24,10 @@ export class AuditService implements IAuditService {
     userId?: number;
     search?: string;
   }): Promise<{ items: AuditLogItem[]; total: number }> {
-    // Sanitize ulaza (ostavljamo i u repou redundatno radi sigurnosti)
     const page = Math.max(1, Number(params.page || 1));
     const pageSize = Math.min(100, Math.max(1, Number(params.pageSize || 20)));
 
-    return this.repo.list({
+    return this.auditRepo.list({
       page,
       pageSize,
       category: params.category,

@@ -18,6 +18,7 @@ import { ClientController } from './WebAPI/controllers/ClientController';
 import { ProgramsService } from './Services/programs/ProgramsService';
 import { ProgramsController } from './WebAPI/controllers/ProgramsController';
 import { AuditLogRepository } from './Database/repositories/audit/AuditLogRepository';
+import { ProgramsRepository } from './Database/repositories/programs/ProgramsRepository';
 
 const app = express();
 
@@ -36,13 +37,14 @@ app.get('/healthz', (_req, res) => res.status(200).send('OK'));
 const userRepo = new UserRepository();
 const challengeRepo = new AuthChallengeRepository();
 const auditLogRepo = new AuditLogRepository();
+const programsRepo = new ProgramsRepository();
 const emailService = new EmailService();
 const auditService = new AuditService(auditLogRepo);
 
 const authService = new AuthService(userRepo, challengeRepo, emailService, auditService);
 const adminService = new AdminService(userRepo, auditService);
 const clientService = new ClientService(auditService);
-const programsService = new ProgramsService();
+const programsService = new ProgramsService(programsRepo);
 
 // Controllers
 const authController = new AuthController(authService, auditService);

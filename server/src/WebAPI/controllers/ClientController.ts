@@ -23,7 +23,6 @@ export class ClientController {
 
     this.router.get('/client/history', this.history.bind(this));
 
-    // NOVO: agregat profila
     this.router.get('/client/me/profile', this.myProfile.bind(this));
   }
 
@@ -122,7 +121,6 @@ export class ClientController {
     }
   }
 
-  // NOVO: /client/me/profile
   private async myProfile(req: Request, res: Response) {
     try {
       const userId = this.getUserId(req);

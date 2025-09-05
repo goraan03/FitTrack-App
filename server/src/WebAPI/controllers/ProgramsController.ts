@@ -1,4 +1,3 @@
-// server/src/WebAPI/controllers/ProgramsController.ts
 import { Request, Response, Router } from "express";
 import { IProgramsService } from "../../Domain/services/programs/IProgramsService";
 
@@ -10,7 +9,6 @@ export class ProgramsController {
   }
 
   private init() {
-    // final ruta: /api/programs/public
     this.router.get('/programs/public', this.listPublic.bind(this));
   }
 
