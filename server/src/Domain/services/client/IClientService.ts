@@ -108,6 +108,6 @@ export interface IClientService {
   cancelTerm(userId: number, termId: number): Promise<void>;
   getHistory(userId: number): Promise<HistoryData>;
 
-  // NOVO
+  //NOVO
   getMyProfile(userId: number): Promise<ClientProfile>;
 }

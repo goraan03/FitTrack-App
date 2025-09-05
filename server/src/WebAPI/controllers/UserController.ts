@@ -15,29 +15,23 @@ export class UserController {
   }
 
   private initializeRoutes(): void {
-    // ostale metode, npr. /api/v1/user/1 <--- user po ID-ju 1
-    this.router.get("/users", authenticate, authorize("admin"), this.korisnici.bind(this));
+    this.router.get(
+      "/users",
+      authenticate,
+      authorize("admin"),
+      this.korisnici.bind(this)
+    );
   }
 
-  /**
-   * GET /api/v1/users
-   * Svi korisnici
-   */
   private async korisnici(req: Request, res: Response): Promise<void> {
     try {
-      const korisniciPodaci: UserDto[] =
-        await this.userService.getSviKorisnici();
-
+      const korisniciPodaci: UserDto[] = await this.userService.getSviKorisnici();
       res.status(200).json(korisniciPodaci);
-      return;
     } catch (error) {
-      res.status(500).json({ success: false, message: error });
+      res.status(500).json({ success: false, message: (error as Error)?.message ?? "Internal error" });
     }
   }
 
-  /**
-   * Getter za router
-   */
   public getRouter(): Router {
     return this.router;
   }

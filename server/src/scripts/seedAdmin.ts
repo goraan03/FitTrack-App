@@ -5,10 +5,10 @@ import { User } from '../Domain/models/User';
 
 async function run() {
   try {
-    const email = process.env.ADMIN_EMAIL || 'gorangrcic76@gmail.com';
-    const password = process.env.ADMIN_PASSWORD || 'KJ4AT9R2CG';
-    const ime = process.env.ADMIN_IME || 'Goran';
-    const prezime = process.env.ADMIN_PREZIME || 'Grcic';
+    const email = process.env.ADMIN_EMAIL || 'biznispad@gmail.com';
+    const password = process.env.ADMIN_PASSWORD || 'biznispad';
+    const ime = process.env.ADMIN_IME || 'Miroslav';
+    const prezime = process.env.ADMIN_PREZIME || 'Admincic';
     const pol = (process.env.ADMIN_POL as 'musko'|'zensko') || 'musko';
 
     if (!password) {

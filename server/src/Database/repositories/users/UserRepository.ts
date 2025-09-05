@@ -1,17 +1,46 @@
+// src/Database/repositories/users/UserRepository.ts
 import { IUserRepository } from "../../../Domain/repositories/users/IUserRepository";
 import { User } from "../../../Domain/models/User";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import db from "../../connection/DbConnectionPool";
 import { toMysqlDate } from "../../../utils/date/DateUtils";
 
+type UserRow = RowDataPacket & {
+  id: number;
+  korisnickoIme: string;
+  lozinka: string;
+  uloga: string;
+  ime: string | null;
+  prezime: string | null;
+  datumRodjenja: string | null;
+  pol: 'musko' | 'zensko' | null;
+  blokiran: 0 | 1 | null;
+  assigned_trener_id?: number | null;
+};
+
+type CountRow = RowDataPacket & { count: number };
+
 export class UserRepository implements IUserRepository {
+  private mapRow(row: UserRow): User {
+    return new User(
+      row.id,
+      row.korisnickoIme,
+      row.lozinka,
+      row.uloga,
+      row.ime ?? '',
+      row.prezime ?? '',
+      row.datumRodjenja ? new Date(row.datumRodjenja) : null,
+      (row.pol as 'musko' | 'zensko' | null) ?? '',
+      !!row.blokiran
+    );
+  }
+
   async create(user: User): Promise<User> {
     try {
       const query = `
         INSERT INTO users (korisnickoIme, lozinka, uloga, ime, prezime, datumRodjenja, pol) 
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `;
-
       const [result] = await db.execute<ResultSetHeader>(query, [
         user.korisnickoIme,
         user.lozinka,
@@ -19,7 +48,7 @@ export class UserRepository implements IUserRepository {
         user.ime,
         user.prezime,
         user.datumRodjenja ? toMysqlDate(user.datumRodjenja) : null,
-        user.pol
+        user.pol,
       ]);
 
       if (result.insertId) {
@@ -35,10 +64,9 @@ export class UserRepository implements IUserRepository {
           false
         );
       }
-
       return new User();
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error("Error creating user:", error);
       return new User();
     }
   }
@@ -46,23 +74,11 @@ export class UserRepository implements IUserRepository {
   async getById(id: number): Promise<User> {
     try {
       const query = `SELECT * FROM users WHERE id = ?`;
-      const [rows] = await db.execute<RowDataPacket[]>(query, [id]);
+      const [rows] = await db.execute<UserRow[]>(query, [id]);
 
       if (rows.length > 0) {
-        const row: any = rows[0];
-        return new User(
-          row.id, 
-          row.korisnickoIme, 
-          row.lozinka, 
-          row.uloga,
-          row.ime,
-          row.prezime,
-          row.datumRodjenja ? new Date(row.datumRodjenja) : null,
-          row.pol,
-          !!row.blokiran
-        );
+        return this.mapRow(rows[0]);
       }
-
       return new User();
     } catch {
       return new User();
@@ -71,32 +87,15 @@ export class UserRepository implements IUserRepository {
 
   async getByUsername(korisnickoIme: string): Promise<User> {
     try {
-      const query = `
-        SELECT * 
-        FROM users 
-        WHERE korisnickoIme = ?
-      `;
-
-      const [rows] = await db.execute<RowDataPacket[]>(query, [korisnickoIme]);
+      const query = `SELECT * FROM users WHERE korisnickoIme = ?`;
+      const [rows] = await db.execute<UserRow[]>(query, [korisnickoIme]);
 
       if (rows.length > 0) {
-        const row: any = rows[0];
-        return new User(
-          row.id, 
-          row.korisnickoIme, 
-          row.lozinka, 
-          row.uloga,
-          row.ime,
-          row.prezime,
-          row.datumRodjenja ? new Date(row.datumRodjenja) : null,
-          row.pol,
-          !!row.blokiran
-        );
+        return this.mapRow(rows[0]);
       }
-
       return new User();
     } catch (error) {
-      console.log("user get by username: " + error);
+      console.error("user get by username:", error);
       return new User();
     }
   }
@@ -104,19 +103,8 @@ export class UserRepository implements IUserRepository {
   async getAll(): Promise<User[]> {
     try {
       const query = `SELECT * FROM users ORDER BY id ASC`;
-      const [rows] = await db.execute<RowDataPacket[]>(query);
-
-      return rows.map((row: any) => new User(
-        row.id, 
-        row.korisnickoIme, 
-        row.lozinka, 
-        row.uloga,
-        row.ime,
-        row.prezime,
-        row.datumRodjenja ? new Date(row.datumRodjenja) : null,
-        row.pol,
-        !!row.blokiran
-      ));
+      const [rows] = await db.execute<UserRow[]>(query);
+      return rows.map((row) => this.mapRow(row));
     } catch {
       return [];
     }
@@ -126,10 +114,9 @@ export class UserRepository implements IUserRepository {
     try {
       const query = `
         UPDATE users 
-        SET korisnickoIme = ?, lozinka = ?, ime = ?, prezime = ?, datumRodjenja = ?, pol = ? 
+        SET korisnickoIme = ?, lozinka = ?, ime = ?, prezime = ?, datumRodjenja = ?, pol = ?
         WHERE id = ?
       `;
-
       const [result] = await db.execute<ResultSetHeader>(query, [
         user.korisnickoIme,
         user.lozinka,
@@ -143,7 +130,6 @@ export class UserRepository implements IUserRepository {
       if (result.affectedRows > 0) {
         return user;
       }
-
       return new User();
     } catch {
       return new User();
@@ -154,7 +140,6 @@ export class UserRepository implements IUserRepository {
     try {
       const query = `DELETE FROM users WHERE id = ?`;
       const [result] = await db.execute<ResultSetHeader>(query, [id]);
-
       return result.affectedRows > 0;
     } catch {
       return false;
@@ -164,9 +149,8 @@ export class UserRepository implements IUserRepository {
   async exists(id: number): Promise<boolean> {
     try {
       const query = `SELECT COUNT(*) as count FROM users WHERE id = ?`;
-      const [rows] = await db.execute<RowDataPacket[]>(query, [id]);
-
-      return (rows[0] as any).count > 0;
+      const [rows] = await db.execute<CountRow[]>(query, [id]);
+      return Number(rows[0]?.count ?? 0) > 0;
     } catch {
       return false;
     }
@@ -189,7 +173,7 @@ export class UserRepository implements IUserRepository {
       input.prezime,
       input.datumRodjenja ? toMysqlDate(input.datumRodjenja) : null,
       input.pol,
-      input.id
+      input.id,
     ]);
     return result.affectedRows > 0;
   }

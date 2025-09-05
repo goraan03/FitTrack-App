@@ -1,14 +1,5 @@
-export type AuditCategory = 'Informacija' | 'Upozorenje' | 'Greška';
-
-export type AuditLogItem = {
-  id: number;
-  category: AuditCategory;
-  action: string;
-  userId: number | null;
-  username: string | null;
-  details: any | null;
-  createdAt: Date;
-};
+// src/Domain/services/audit/IAuditService.ts
+import { AuditCategory, AuditLogItem } from "../../models/AuditLog";
 
 export interface IAuditService {
   log(
