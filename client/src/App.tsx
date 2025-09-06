@@ -1,4 +1,3 @@
-// src/App.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import LandingPage from "./pages/landing/LandingPage";
@@ -7,14 +6,16 @@ import RegistracijaStranica from "./pages/auth/RegistracijaStranica";
 import NotFoundPage from "./pages/not_found/NotFoundPage";
 
 import { ProtectedRoute } from "./components/protected_route/ProtectedRoute";
+
 import { authApi } from "./api_services/auth/AuthAPIService";
+import { adminApi } from "./api_services/admin/AdminAPIService";
+import { clientApi } from "./api_services/client/ClientAPIService";
+import { programsApi } from "./api_services/programs/ProgramsAPIService";
 
 import AdminLayout from "./layouts/AdminLayout";
 import AdminCreateTrainerPage from "./pages/admin/AdminCreateTrainerPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminAuditLogPage from "./pages/admin/AdminAuditLogPage";
-import LegacyRedirect from "./routes/LegacyRedirect";
-import { adminApi } from "./api_services/admin/AdminAPIService";
 
 import ClientLayout from "./layouts/ClientLayout";
 import ClientDashboardPage from "./pages/client/ClientDashboardPage";
@@ -23,10 +24,9 @@ import ClientHistoryPage from "./pages/client/ClientHistoryPage";
 import ClientProfilePage from "./pages/client/ClientProfilePage";
 import ChooseTrainerPage from "./pages/client/ChooseTrainerPage";
 import ClientProgramsPage from "./pages/client/ClientProgramsPage";
-import { clientApi } from "./api_services/client/ClientAPIService";
-import { programsApi } from "./api_services/programs/ProgramsAPIService";
 
-//SVUDA PROTECTED ROUTES
+import LegacyRedirect from "./routes/LegacyRedirect";
+import RequireTrainer from "./components/protected_route/equireTrainer";
 
 export default function App() {
   return (
@@ -34,7 +34,7 @@ export default function App() {
       {/* Landing */}
       <Route path="/" element={<LandingPage />} />
 
-      {/* Legacy redirects (stare putanje) */}
+      {/* Legacy redirects */}
       <Route path="/dashboard" element={<LegacyRedirect />} />
       <Route path="/coach" element={<LegacyRedirect />} />
 
@@ -57,7 +57,7 @@ export default function App() {
         <Route path="audit" element={<AdminAuditLogPage adminApi={adminApi} />} />
       </Route>
 
-      {/* Client (klijent) */}
+      {/* Client */}
       <Route
         path="/app"
         element={
@@ -66,13 +66,18 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<ClientDashboardPage clientApi={clientApi} />} />
-        <Route path="sessions" element={<ClientSessionsPage clientApi={clientApi} />} />
-        <Route path="programs" element={<ClientProgramsPage programsApi={programsApi} />} />
-        <Route path="history" element={<ClientHistoryPage clientApi={clientApi}/>} />
-        <Route path="profile" element={<ClientProfilePage clientApi={clientApi} />} />
+        {/* Stranica izbora trenera je dostupna uvek kada je korisnik klijent */}
         <Route path="choose-trainer" element={<ChooseTrainerPage clientApi={clientApi} />} />
+
+        {/* Sve ostale rute zahtevaju izabranog trenera */}
+        <Route element={<RequireTrainer />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<ClientDashboardPage clientApi={clientApi} />} />
+          <Route path="sessions" element={<ClientSessionsPage clientApi={clientApi} />} />
+          <Route path="programs" element={<ClientProgramsPage programsApi={programsApi} />} />
+          <Route path="history" element={<ClientHistoryPage clientApi={clientApi} />} />
+          <Route path="profile" element={<ClientProfilePage clientApi={clientApi} />} />
+        </Route>
       </Route>
 
       {/* 404 */}

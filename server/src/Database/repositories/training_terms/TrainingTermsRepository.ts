@@ -1,10 +1,11 @@
 import db from "../../connection/DbConnectionPool";
-import { RowDataPacket } from "mysql2";
+import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { AvailableTerm } from "../../../Domain/types/training_terms/AvailableTerm";
 import { TrainingType } from "../../../Domain/types/training_enrollments/TrainingType";
-import { ITrainingTermsRepository } from "../../../Domain/repositories/training_terms/ITrainingTermsRepository";
-
-function isoToDate(s?: string) { return s ? new Date(s) : null; }
+import {
+  ITrainingTermsRepository,
+  TrainingTerm,
+} from "../../../Domain/repositories/training_terms/ITrainingTermsRepository";
 
 export class TrainingTermsRepository implements ITrainingTermsRepository {
   async getAvailableTerms(
@@ -13,7 +14,7 @@ export class TrainingTermsRepository implements ITrainingTermsRepository {
     to: Date,
     type?: TrainingType,
     programId?: number,
-    status?: 'free'|'full',
+    status?: "free" | "full",
     userId?: number
   ): Promise<AvailableTerm[]> {
     const where: string[] = ["t.trainer_id=?","t.canceled=0","t.start_at BETWEEN ? AND ?"];
@@ -61,5 +62,50 @@ export class TrainingTermsRepository implements ITrainingTermsRepository {
       program: { id: r.programId, title: r.programTitle, level: r.level },
       trainer: { id: r.trainerId, name: r.trainerName }
     }));
+  }
+
+  // NOVO
+  async getById(termId: number): Promise<TrainingTerm | null> {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT id,
+              trainer_id   AS trainerId,
+              program_id   AS programId,
+              type,
+              start_at     AS startAt,
+              duration_min AS durationMin,
+              capacity,
+              enrolled_count AS enrolledCount,
+              canceled
+       FROM training_terms
+       WHERE id = ? LIMIT 1`,
+      [termId]
+    );
+    if (!(rows as any[]).length) return null;
+    const r: any = rows[0];
+    return {
+      id: r.id,
+      trainerId: r.trainerId,
+      programId: r.programId,
+      type: r.type,
+      startAt: new Date(r.startAt),
+      durationMin: Number(r.durationMin || 0),
+      capacity: Number(r.capacity || 0),
+      enrolledCount: Number(r.enrolledCount || 0),
+      canceled: !!r.canceled,
+    };
+  }
+
+  async incrementEnrolledCount(termId: number): Promise<void> {
+    await db.execute<ResultSetHeader>(
+      "UPDATE training_terms SET enrolled_count = enrolled_count + 1 WHERE id=?",
+      [termId]
+    );
+  }
+
+  async decrementEnrolledCount(termId: number): Promise<void> {
+    await db.execute<ResultSetHeader>(
+      "UPDATE training_terms SET enrolled_count = GREATEST(enrolled_count - 1, 0) WHERE id=?",
+      [termId]
+    );
   }
 }

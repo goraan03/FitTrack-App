@@ -1,6 +1,9 @@
 import axios from "axios";
 import { getAuthToken } from "./getAuthToken";
-const baseURL = (import.meta.env.VITE_API_URL || "") + "client";
+
+const raw = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const apiBase = raw.replace(/\/+$/, "");
+const baseURL = `${apiBase}/client`;
 
 export const instance = axios.create({ baseURL });
 

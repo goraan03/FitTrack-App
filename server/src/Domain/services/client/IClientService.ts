@@ -86,6 +86,7 @@ export interface ClientProfile {
   address?: string | null;  // nemamo u bazi — null
   avatarUrl?: string | null;// nemamo u bazi — null
   isBlocked: boolean;
+  assignedTrainerId: number | null;
   stats: {
     sessionsCompleted: number;
     avgRating: number | null;

@@ -1,5 +1,17 @@
-import { TrainingType } from "../../types/training_enrollments/TrainingType";
 import { AvailableTerm } from "../../types/training_terms/AvailableTerm";
+import { TrainingType } from "../../types/training_enrollments/TrainingType";
+
+export type TrainingTerm = {
+  id: number;
+  trainerId: number;
+  programId: number;
+  type: TrainingType;
+  startAt: Date;
+  durationMin: number;
+  capacity: number;
+  enrolledCount: number;
+  canceled: boolean;
+};
 
 export interface ITrainingTermsRepository {
   getAvailableTerms(
@@ -8,7 +20,11 @@ export interface ITrainingTermsRepository {
     to: Date,
     type?: TrainingType,
     programId?: number,
-    status?: 'free'|'full',
+    status?: "free" | "full",
     userId?: number
   ): Promise<AvailableTerm[]>;
+
+  getById(termId: number): Promise<TrainingTerm | null>;
+  incrementEnrolledCount(termId: number): Promise<void>;
+  decrementEnrolledCount(termId: number): Promise<void>;
 }

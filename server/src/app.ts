@@ -26,7 +26,7 @@ import { TrainingTermsRepository } from './Database/repositories/training_terms/
 const app = express();
 
 app.use(cors({
-  origin: true, // reflektuj origin u dev-u
+  origin: true,
   credentials: true,
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Auth-Token'],
@@ -48,7 +48,7 @@ const auditService = new AuditService(auditLogRepo);
 
 const authService = new AuthService(userRepo, challengeRepo, emailService, auditService);
 const adminService = new AdminService(userRepo, auditService);
-const clientService = new ClientService(auditService, userRepo, trainingEnrollmentsRepo);
+const clientService = new ClientService(auditService, userRepo, trainingEnrollmentsRepo, trainingTermsRepo);
 const programsService = new ProgramsService(programsRepo);
 const trainingService = new TrainingTermsService(trainingTermsRepo, userRepo);
 

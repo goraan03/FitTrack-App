@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, startOfWeek } from "date-fns";
 import type { WeeklyCardItem } from "../../models/client/WeeklyCardItem";
 import { toDate } from "../../helpers/client/toDate";
 
@@ -10,7 +10,22 @@ type Props = {
 };
 
 export default function WeeklyCards({ weekStart, items, onCancel, onDetails }: Props) {
-  const sorted = [...items].sort((a, b) => {
+  const now = new Date();
+
+  // Da li prikazujemo tekuću nedelju (Mon–Sun)?
+  const isCurrentWeek =
+    startOfWeek(weekStart, { weekStartsOn: 1 }).getTime() ===
+    startOfWeek(now, { weekStartsOn: 1 }).getTime();
+
+  // Ako je tekuća nedelja — sakrij sve čiji je KRAJ prošao.
+  const visible = isCurrentWeek
+    ? items.filter((it) => {
+        const endDate = toDate(weekStart, it.day, it.end);
+        return endDate.getTime() >= now.getTime();
+      })
+    : items;
+
+  const sorted = [...visible].sort((a, b) => {
     const da = toDate(weekStart, a.day, a.start).getTime();
     const db = toDate(weekStart, b.day, b.start).getTime();
     return da - db;

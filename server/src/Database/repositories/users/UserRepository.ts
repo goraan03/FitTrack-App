@@ -31,7 +31,8 @@ export class UserRepository implements IUserRepository {
       row.prezime ?? '',
       row.datumRodjenja ? new Date(row.datumRodjenja) : null,
       (row.pol as 'musko' | 'zensko' | null) ?? '',
-      !!row.blokiran
+      !!row.blokiran,
+      row.assigned_trener_id ?? null
     );
   }
 

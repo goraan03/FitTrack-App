@@ -8,6 +8,7 @@ export class User {
     public prezime: string = '',
     public datumRodjenja: Date | null = null,
     public pol: 'musko' | 'zensko' | '' = '',
-    public blokiran: boolean = false
+    public blokiran: boolean = false,
+    public assigned_trener_id?: number | null
   ) {}
 }

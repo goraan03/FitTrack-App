@@ -31,6 +31,7 @@ export interface ClientProfile {
   address?: string | null;
   avatarUrl?: string | null;
   isBlocked: boolean;
+  assignedTrainerId: number | null;
   stats: ClientProfileStats;
   upcomingSessions: UpcomingSession[];
   ratingsTrend: RatingsPoint[];

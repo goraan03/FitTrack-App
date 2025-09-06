@@ -16,7 +16,14 @@ export class ProgramsController {
     try {
       const q = typeof req.query.q === 'string' ? req.query.q : undefined;
       const level = (req.query.level as any) || undefined;
-      const data = await this.programs.listPublic({ q, level });
+
+      const trainerIdRaw = req.query.trainerId;
+      const trainerId =
+        typeof trainerIdRaw === 'string' && /^\d+$/.test(trainerIdRaw)
+          ? Number(trainerIdRaw)
+          : undefined;
+
+      const data = await this.programs.listPublic({ q, level, trainerId });
       res.json({ success: true, message: 'OK', data });
     } catch {
       res.status(500).json({ success: false, message: 'Greška na serveru' });

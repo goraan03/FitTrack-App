@@ -4,7 +4,11 @@ import { IProgramsRepository } from "../../../Domain/repositories/programs/IProg
 import { Program } from "../../../Domain/models/Program";
 
 export class ProgramsRepository implements IProgramsRepository {
-  async listPublic(params: { q?: string; level?: 'beginner'|'intermediate'|'advanced' }): Promise<Program[]> {
+  async listPublic(params: {
+    q?: string;
+    level?: 'beginner' | 'intermediate' | 'advanced';
+    trainerId?: number;
+  }): Promise<Program[]> {
     const where: string[] = ["p.is_public = 1"];
     const args: any[] = [];
 
@@ -18,8 +22,18 @@ export class ProgramsRepository implements IProgramsRepository {
       args.push(params.level);
     }
 
+    // NEW: filtriranje po treneru
+    if (params.trainerId) {
+      where.push("p.trainer_id = ?");
+      args.push(params.trainerId);
+    }
+
     const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT p.id, p.title, p.description, p.level, p.trainer_id as trainerId,
+      `SELECT p.id,
+              p.title,
+              p.description,
+              p.level,
+              p.trainer_id as trainerId,
               CONCAT(u.ime,' ',u.prezime) as trainerName
        FROM programs p
        JOIN users u ON u.id = p.trainer_id
@@ -29,8 +43,15 @@ export class ProgramsRepository implements IProgramsRepository {
       args
     );
 
-    return rows.map(
-      (r: any) => new Program(r.id, r.title, r.description || null, r.level, r.trainerId, r.trainerName)
+    return (rows as any[]).map(
+      (r) => new Program(
+        r.id,
+        r.title,
+        r.description || null,
+        r.level,
+        r.trainerId,
+        r.trainerName
+      )
     );
   }
 }
