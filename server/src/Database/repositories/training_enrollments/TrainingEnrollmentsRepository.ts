@@ -190,4 +190,14 @@ export class TrainingEnrollmentRepository implements ITrainingEnrollmentsReposit
       avg: Number(r.avg),
     }));
   }
+
+
+    async setRating(termId: number, userId: number, rating: number): Promise<void> {
+    await db.execute<ResultSetHeader>(
+      `UPDATE training_enrollments 
+       SET rating=? 
+       WHERE term_id=? AND user_id=? AND status='enrolled'`,
+      [rating, termId, userId]
+    );
+  }
 }

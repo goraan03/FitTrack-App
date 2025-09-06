@@ -27,6 +27,8 @@ import ClientProgramsPage from "./pages/client/ClientProgramsPage";
 
 import LegacyRedirect from "./routes/LegacyRedirect";
 import RequireTrainer from "./components/protected_route/equireTrainer";
+import TrainerDashboardPage from "./components/trainer/TrainerDashboardPage";
+import TrainerLayout from "./layouts/TrainerLayout";
 
 export default function App() {
   return (
@@ -80,7 +82,18 @@ export default function App() {
         </Route>
       </Route>
 
-      {/* 404 */}
+      {/* Trainer */}
+      <Route
+        path="/trainer"
+        element={
+          <ProtectedRoute requiredRole="trener">
+            <TrainerLayout />
+          </ProtectedRoute>
+        }
+        >
+        <Route path="dashboard" element={<TrainerDashboardPage />} />
+        </Route>
+
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

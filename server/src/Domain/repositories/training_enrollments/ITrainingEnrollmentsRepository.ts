@@ -31,21 +31,20 @@ export type RatingsTrendPointRow = {
 export interface ITrainingEnrollmentsRepository {
   getWeeklySchedule(userId: number, weekStart: Date, weekEnd: Date): Promise<RawWeeklyEventRow[]>;
 
-  // NOVO: core operacije
   findByUserAndTerm(userId: number, termId: number): Promise<{ id: number; status: string } | null>;
   createEnrollment(termId: number, userId: number): Promise<number>;
   reactivateEnrollment(enrollmentId: number): Promise<void>;
   cancelEnrollment(enrollmentId: number): Promise<void>;
   getActiveEnrollmentWithTerm(userId: number, termId: number): Promise<{ enrollmentId: number; termStartAt: Date } | null>;
 
-  // NOVO: istorija i statistika
   listHistory(userId: number): Promise<HistoryRow[]>;
   getRatingsStats(userId: number): Promise<{ total: number; avgRating: number | null }>;
 
-  // NOVO: profil agregacije
   getCompletedCount(userId: number): Promise<number>;
   getTotalPrograms(userId: number): Promise<number>;
   getTotalCompletedMinutes(userId: number): Promise<number>;
   listUpcomingSessions(userId: number, limit: number): Promise<UpcomingSessionRow[]>;
   getRatingsTrend(userId: number): Promise<RatingsTrendPointRow[]>;
+
+  setRating(termId: number, userId: number, rating: number): Promise<void>;
 }

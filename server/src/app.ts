@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from "cookie-parser";
 
 import { UserRepository } from './Database/repositories/users/UserRepository';
 import { AuthChallengeRepository } from './Database/repositories/auth/AuthChallengeRepository';
@@ -23,14 +24,19 @@ import { TrainingEnrollmentRepository } from './Database/repositories/training_e
 import { TrainingTermsService } from './Services/training_terms/TrainingTermsService';
 import { TrainingTermsRepository } from './Database/repositories/training_terms/TrainingTermsRepository';
 
+import { TrainerQueriesRepository } from './Database/repositories/trainer/TrainerQueriesRepository';
+import { TrainerService } from './Services/trainer/TrainerService';
+import { TrainerController } from './WebAPI/controllers/TrainerController';
+
 const app = express();
 
 app.use(cors({
-  origin: true,
+  origin: "http://localhost:5173",
   credentials: true,
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Auth-Token'],
 }));
+app.use(cookieParser());
 app.use(express.json());
 
 // Health
@@ -45,6 +51,9 @@ const trainingEnrollmentsRepo = new TrainingEnrollmentRepository();
 const trainingTermsRepo = new TrainingTermsRepository();
 const emailService = new EmailService();
 const auditService = new AuditService(auditLogRepo);
+const trainerQueriesRepo = new TrainerQueriesRepository();
+const trainerService = new TrainerService(trainerQueriesRepo, trainingTermsRepo, trainingEnrollmentsRepo, auditService);
+const trainerController = new TrainerController(trainerService);
 
 const authService = new AuthService(userRepo, challengeRepo, emailService, auditService);
 const adminService = new AdminService(userRepo, auditService);
@@ -63,5 +72,6 @@ app.use('/api', authController.getRouter());     // /api/auth/*
 app.use('/api', adminController.getRouter());    // /api/admin/*
 app.use('/api', clientController.getRouter());   // /api/client/*
 app.use('/api', programsController.getRouter()); // /api/programs/public
+app.use('/api', trainerController.getRouter());   // /api/trainer/*
 
 export default app;
