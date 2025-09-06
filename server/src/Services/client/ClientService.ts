@@ -10,66 +10,64 @@ import {
 } from "../../Domain/services/client/IClientService";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { IAuditService } from "../../Domain/services/audit/IAuditService";
+import { IUserRepository } from "../../Domain/repositories/users/IUserRepository";
+import { ITrainingEnrollmentsRepository } from "../../Domain/repositories/training_enrollments/ITrainingEnrollmentsRepository";
+import { TrainingType } from "../../Domain/types/training_enrollments/TrainingType";
 
 function isoToDate(s?: string) { return s ? new Date(s) : null; }
 function pad2(n: number) { return String(n).padStart(2, '0'); }
 function toHHMM(d: Date) { return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
 
 export class ClientService implements IClientService {
-  constructor(private audit: IAuditService) {}
+  constructor(
+    private audit: IAuditService, 
+    private userRepo: IUserRepository,
+    private trainingEnrollmentsRepo: ITrainingEnrollmentsRepository) {}
 
   async chooseTrainer(userId: number, trainerId: number): Promise<void> {
-    const [t] = await db.execute<RowDataPacket[]>("SELECT id, uloga FROM users WHERE id=? LIMIT 1", [trainerId]);
-    if (t.length === 0 || t[0].uloga !== 'trener') throw new Error('Trainer not found');
-
-    const [u] = await db.execute<RowDataPacket[]>("SELECT assigned_trener_id FROM users WHERE id=? LIMIT 1", [userId]);
-    if (u.length === 0) throw new Error('User not found');
-    if (u[0].assigned_trener_id) throw new Error('Already assigned');
-
-    await db.execute<ResultSetHeader>("UPDATE users SET assigned_trener_id=? WHERE id=?", [trainerId, userId]);
-    try { await this.audit.log('Informacija', 'CLIENT_CHOOSE_TRAINER', userId, null, { trainerId }); } catch {}
+  const trainer = await this.userRepo.getById(trainerId);
+  if (!trainer || trainer.uloga !== "trener") {
+    throw new Error("Trainer not found");
   }
+
+  const user = await this.userRepo.getById(userId);
+  if (!user) throw new Error("User not found");
+  //if (user.assigned_trener_id) throw new Error("Already assigned");
+
+  await this.userRepo.updateAssignedTrainer(userId, trainerId);
+
+  try {
+    await this.audit.log("Informacija", "CLIENT_CHOOSE_TRAINER", userId, null, { trainerId });
+  } catch {}
+}
+
 
   async listTrainers(): Promise<{ id: number; name: string; email: string }[]> {
-    const [rows] = await db.execute<RowDataPacket[]>(
-      "SELECT id, CONCAT(ime,' ',prezime) as name, korisnickoIme as email FROM users WHERE uloga='trener' ORDER BY ime, prezime"
-    );
-    return (rows as any[]).map(r => ({ id: r.id, name: r.name, email: r.email }));
-  }
+  return this.userRepo.listTrainers();
+}
 
   async getWeeklySchedule(userId: number, weekStartISO: string): Promise<{ events: WeeklyEvent[] }> {
     const weekStart = new Date(weekStartISO);
-    if (Number.isNaN(weekStart.getTime())) throw new Error('Bad date');
+    if (Number.isNaN(weekStart.getTime())) throw new Error("Bad date");
 
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 7);
 
-    //pozivanje iz repo i izbegavanje JOIN
+    const rows = await this.trainingEnrollmentsRepo.getWeeklySchedule(userId, weekStart, weekEnd);
 
-    const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT e.term_id as termId, t.start_at as startAt, t.duration_min as dur, t.type, 
-              p.title as programTitle, CONCAT(u.ime,' ',u.prezime) as trainerName
-       FROM training_enrollments e
-       JOIN training_terms t ON t.id=e.term_id
-       JOIN programs p ON p.id=t.program_id
-       JOIN users u ON u.id=t.trainer_id
-       WHERE e.user_id=? AND t.start_at>=? AND t.start_at<? AND e.status='enrolled' AND t.canceled=0
-       ORDER BY t.start_at`,
-      [userId, weekStart, weekEnd]
-    );
-
-    const events: WeeklyEvent[] = (rows as any[]).map(r => {
+    const events: WeeklyEvent[] = rows.map(r => {
       const s = new Date(r.startAt);
       const e = new Date(s.getTime() + r.dur * 60000);
       const day = (s.getDay() + 7) % 7;
       const cancellable = (s.getTime() - Date.now()) >= (60 * 60000);
+
       return {
         termId: r.termId,
         title: r.programTitle,
         day,
         start: toHHMM(s),
         end: toHHMM(e),
-        type: r.type,
+        type: r.type as TrainingType,
         programTitle: r.programTitle,
         trainerName: r.trainerName,
         cancellable
@@ -77,65 +75,6 @@ export class ClientService implements IClientService {
     });
 
     return { events };
-  }
-
-  async getAvailableTerms(
-    userId: number,
-    params: { fromISO?: string; toISO?: string; type?: 'individual'|'group'; programId?: number; status?: 'free'|'full' }
-  ): Promise<AvailableTerm[]> {
-    const [u] = await db.execute<RowDataPacket[]>("SELECT assigned_trener_id FROM users WHERE id=?", [userId]);
-    if (!u.length || !u[0].assigned_trener_id) throw new Error('NO_TRAINER_SELECTED');
-    const trainerId = u[0].assigned_trener_id;
-
-    const from = isoToDate(params.fromISO) || new Date();
-    const to = isoToDate(params.toISO) || new Date(Date.now() + 30*24*3600*1000);
-
-    const where: string[] = ["t.trainer_id=?","t.canceled=0","t.start_at BETWEEN ? AND ?"];
-    const args: any[] = [trainerId, from, to];
-
-    if (params.type) { where.push("t.type=?"); args.push(params.type); }
-    if (params.programId) { where.push("t.program_id=?"); args.push(params.programId); }
-    if (params.status==='free') where.push("t.enrolled_count < t.capacity");
-    if (params.status==='full') where.push("t.enrolled_count >= t.capacity");
-
-    const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT t.id,
-              t.start_at as startAt,
-              t.duration_min as durationMin,
-              t.type,
-              t.capacity,
-              t.enrolled_count as enrolledCount,
-              p.id as programId,
-              p.title as programTitle,
-              p.level,
-              CONCAT(u.ime,' ',u.prezime) as trainerName,
-              u.id as trainerId,
-              CASE WHEN e.id IS NULL THEN 0 ELSE 1 END as isEnrolled
-       FROM training_terms t
-       JOIN programs p ON p.id=t.program_id
-       JOIN users u ON u.id=t.trainer_id
-       LEFT JOIN training_enrollments e
-              ON e.term_id = t.id
-             AND e.user_id = ?
-             AND e.status = 'enrolled'
-       WHERE ${where.join(' AND ')}
-       ORDER BY t.start_at ASC`,
-      [userId, ...args]
-    );
-
-    const out: AvailableTerm[] = (rows as any[]).map(r => ({
-      id: r.id,
-      startAt: new Date(r.startAt).toISOString(),
-      durationMin: r.durationMin,
-      type: r.type,
-      capacity: r.capacity,
-      enrolledCount: r.enrolledCount,
-      status: (r.enrolledCount >= r.capacity) ? 'full' : 'free',
-      isEnrolled: !!Number(r.isEnrolled),
-      program: { id: r.programId, title: r.programTitle, level: r.level },
-      trainer: { id: r.trainerId, name: r.trainerName }
-    }));
-    return out;
   }
 
   async bookTerm(userId: number, termId: number): Promise<void> {

@@ -100,10 +100,6 @@ export interface IClientService {
   listTrainers(): Promise<{ id: number; name: string; email: string }[]>;
   chooseTrainer(userId: number, trainerId: number): Promise<void>;
   getWeeklySchedule(userId: number, weekStartISO: string): Promise<{ events: WeeklyEvent[] }>;
-  getAvailableTerms(
-    userId: number,
-    params: { fromISO?: string; toISO?: string; type?: 'individual'|'group'; programId?: number; status?: 'free'|'full' }
-  ): Promise<AvailableTerm[]>;
   bookTerm(userId: number, termId: number): Promise<void>;
   cancelTerm(userId: number, termId: number): Promise<void>;
   getHistory(userId: number): Promise<HistoryData>;

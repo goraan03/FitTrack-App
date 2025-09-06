@@ -9,7 +9,6 @@ export interface IUserRepository {
   update(user: User): Promise<User>;
   delete(id: number): Promise<boolean>;
   exists(id: number): Promise<boolean>;
-
   updateBasicInfo(input: {
     id: number;
     ime: string;
@@ -17,6 +16,8 @@ export interface IUserRepository {
     datumRodjenja: Date | null;
     pol: 'musko' | 'zensko';
   }): Promise<boolean>;
-
   setBlocked(id: number, blokiran: boolean): Promise<boolean>;
+  updateAssignedTrainer(userId: number, trainerId: number): Promise<void>;
+  listTrainers(): Promise<{ id: number; name: string; email: string }[]>;
+  getAssignedTrainerId(userId: number): Promise<number | null>;
 }

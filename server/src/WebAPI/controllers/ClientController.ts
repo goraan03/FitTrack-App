@@ -2,10 +2,11 @@ import { Request, Response, Router } from "express";
 import { IClientService } from "../../Domain/services/client/IClientService";
 import { authenticate } from "../../Middlewares/authentification/AuthMiddleware";
 import { authorize } from "../../Middlewares/authorization/AuthorizeMiddleware";
+import { ITrainingTermsService } from "../../Domain/services/training_terms/ITrainingTermsService";
 
 export class ClientController {
   private router: Router;
-  constructor(private client: IClientService) {
+  constructor(private client: IClientService, private training: ITrainingTermsService) {
     this.router = Router();
     this.init();
   }
@@ -63,7 +64,7 @@ export class ClientController {
   private async availableTerms(req: Request, res: Response) {
     try {
       const userId = this.getUserId(req);
-      const data = await this.client.getAvailableTerms(userId, {
+      const data = await this.training.getAvailableTerms(userId, {
         fromISO: req.query.from as any,
         toISO: req.query.to as any,
         type: req.query.type as any,

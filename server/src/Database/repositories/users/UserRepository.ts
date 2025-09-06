@@ -179,10 +179,31 @@ export class UserRepository implements IUserRepository {
   }
 
   async setBlocked(id: number, blokiran: boolean): Promise<boolean> {
-    const [result] = await db.execute<ResultSetHeader>(
-      `UPDATE users SET blokiran = ? WHERE id = ?`,
-      [blokiran ? 1 : 0, id]
-    );
+    const query = `UPDATE users SET blokiran = ? WHERE id = ?`;
+    const [result] = await db.execute<ResultSetHeader>(query, [blokiran ? 1 : 0, id]);
     return result.affectedRows > 0;
+  }
+
+  async updateAssignedTrainer(userId: number, trainerId: number): Promise<void> {
+    const query = `UPDATE users SET assigned_trener_id=? WHERE id=?`;
+    await db.execute<ResultSetHeader>(query, [trainerId, userId]);
+  }
+
+  async listTrainers(): Promise<{ id: number; name: string; email: string }[]> {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      "SELECT id, CONCAT(ime,' ',prezime) as name, korisnickoIme as email FROM users WHERE uloga='trener' ORDER BY ime, prezime"
+    );
+    return (rows as any[]).map(r => ({
+      id: r.id,
+      name: r.name,
+      email: r.email
+    }));
+  }
+  
+  async getAssignedTrainerId(userId: number): Promise<number | null> {
+    const query = `SELECT assigned_trener_id FROM users WHERE id = ?`;
+    const [rows] = await db.execute<RowDataPacket[]>(query, [userId]);
+    const row = rows[0] as RowDataPacket | undefined;
+    return row?.assigned_trener_id ?? null;
   }
 }
