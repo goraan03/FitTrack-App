@@ -1,10 +1,12 @@
-import { ITrainerService, TrainerDashboard, PendingParticipant } from "../../Domain/services/trainer/ITrainerService";
+import { ITrainerService, TrainerDashboard, PendingParticipant, TrainerProfile } from "../../Domain/services/trainer/ITrainerService";
 import { ITrainerQueriesRepository } from "../../Domain/repositories/trainer/ITrainerQueriesRepository";
 import { ITrainingTermsRepository } from "../../Domain/repositories/training_terms/ITrainingTermsRepository";
 import { ITrainingEnrollmentsRepository } from "../../Domain/repositories/training_enrollments/ITrainingEnrollmentsRepository";
 import { IAuditService } from "../../Domain/services/audit/IAuditService";
 import { toHHMM } from "../../helpers/ClientService/toHHMM";
 import { startOfWeek } from "date-fns";
+import { IUserRepository } from "../../Domain/repositories/users/IUserRepository";
+import { calcAge } from "../../helpers/ClientService/calcAge";
 
 function parseISO(d?: string): Date | null {
   return d ? new Date(d) : null;
@@ -15,7 +17,8 @@ export class TrainerService implements ITrainerService {
     private queries: ITrainerQueriesRepository,
     private termsRepo: ITrainingTermsRepository,
     private enrollRepo: ITrainingEnrollmentsRepository,
-    private audit: IAuditService
+    private audit: IAuditService,
+    private userRepo: IUserRepository
   ) {}
 
   async getDashboard(trainerId: number, weekStartISO?: string): Promise<TrainerDashboard> {
@@ -46,7 +49,6 @@ export class TrainerService implements ITrainerService {
       };
     });
 
-    // grupiši pending po terminu
     const pendingMap = new Map<number, { termId: number; startAt: string; programTitle: string; count: number }>();
     for (const r of pendingRows) {
       const key = r.termId;
@@ -85,11 +87,48 @@ export class TrainerService implements ITrainerService {
     const term = await this.termsRepo.getById(termId);
     if (!term || term.trainerId !== trainerId) throw new Error('NOT_ALLOWED');
 
-    // sigurnost: termin mora biti u prošlosti
     const end = new Date(term.startAt.getTime() + term.durationMin * 60000);
     if (end.getTime() > Date.now()) throw new Error('TERM_NOT_FINISHED');
 
     await this.enrollRepo.setRating(termId, userId, rating);
     try { await this.audit.log('Informacija', 'TRAINER_RATE_PARTICIPANT', trainerId, null, { termId, userId, rating }); } catch {}
+  }
+
+  // ---- NOVO ----
+  async getMyProfile(trainerId: number): Promise<TrainerProfile> {
+    const user = await this.userRepo.getById(trainerId);
+    if (!user || !user.id) throw new Error('User not found');
+
+    const [sessionsCompleted, avgRating, totalPrograms, totalMinutes, trendRows] = await Promise.all([
+      this.queries.getCompletedTermsCount(trainerId),
+      this.queries.getAvgRatingAllTime(trainerId),
+      this.queries.getProgramsCount(trainerId),
+      this.queries.getTotalCompletedMinutes(trainerId),
+      this.queries.getRatingsTrend(trainerId),
+    ]);
+
+    try { await this.audit.log('Informacija', 'TRAINER_PROFILE_VIEW', trainerId, null, {}); } catch {}
+
+    return {
+      id: user.id!,
+      firstName: user.ime || '',
+      lastName: user.prezime || '',
+      email: user.korisnickoIme,
+      gender: (user.pol as any) ?? null,
+      age: calcAge(user.datumRodjenja),
+      address: null,
+      avatarUrl: null,
+      isBlocked: !!user.blokiran,
+      stats: {
+        sessionsCompleted,
+        avgRating,
+        totalPrograms,
+        totalHours: totalMinutes / 60,
+      },
+      ratingsTrend: trendRows.map(r => ({
+        date: r.date.toISOString(),
+        avg: r.avg != null ? Number(r.avg) : null,
+      })),
+    };
   }
 }

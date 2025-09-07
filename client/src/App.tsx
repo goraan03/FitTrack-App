@@ -11,6 +11,7 @@ import { authApi } from "./api_services/auth/AuthAPIService";
 import { adminApi } from "./api_services/admin/AdminAPIService";
 import { clientApi } from "./api_services/client/ClientAPIService";
 import { programsApi } from "./api_services/programs/ProgramsAPIService";
+import { trainerApi } from "./api_services/trainer/TrainerAPIService";
 
 import AdminLayout from "./layouts/AdminLayout";
 import AdminCreateTrainerPage from "./pages/admin/AdminCreateTrainerPage";
@@ -24,6 +25,8 @@ import ClientHistoryPage from "./pages/client/ClientHistoryPage";
 import ClientProfilePage from "./pages/client/ClientProfilePage";
 import ChooseTrainerPage from "./pages/client/ChooseTrainerPage";
 import ClientProgramsPage from "./pages/client/ClientProgramsPage";
+
+import TrainerProfilePage from "./pages/trainer/TrainerProfilePage";
 
 import LegacyRedirect from "./routes/LegacyRedirect";
 import RequireTrainer from "./components/protected_route/equireTrainer";
@@ -95,6 +98,11 @@ export default function App() {
         </Route>
 
       <Route path="*" element={<NotFoundPage />} />
+
+      <Route path="/trainer" element={<TrainerLayout />}>
+        <Route path="profile" element={<TrainerProfilePage trainerApi={trainerApi} />} />
+      </Route>
     </Routes>
+
   );
 }

@@ -15,6 +15,7 @@ export class TrainerController {
     this.router.get("/trainer/dashboard", authenticate, authorize("trener"), this.dashboard.bind(this));
     this.router.get("/trainer/terms/:termId/unrated", authenticate, authorize("trener"), this.unrated.bind(this));
     this.router.post("/trainer/terms/:termId/rate", authenticate, authorize("trener"), this.rate.bind(this));
+    this.router.get("/trainer/me/profile", authenticate, authorize("trener"), this.myProfile.bind(this));
   }
 
   private async dashboard(req: Request, res: Response) {
@@ -52,6 +53,16 @@ export class TrainerController {
       res.json({ success: true, message: 'Rating saved' });
     } catch (err) {
       res.status(400).json({ success: false, message: (err as Error)?.message || 'Bad request' });
+    }
+  }
+
+  private async myProfile(req: Request, res: Response) {
+    try {
+      const user = req.user!;
+      const data = await this.trainer.getMyProfile(user.id);
+      res.json({ success: true, message: 'OK', data });
+    } catch (err) {
+      res.status(500).json({ success: false, message: (err as Error)?.message || 'Server error' });
     }
   }
 

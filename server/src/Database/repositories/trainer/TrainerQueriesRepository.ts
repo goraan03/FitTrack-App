@@ -17,6 +17,10 @@ type PendingRow = RowDataPacket & {
   termId: number; startAt: Date; durationMin: number; title: string; userId: number; userName: string;
 };
 
+type CountRow = RowDataPacket & { c: number };
+type MinutesRow = RowDataPacket & { totalMinutes: number };
+type TrendRow = RowDataPacket & { day: Date; avg: number | null };
+
 export class TrainerQueriesRepository implements ITrainerQueriesRepository {
   async getWeeklyTerms(trainerId: number, weekStart: Date, weekEnd: Date): Promise<TrainerWeeklyTermRow[]> {
     const [rows] = await db.execute<RowDataPacket[]>(
@@ -130,5 +134,53 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
       userId: r.userId,
       userName: r.userName,
     }));
+  }
+
+  // ---- NOVO: za MyProfile ----
+
+  async getCompletedTermsCount(trainerId: number): Promise<number> {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT COUNT(*) AS c
+       FROM training_terms t
+       WHERE t.trainer_id=? AND t.canceled=0
+         AND (t.start_at + INTERVAL t.duration_min MINUTE) <= NOW()`,
+      [trainerId]
+    );
+    const r = (rows as CountRow[])[0];
+    return Number(r?.c || 0);
+  }
+
+  async getTotalCompletedMinutes(trainerId: number): Promise<number> {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT COALESCE(SUM(t.duration_min),0) AS totalMinutes
+       FROM training_terms t
+       WHERE t.trainer_id=? AND t.canceled=0
+         AND (t.start_at + INTERVAL t.duration_min MINUTE) <= NOW()`,
+      [trainerId]
+    );
+    const r = (rows as MinutesRow[])[0];
+    return Number(r?.totalMinutes || 0);
+  }
+
+  async getProgramsCount(trainerId: number): Promise<number> {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT COUNT(*) AS c FROM programs WHERE trainer_id=?`,
+      [trainerId]
+    );
+    const r = (rows as CountRow[])[0];
+    return Number(r?.c || 0);
+  }
+
+  async getRatingsTrend(trainerId: number): Promise<{ date: Date; avg: number | null }[]> {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT DATE(t.start_at) AS day, AVG(e.rating) AS avg
+       FROM training_enrollments e
+       JOIN training_terms t ON t.id=e.term_id
+       WHERE t.trainer_id=? AND e.rating IS NOT NULL
+       GROUP BY DATE(t.start_at)
+       ORDER BY day ASC`,
+      [trainerId]
+    );
+    return (rows as TrendRow[]).map(r => ({ date: new Date(r.day), avg: r.avg != null ? Number(r.avg) : null }));
   }
 }

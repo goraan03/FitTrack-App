@@ -52,7 +52,7 @@ const trainingTermsRepo = new TrainingTermsRepository();
 const emailService = new EmailService();
 const auditService = new AuditService(auditLogRepo);
 const trainerQueriesRepo = new TrainerQueriesRepository();
-const trainerService = new TrainerService(trainerQueriesRepo, trainingTermsRepo, trainingEnrollmentsRepo, auditService);
+const trainerService = new TrainerService(trainerQueriesRepo, trainingTermsRepo, trainingEnrollmentsRepo, auditService, userRepo);
 const trainerController = new TrainerController(trainerService);
 
 const authService = new AuthService(userRepo, challengeRepo, emailService, auditService);
