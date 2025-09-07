@@ -225,7 +225,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Verification Code</label>
-        <OtpInput value={otp} onChange={(v: string) => setOtp(v.replace(/\D/g, '').slice(0, 6))} />
+        <OtpInput value={otp} onChange={(v) => setOtp(v.replace(/\D/g, '').slice(0, 6))} />
         <div className="mt-2 text-sm text-gray-600">
           {secondsLeft > 0 ? `Code expires in ${secondsLeft}s` : "Code has expired."}
         </div>
