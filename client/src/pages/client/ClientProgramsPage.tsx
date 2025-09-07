@@ -1,3 +1,4 @@
+// client/src/pages/client/ClientProgramsPage.tsx
 import { useEffect, useState } from "react";
 import type { IProgramsAPIService } from "../../api_services/programs/IProgramsAPIService";
 import { Search } from "lucide-react";
@@ -14,6 +15,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
   const [q, setQ] = useState("");
   const [level, setLevel] = useState<'' | 'beginner' | 'intermediate' | 'advanced'>('');
   const [trainerId, setTrainerId] = useState<number | null>(null);
+  const [clientId, setClientId] = useState<number | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
@@ -24,13 +26,19 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
         const profileRes = await clientApi.getMyProfile();
         if (!alive) return;
 
-        const tIdRaw = (profileRes as any)?.data?.assignedTrainerId ?? null;
+        const data = (profileRes as any)?.data ?? {};
+        const tIdRaw = data?.assignedTrainerId ?? null;
+        const cIdRaw = data?.id ?? data?.userId ?? data?.user?.id ?? null;
+
         const tId = typeof tIdRaw === 'string' ? Number(tIdRaw) : tIdRaw;
+        const cId = typeof cIdRaw === 'string' ? Number(cIdRaw) : cIdRaw;
 
         setTrainerId(typeof tId === 'number' && !Number.isNaN(tId) ? tId : null);
+        setClientId(typeof cId === 'number' && !Number.isNaN(cId) ? cId : null);
       } catch {
         if (!alive) return;
         setTrainerId(null);
+        setClientId(null);
       } finally {
         if (alive) setProfileLoading(false);
       }
@@ -39,16 +47,17 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
   }, []);
 
   const load = async () => {
-    if (trainerId == null) {
+    if (trainerId == null || clientId == null) {
       setItems([]);
       return;
     }
     setLoading(true);
     try {
-      const res = await programsApi.listPublic({
+      const res = await programsApi.listVisible({
         q: q || undefined,
         level: level || undefined,
         trainerId,
+        clientId,
       });
       if (res.success && res.data) setItems(res.data);
       else setItems([]);
@@ -59,7 +68,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
     }
   };
 
-  useEffect(() => { if (trainerId != null) void load(); }, [trainerId]);
+  useEffect(() => { if (trainerId != null && clientId != null) void load(); }, [trainerId, clientId]);
 
   const header = (
     <header>
@@ -130,7 +139,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
           <div className="text-gray-500">Loading programs…</div>
         ) : items.length === 0 ? (
           <div className="text-gray-500">
-            {isFiltered ? 'No programs found for the given filters.' : 'The trainer currently has no published programs.'}
+            {isFiltered ? 'No programs found for the given filters.' : 'The trainer currently has no programs for you.'}
           </div>
         ) : (
           items.map((p) => (
