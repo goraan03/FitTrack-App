@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 
 type Props = {
   showText?: boolean;
+  text?: string;
   to?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
 };
 
-export default function Brand({ showText = true, to = "/", size = "md", className = "" }: Props) {
+export default function Brand({ showText = true, text, to = "/", size = "md", className = "" }: Props) {
   const sizes = {
     sm: { box: "h-8 w-8", icon: "h-4 w-4", text: "text-lg" },
     md: { box: "h-9 w-9", icon: "h-5 w-5", text: "text-xl" },
@@ -20,7 +21,11 @@ export default function Brand({ showText = true, to = "/", size = "md", classNam
       <div className={`${sizes.box} rounded-xl bg-emerald-600 text-white grid place-items-center shadow`}>
         <ShieldCheck className={sizes.icon} />
       </div>
-      {showText && <span className={`${sizes.text} font-bold tracking-tight text-emerald-700`}>FitTrack</span>}
+      {showText && (
+        <span className={`${sizes.text} font-bold tracking-tight text-emerald-700`}>
+          {text || "FitTrack"}
+        </span>
+      )}
     </div>
   );
 

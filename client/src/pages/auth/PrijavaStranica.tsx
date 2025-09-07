@@ -1,9 +1,10 @@
+// client/src/pages/auth/PrijavaStranica.tsx
 import { useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { PrijavaForma } from "../../components/autentifikacija/PrijavaForma";
 import type { IAuthAPIService } from "../../api_services/auth/IAuthAPIService";
 import { useAuth } from "../../hooks/auth/useAuthHook";
-import { getDashboardPathForRole } from "../../routes/roleRoutes";
+import { getDashboardPathForRole, isPathAllowedForRole } from "../../routes/roleRoutes";
 import Brand from "../../components/common/Brand";
 
 interface LoginPageProps { authApi: IAuthAPIService; }
@@ -18,7 +19,18 @@ export default function PrijavaStranica({ authApi }: LoginPageProps) {
     if (isLoading) return;
     if (isAuthenticated && user?.uloga) {
       const fallback = getDashboardPathForRole(user.uloga) || "/";
-      navigate(from || fallback, { replace: true });
+
+      // Use "from" only if it belongs to the logged-in user's role space
+      // and is not an auth page
+      const isAuthPage =
+        from?.startsWith("/login") ||
+        from?.startsWith("/register") ||
+        from?.startsWith("/logout");
+
+      const shouldUseFrom =
+        !!from && !isAuthPage && isPathAllowedForRole(from, user.uloga);
+
+      navigate(shouldUseFrom ? from! : fallback, { replace: true });
     }
   }, [isLoading, isAuthenticated, user?.uloga, from, navigate]);
 

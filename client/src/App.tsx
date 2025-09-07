@@ -1,3 +1,4 @@
+// client/src/App.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import LandingPage from "./pages/landing/LandingPage";
@@ -32,6 +33,11 @@ import LegacyRedirect from "./routes/LegacyRedirect";
 import RequireTrainer from "./components/protected_route/equireTrainer";
 import TrainerDashboardPage from "./pages/trainer/TrainerDashboardPage";
 import TrainerLayout from "./layouts/TrainerLayout";
+import LogoutPage from "./pages/auth/LogoutPage";
+import TrainerExercisesPage from "./pages/trainer/TrainerExercisesPage";
+import TrainerProgramsPage from "./pages/trainer/TrainerProgramsPage";
+import TrainerTermsPage from "./pages/trainer/TrainerTermsPage";
+import TrainerClientsPage from "./pages/trainer/TrainerClientsPage";
 
 export default function App() {
   return (
@@ -46,6 +52,7 @@ export default function App() {
       {/* Auth */}
       <Route path="/login" element={<PrijavaStranica authApi={authApi} />} />
       <Route path="/register" element={<RegistracijaStranica authApi={authApi} />} />
+      <Route path="/logout" element={<LogoutPage />} />
 
       {/* Admin */}
       <Route
@@ -93,16 +100,16 @@ export default function App() {
             <TrainerLayout />
           </ProtectedRoute>
         }
-        >
-        <Route path="dashboard" element={<TrainerDashboardPage />} />
-        </Route>
+      >
+        <Route path="dashboard" element={<TrainerDashboardPage trainerApi={trainerApi}/>} />
+        <Route path="profile" element={<TrainerProfilePage trainerApi={trainerApi} />} />
+        <Route path="exercises" element={<TrainerExercisesPage trainerApi={trainerApi} />} />
+        <Route path="programs" element={<TrainerProgramsPage trainerApi={trainerApi} />} />
+        <Route path="terms" element={<TrainerTermsPage trainerApi={trainerApi} />} />
+        <Route path="clients" element={<TrainerClientsPage trainerApi={trainerApi} />} />
+      </Route>
 
       <Route path="*" element={<NotFoundPage />} />
-
-      <Route path="/trainer" element={<TrainerLayout />}>
-        <Route path="profile" element={<TrainerProfilePage trainerApi={trainerApi} />} />
-      </Route>
     </Routes>
-
   );
 }

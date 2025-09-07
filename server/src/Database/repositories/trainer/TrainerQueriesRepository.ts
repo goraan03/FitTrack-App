@@ -1,67 +1,53 @@
 import db from "../../connection/DbConnectionPool";
 import { RowDataPacket } from "mysql2";
-import {
-  ITrainerQueriesRepository,
-  TrainerWeeklyTermRow,
-  PendingRatingRow,
-} from "../../../Domain/repositories/trainer/ITrainerQueriesRepository";
-
-type WeeklyRow = RowDataPacket & {
-  termId: number; startAt: Date; dur: number; type: string; title: string; enrolledCount: number; capacity: number;
-};
-
-type StatsRow = RowDataPacket & { totalTerms: number; totalMinutes: number; enrolledSum: number };
-type AvgRow = RowDataPacket & { avgRating: number | null };
-
-type PendingRow = RowDataPacket & {
-  termId: number; startAt: Date; durationMin: number; title: string; userId: number; userName: string;
-};
-
-type CountRow = RowDataPacket & { c: number };
-type MinutesRow = RowDataPacket & { totalMinutes: number };
-type TrendRow = RowDataPacket & { day: Date; avg: number | null };
+import { ITrainerQueriesRepository, TrainerWeeklyTermRow, PendingRatingRow } from "../../../Domain/repositories/trainer/ITrainerQueriesRepository";
 
 export class TrainerQueriesRepository implements ITrainerQueriesRepository {
+
   async getWeeklyTerms(trainerId: number, weekStart: Date, weekEnd: Date): Promise<TrainerWeeklyTermRow[]> {
     const [rows] = await db.execute<RowDataPacket[]>(
       `SELECT t.id AS termId,
               t.start_at AS startAt,
               t.duration_min AS dur,
-              t.type,
+              t.type AS type,
               p.title AS title,
               t.enrolled_count AS enrolledCount,
-              t.capacity
+              t.capacity AS capacity
        FROM training_terms t
        JOIN programs p ON p.id=t.program_id
-       WHERE t.trainer_id=? AND t.canceled=0 AND t.start_at>=? AND t.start_at<? 
+       WHERE t.trainer_id=?
+         AND t.canceled=0
+         AND t.start_at BETWEEN ? AND ?
        ORDER BY t.start_at ASC`,
       [trainerId, weekStart, weekEnd]
     );
-    return (rows as WeeklyRow[]).map(r => ({
+    return (rows as any[]).map(r => ({
       termId: r.termId,
       startAt: new Date(r.startAt),
       dur: Number(r.dur || 0),
-      type: r.type as any,
+      type: r.type,
       title: r.title,
       enrolledCount: Number(r.enrolledCount || 0),
       capacity: Number(r.capacity || 0),
     }));
   }
 
-  async getWeekStats(trainerId: number, weekStart: Date, weekEnd: Date) {
+  async getWeekStats(trainerId: number, from: Date, to: Date): Promise<{ totalTerms: number; totalMinutes: number; enrolledSum: number; }> {
     const [rows] = await db.execute<RowDataPacket[]>(
       `SELECT COUNT(*) AS totalTerms,
               COALESCE(SUM(t.duration_min),0) AS totalMinutes,
               COALESCE(SUM(t.enrolled_count),0) AS enrolledSum
        FROM training_terms t
-       WHERE t.trainer_id=? AND t.canceled=0 AND t.start_at>=? AND t.start_at<?`,
-      [trainerId, weekStart, weekEnd]
+       WHERE t.trainer_id=?
+         AND t.canceled=0
+         AND t.start_at BETWEEN ? AND ?`,
+      [trainerId, from, to]
     );
-    const r = (rows as StatsRow[])[0];
+    const r: any = (rows as any[])[0] || {};
     return {
-      totalTerms: Number(r?.totalTerms || 0),
-      totalMinutes: Number(r?.totalMinutes || 0),
-      enrolledSum: Number(r?.enrolledSum || 0),
+      totalTerms: Number(r.totalTerms || 0),
+      totalMinutes: Number(r.totalMinutes || 0),
+      enrolledSum: Number(r.enrolledSum || 0),
     };
   }
 
@@ -70,11 +56,12 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
       `SELECT AVG(e.rating) AS avgRating
        FROM training_enrollments e
        JOIN training_terms t ON t.id=e.term_id
-       WHERE t.trainer_id=? AND e.rating IS NOT NULL`,
+       WHERE t.trainer_id=?
+         AND e.rating IS NOT NULL`,
       [trainerId]
     );
-    const r = (rows as AvgRow[])[0];
-    return r?.avgRating != null ? Number(r.avgRating) : null;
+    const r: any = (rows as any[])[0] || {};
+    return r.avgRating != null ? Number(r.avgRating) : null;
   }
 
   async listPendingRatings(trainerId: number): Promise<PendingRatingRow[]> {
@@ -87,16 +74,17 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
               CONCAT(u.ime,' ',u.prezime) AS userName
        FROM training_terms t
        JOIN programs p ON p.id=t.program_id
-       JOIN training_enrollments e ON e.term_id=t.id AND e.status='enrolled'
+       JOIN training_enrollments e ON e.term_id=t.id
        JOIN users u ON u.id=e.user_id
        WHERE t.trainer_id=?
          AND t.canceled=0
-         AND (t.start_at + INTERVAL t.duration_min MINUTE) <= NOW()
+         AND e.status='enrolled'
          AND e.rating IS NULL
-       ORDER BY t.start_at ASC, userName ASC`,
+         AND DATE_ADD(t.start_at, INTERVAL t.duration_min MINUTE) < NOW()
+       ORDER BY t.start_at DESC`,
       [trainerId]
     );
-    return (rows as PendingRow[]).map(r => ({
+    return (rows as any[]).map(r => ({
       termId: r.termId,
       startAt: new Date(r.startAt),
       durationMin: Number(r.durationMin || 0),
@@ -116,17 +104,16 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
               CONCAT(u.ime,' ',u.prezime) AS userName
        FROM training_terms t
        JOIN programs p ON p.id=t.program_id
-       JOIN training_enrollments e ON e.term_id=t.id AND e.status='enrolled'
+       JOIN training_enrollments e ON e.term_id=t.id
        JOIN users u ON u.id=e.user_id
-       WHERE t.trainer_id=? 
+       WHERE t.trainer_id=?
          AND t.id=?
          AND t.canceled=0
-         AND (t.start_at + INTERVAL t.duration_min MINUTE) <= NOW()
-         AND e.rating IS NULL
-       ORDER BY userName ASC`,
+         AND e.status='enrolled'
+         AND e.rating IS NULL`,
       [trainerId, termId]
     );
-    return (rows as PendingRow[]).map(r => ({
+    return (rows as any[]).map(r => ({
       termId: r.termId,
       startAt: new Date(r.startAt),
       durationMin: Number(r.durationMin || 0),
@@ -136,51 +123,111 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
     }));
   }
 
-  // ---- NOVO: za MyProfile ----
-
   async getCompletedTermsCount(trainerId: number): Promise<number> {
     const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT COUNT(*) AS c
+      `SELECT COUNT(*) AS cnt
        FROM training_terms t
-       WHERE t.trainer_id=? AND t.canceled=0
-         AND (t.start_at + INTERVAL t.duration_min MINUTE) <= NOW()`,
+       WHERE t.trainer_id=?
+         AND t.canceled=0
+         AND DATE_ADD(t.start_at, INTERVAL t.duration_min MINUTE) < NOW()`,
       [trainerId]
     );
-    const r = (rows as CountRow[])[0];
-    return Number(r?.c || 0);
+    const r: any = (rows as any[])[0] || {};
+    return Number(r.cnt || 0);
   }
 
   async getTotalCompletedMinutes(trainerId: number): Promise<number> {
     const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT COALESCE(SUM(t.duration_min),0) AS totalMinutes
+      `SELECT COALESCE(SUM(t.duration_min),0) AS total
        FROM training_terms t
-       WHERE t.trainer_id=? AND t.canceled=0
-         AND (t.start_at + INTERVAL t.duration_min MINUTE) <= NOW()`,
+       WHERE t.trainer_id=?
+         AND t.canceled=0
+         AND DATE_ADD(t.start_at, INTERVAL t.duration_min MINUTE) < NOW()`,
       [trainerId]
     );
-    const r = (rows as MinutesRow[])[0];
-    return Number(r?.totalMinutes || 0);
+    const r: any = (rows as any[])[0] || {};
+    return Number(r.total || 0);
   }
 
   async getProgramsCount(trainerId: number): Promise<number> {
     const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT COUNT(*) AS c FROM programs WHERE trainer_id=?`,
+      `SELECT COUNT(*) AS cnt FROM programs WHERE trainer_id=?`,
       [trainerId]
     );
-    const r = (rows as CountRow[])[0];
-    return Number(r?.c || 0);
+    const r: any = (rows as any[])[0] || {};
+    return Number(r.cnt || 0);
   }
 
   async getRatingsTrend(trainerId: number): Promise<{ date: Date; avg: number | null }[]> {
     const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT DATE(t.start_at) AS day, AVG(e.rating) AS avg
+      `SELECT DATE(e.created_at) AS d, AVG(e.rating) AS a
        FROM training_enrollments e
        JOIN training_terms t ON t.id=e.term_id
-       WHERE t.trainer_id=? AND e.rating IS NOT NULL
-       GROUP BY DATE(t.start_at)
-       ORDER BY day ASC`,
+       WHERE t.trainer_id=?
+         AND e.rating IS NOT NULL
+       GROUP BY DATE(e.created_at)
+       ORDER BY d ASC`,
       [trainerId]
     );
-    return (rows as TrendRow[]).map(r => ({ date: new Date(r.day), avg: r.avg != null ? Number(r.avg) : null }));
+    return (rows as any[]).map(r => ({ date: new Date(r.d), avg: r.a != null ? Number(r.a) : null }));
+  }
+
+  async getTermsBetweenDetailed(trainerId: number, from: Date, to: Date) {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT t.id,
+              t.start_at AS startAt,
+              t.duration_min AS durationMin,
+              t.type AS type,
+              t.capacity,
+              t.enrolled_count AS enrolledCount,
+              t.canceled,
+              p.title AS programTitle
+       FROM training_terms t
+       JOIN programs p ON p.id=t.program_id
+       WHERE t.trainer_id=?
+         AND t.start_at BETWEEN ? AND ?
+       ORDER BY t.start_at ASC`,
+      [trainerId, from, to]
+    );
+    return (rows as any[]).map(r => ({
+      id: r.id,
+      startAt: new Date(r.startAt),
+      durationMin: Number(r.durationMin || 0),
+      type: r.type,
+      capacity: Number(r.capacity || 0),
+      enrolledCount: Number(r.enrolledCount || 0),
+      canceled: !!r.canceled,
+      programTitle: r.programTitle,
+    }));
+  }
+
+  async listMyClients(trainerId: number) {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT id,
+              korisnickoIme AS email,
+              ime AS firstName,
+              prezime AS lastName,
+              pol AS gender,
+              datumRodjenja AS birthDate
+       FROM users
+       WHERE uloga='klijent' AND assigned_trener_id=?`,
+      [trainerId]
+    );
+    return (rows as any[]).map(r => ({
+      id: r.id,
+      firstName: r.firstName || null,
+      lastName: r.lastName || null,
+      email: r.email,
+      gender: r.gender || null,
+      birthDate: r.birthDate ? new Date(r.birthDate) : null,
+    }));
+  }
+
+  async isClientAssignedToTrainer(clientId: number, trainerId: number): Promise<boolean> {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT 1 AS ok FROM users WHERE id=? AND uloga='klijent' AND assigned_trener_id=? LIMIT 1`,
+      [clientId, trainerId]
+    );
+    return (rows as any[]).length > 0;
   }
 }

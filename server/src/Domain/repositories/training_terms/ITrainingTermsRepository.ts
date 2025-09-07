@@ -27,4 +27,8 @@ export interface ITrainingTermsRepository {
   getById(termId: number): Promise<TrainingTerm | null>;
   incrementEnrolledCount(termId: number): Promise<void>;
   decrementEnrolledCount(termId: number): Promise<void>;
+  cancelTerm(termId: number): Promise<void>;
+
+  // NEW
+  create(dto: { trainerId: number; programId: number; type: TrainingType; startAt: Date; durationMin: number; capacity: number }): Promise<number>;
 }

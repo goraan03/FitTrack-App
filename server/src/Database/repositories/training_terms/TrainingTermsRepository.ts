@@ -64,7 +64,6 @@ export class TrainingTermsRepository implements ITrainingTermsRepository {
     }));
   }
 
-  // NOVO
   async getById(termId: number): Promise<TrainingTerm | null> {
     const [rows] = await db.execute<RowDataPacket[]>(
       `SELECT id,
@@ -107,5 +106,21 @@ export class TrainingTermsRepository implements ITrainingTermsRepository {
       "UPDATE training_terms SET enrolled_count = GREATEST(enrolled_count - 1, 0) WHERE id=?",
       [termId]
     );
+  }
+
+  async cancelTerm(termId: number): Promise<void> {
+    await db.execute<ResultSetHeader>(
+      "UPDATE training_terms SET canceled=1 WHERE id=?",
+      [termId]
+    );
+  }
+
+  async create(dto: { trainerId: number; programId: number; type: TrainingType; startAt: Date; durationMin: number; capacity: number }): Promise<number> {
+    const [res] = await db.execute<ResultSetHeader>(
+      `INSERT INTO training_terms (trainer_id, program_id, type, start_at, duration_min, capacity, enrolled_count, canceled, created_at)
+       VALUES (?,?,?,?,?,?,0,0,NOW())`,
+      [dto.trainerId, dto.programId, dto.type, dto.startAt, dto.durationMin, dto.capacity]
+    );
+    return (res as ResultSetHeader).insertId;
   }
 }

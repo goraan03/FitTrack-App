@@ -27,6 +27,8 @@ import { TrainingTermsRepository } from './Database/repositories/training_terms/
 import { TrainerQueriesRepository } from './Database/repositories/trainer/TrainerQueriesRepository';
 import { TrainerService } from './Services/trainer/TrainerService';
 import { TrainerController } from './WebAPI/controllers/TrainerController';
+import { ExercisesRepository } from './Database/repositories/exercises/ExercisesRepository';
+import { TrainerProgramsRepository } from './Database/repositories/trainer_programs/TrainerProgramsRepository';
 
 const app = express();
 
@@ -43,6 +45,8 @@ app.use(express.json());
 app.get('/healthz', (_req, res) => res.status(200).send('OK'));
 
 // DI
+const exercisesRepo = new ExercisesRepository(); // NEW
+const trainerProgramsRepo = new TrainerProgramsRepository(); // NEW
 const userRepo = new UserRepository();
 const challengeRepo = new AuthChallengeRepository();
 const auditLogRepo = new AuditLogRepository();
@@ -52,8 +56,9 @@ const trainingTermsRepo = new TrainingTermsRepository();
 const emailService = new EmailService();
 const auditService = new AuditService(auditLogRepo);
 const trainerQueriesRepo = new TrainerQueriesRepository();
-const trainerService = new TrainerService(trainerQueriesRepo, trainingTermsRepo, trainingEnrollmentsRepo, auditService, userRepo);
+const trainerService = new TrainerService(trainerQueriesRepo, trainingTermsRepo, trainingEnrollmentsRepo, auditService, userRepo, exercisesRepo, trainerProgramsRepo);
 const trainerController = new TrainerController(trainerService);
+
 
 const authService = new AuthService(userRepo, challengeRepo, emailService, auditService);
 const adminService = new AdminService(userRepo, auditService);

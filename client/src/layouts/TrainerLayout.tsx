@@ -18,6 +18,7 @@ export default function TrainerLayout() {
 
   const { logout, user } = useAuth();
   const navigate = useNavigate();
+  
 
   const doLogout = () => {
     logout();
@@ -28,7 +29,7 @@ export default function TrainerLayout() {
     <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50/40">
       <header className="bg-white/80 backdrop-blur border-b sticky top-0 z-40">
         <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          <Brand />
+          <Brand text="FitTrack Trainer"/>
           <nav className="hidden sm:flex items-center gap-2">
             {links.map(l => (
               <NavLink key={l.to} to={l.to} className={({isActive})=> `${linkBase} ${isActive?linkActive:linkIdle}`}>

@@ -10,7 +10,9 @@ export default function LogoutPage() {
   useEffect(() => {
     try {
       ObrišiVrednostPoKljuču("authToken");
+      ObrišiVrednostPoKljuču("authBootId");
       ObrišiVrednostPoKljuču("user");
+      ObrišiVrednostPoKljuču("twofa_state");
     } catch {}
     logout();
     navigate("/login", { replace: true });

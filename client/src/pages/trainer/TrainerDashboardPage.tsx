@@ -2,11 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import { startOfWeek, format } from "date-fns";
 import WeekSwitcher from "../../components/client/WeekSwitcher";
 import WeeklyCards from "../../components/client/WeeklyCards";
-import { trainerApi } from "../../api_services/trainer/TrainerAPIService";
 import type { WeeklyCardItem } from "../../models/client/WeeklyCardItem";
 import RateTermModal from "../../components/trainer/RateTermModal";
+import TermDetailsModal from "../../components/client/TermDetailsModal";   // NEW
+import type { TermDetails } from "../../models/client/TermDetails";       // NEW
+import { toDate } from "../../helpers/client/toDate";                      // NEW
+import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
 
-export default function TrainerDashboardPage() {
+interface TrainerDashboardPageProps {
+  trainerApi: ITrainerAPIService;
+}
+
+export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPageProps) {
   const [weekStart, setWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<{ totalTerms: number; scheduledHours: number; avgRating: number | null; enrolledThisWeek: number } | null>(null);
@@ -14,9 +21,12 @@ export default function TrainerDashboardPage() {
   const [pending, setPending] = useState<{ termId: number; startAt: string; programTitle: string; count: number }[]>([]);
   const [rateModal, setRateModal] = useState<{ open: boolean; termId?: number; programTitle?: string; participants: { userId: number; userName: string }[] }>({ open: false, participants: [] });
 
+  // NEW: details modal
+  const [details, setDetails] = useState<{ open: boolean; data?: TermDetails }>({ open: false });
+
   const weekStartISO = useMemo(() => {
     const d = new Date(weekStart);
-    d.setHours(0,0,0,0);
+    d.setHours(0, 0, 0, 0);
     return d.toISOString();
   }, [weekStart]);
 
@@ -33,7 +43,7 @@ export default function TrainerDashboardPage() {
           day: e.day,
           start: e.start,
           end: e.end,
-          type: e.type === "INDIVIDUAL" ? "individual" : e.type === "GROUP" ? "group" : e.type,
+          type: e.type === "INDIVIDUAL" ? "individual" : e.type === "GROUP" ? "group" : (e.type as any),
           trainerName: "",
           cancellable: e.cancellable,
         }));
@@ -54,12 +64,41 @@ export default function TrainerDashboardPage() {
   };
 
   const submitRatings = async (ratings: { userId: number; rating: number }[]) => {
-    // simple loop (može i Promise.all)
     const termId = rateModal.termId!;
     for (const r of ratings) {
       await trainerApi.rateParticipant(termId, r.userId, r.rating);
     }
-    await load(); // refresh dashboard
+    await load();
+  };
+
+  // NEW: cancel
+  const cancelTerm = async (id: number) => {
+    try {
+      const res = await trainerApi.cancelTerm(id);
+      if (!res.success) {
+        alert(res.message || "Failed to cancel");
+        return;
+      }
+      await load();
+    } catch (e: any) {
+      alert(e?.message || "Cancel failed");
+    }
+  };
+
+  // NEW: details
+  const openDetails = (id: number) => {
+    const ev = events.find(e => e.id === id);
+    if (!ev) return;
+    const start = toDate(weekStart, ev.day, ev.start);
+    const end = toDate(weekStart, ev.day, ev.end);
+    const data: TermDetails = {
+      id: ev.id,
+      title: ev.title,
+      startAt: start.toISOString(),
+      endAt: end.toISOString(),
+      type: ev.type,
+    };
+    setDetails({ open: true, data });
   };
 
   return (
@@ -76,17 +115,12 @@ export default function TrainerDashboardPage() {
         <div className="text-gray-500">Loading...</div>
       ) : (
         <>
-          {/* Stat cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Stat cards (bez Avg rating) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4">
               <div className="text-sm text-gray-500">This week</div>
               <div className="text-3xl font-bold text-emerald-700 mt-1">{stats?.totalTerms ?? 0}</div>
               <div className="text-xs text-gray-500">Scheduled sessions</div>
-            </div>
-            <div className="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4">
-              <div className="text-sm text-gray-500">Avg rating</div>
-              <div className="text-3xl font-bold text-emerald-700 mt-1">{stats?.avgRating != null ? stats!.avgRating.toFixed(1) : "N/A"}</div>
-              <div className="text-xs text-gray-500">Out of 10</div>
             </div>
             <div className="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4">
               <div className="text-sm text-gray-500">Scheduled hours</div>
@@ -109,8 +143,8 @@ export default function TrainerDashboardPage() {
               <WeeklyCards
                 weekStart={weekStart}
                 items={events}
-                onCancel={(id) => { /* kasnije: cancel term */ }}
-                onDetails={(id) => { /* kasnije: open details */ }}
+                onCancel={cancelTerm}
+                onDetails={openDetails}
               />
             </div>
 
@@ -149,6 +183,13 @@ export default function TrainerDashboardPage() {
         participants={rateModal.participants}
         onClose={()=> setRateModal({ open: false, participants: [] })}
         onSubmit={submitRatings}
+      />
+
+      {/* NEW: Details modal */}
+      <TermDetailsModal
+        open={details.open}
+        onClose={() => setDetails({ open: false })}
+        data={details.data}
       />
     </div>
   );

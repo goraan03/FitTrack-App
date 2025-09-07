@@ -70,7 +70,7 @@ export default function AdminLayout() {
               onClick={handleLogout}
               className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800"
             >
-              <LogOut className="h-4 w-4" /> Odjava
+              <LogOut className="h-4 w-4" /> Log out
             </button>
           </div>
         </div>
