@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { PrijavaForma } from "../../components/autentifikacija/PrijavaForma";
 import type { IAuthAPIService } from "../../api_services/auth/IAuthAPIService";
 import { useAuth } from "../../hooks/auth/useAuthHook";
@@ -11,14 +11,16 @@ interface LoginPageProps { authApi: IAuthAPIService; }
 export default function PrijavaStranica({ authApi }: LoginPageProps) {
   const { isAuthenticated, user, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as any)?.from?.pathname as string | undefined;
 
   useEffect(() => {
     if (isLoading) return;
     if (isAuthenticated && user?.uloga) {
-      const path = getDashboardPathForRole(user.uloga);
-      if (path) navigate(path, { replace: true });
+      const fallback = getDashboardPathForRole(user.uloga) || "/";
+      navigate(from || fallback, { replace: true });
     }
-  }, [isLoading, isAuthenticated, user?.uloga, navigate]);
+  }, [isLoading, isAuthenticated, user?.uloga, from, navigate]);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-white to-emerald-50/60 px-4 py-10">

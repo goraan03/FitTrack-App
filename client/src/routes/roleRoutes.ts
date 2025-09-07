@@ -7,7 +7,7 @@ export const getDashboardPathForRole = (role: AppRole): string | null => {
     case 'klijent':
       return '/app/dashboard';
     case 'trener':
-      return null;
+      return '/trainer/dashboard';
     default:
       return null;
   }

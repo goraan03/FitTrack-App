@@ -27,7 +27,7 @@ import ClientProgramsPage from "./pages/client/ClientProgramsPage";
 
 import LegacyRedirect from "./routes/LegacyRedirect";
 import RequireTrainer from "./components/protected_route/equireTrainer";
-import TrainerDashboardPage from "./components/trainer/TrainerDashboardPage";
+import TrainerDashboardPage from "./pages/trainer/TrainerDashboardPage";
 import TrainerLayout from "./layouts/TrainerLayout";
 
 export default function App() {
