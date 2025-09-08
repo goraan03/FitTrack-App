@@ -7,26 +7,12 @@ import { IAuthChallengeRepository } from "../../Domain/repositories/auth/IAuthCh
 import { IEmailService } from "../../Domain/services/email/IEmailService";
 import { parseOptionalDate } from "../../utils/date/DateUtils";
 import { IAuditService } from "../../Domain/services/audit/IAuditService";
+import { maskEmail } from "../../helpers/AuthHelper.ts/maskEmail";
 
 const OTP_TTL_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
 const generateOtp6 = () => String(Math.floor(Math.random() * 1_000_000)).padStart(6, "0");
-
-const maskEmail = (emailLike: string) => {
-  const [name, domain] = emailLike.split("@");
-  if (!domain || name.length === 0) return emailLike.replace(/.(?=.{2})/g, "");
-  const maskedName =
-    name.length <= 2
-      ? name[0] + "*"
-      : name[0] + "*".repeat(Math.max(1, name.length - 2)) + name[name.length - 1];
-  const [d1, ...rest] = domain.split(".");
-  const maskedD1 =
-    d1.length <= 2
-      ? d1[0] + "*"
-      : d1[0] + "*".repeat(Math.max(1, d1.length - 2)) + d1[d1.length - 1];
-  return `${maskedName}@${maskedD1}${rest.length ? "." + rest.join(".") : ""}`;
-};
 
 export class AuthService implements IAuthService {
   private userRepository: IUserRepository;

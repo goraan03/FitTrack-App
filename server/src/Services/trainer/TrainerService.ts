@@ -9,10 +9,9 @@ import { IUserRepository } from "../../Domain/repositories/users/IUserRepository
 import { calcAge } from "../../helpers/ClientService/calcAge";
 import { IExercisesRepository } from "../../Domain/repositories/exercises/IExercisesRepository";
 import { ITrainerProgramsRepository } from "../../Domain/repositories/trainer_programs/ITrainerProgramsRepository";
+import { parseISO } from "../../helpers/TrainerService/parseISO";
 
-function parseISO(d?: string): Date | null {
-  return d ? new Date(d) : null;
-}
+
 
 export class TrainerService implements ITrainerService {
   constructor(

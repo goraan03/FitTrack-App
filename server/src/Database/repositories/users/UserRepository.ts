@@ -3,21 +3,8 @@ import { User } from "../../../Domain/models/User";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import db from "../../connection/DbConnectionPool";
 import { toMysqlDate } from "../../../utils/date/DateUtils";
-
-type UserRow = RowDataPacket & {
-  id: number;
-  korisnickoIme: string;
-  lozinka: string;
-  uloga: string;
-  ime: string | null;
-  prezime: string | null;
-  datumRodjenja: string | null;
-  pol: 'musko' | 'zensko' | null;
-  blokiran: 0 | 1 | null;
-  assigned_trener_id?: number | null;
-};
-
-type CountRow = RowDataPacket & { count: number };
+import { UserRow } from "../../../Domain/types/users/UserRow";
+import { CountRow } from "../../../Domain/types/users/CountRow";
 
 export class UserRepository implements IUserRepository {
   private mapRow(row: UserRow): User {

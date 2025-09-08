@@ -24,7 +24,6 @@ export class TrainingEnrollmentRepository implements ITrainingEnrollmentsReposit
     return rows as RawWeeklyEventRow[];
   }
 
-  // NOVO
   async findByUserAndTerm(userId: number, termId: number): Promise<{ id: number; status: string } | null> {
     const [rows] = await db.execute<RowDataPacket[]>(
       "SELECT id, status FROM training_enrollments WHERE term_id=? AND user_id=? LIMIT 1",
