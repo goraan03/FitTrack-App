@@ -17,7 +17,6 @@ export default function AdminAuditLogPage({ adminApi }: AdminAuditLogPageProps) 
         <p className="text-gray-600 mt-1">Records of significant events in the system</p>
       </header>
 
-      {/* Suptilniji outline + glassy card */}
       <div className="rounded-2xl border border-gray-100 bg-white/70 backdrop-blur-sm p-5 shadow-sm focus:outline-none">
         <AuditLogTable adminApi={adminApi} />
       </div>
