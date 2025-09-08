@@ -1,4 +1,3 @@
-// src/Database/repositories/audit/AuditLogRepository.ts
 import { RowDataPacket } from "mysql2";
 import db from "../../connection/DbConnectionPool";
 import {

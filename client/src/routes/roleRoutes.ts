@@ -1,4 +1,3 @@
-// client/src/pages/routes/roleRoutes.ts
 export type AppRole = 'klijent' | 'trener' | 'admin';
 
 export const getDashboardPathForRole = (role: AppRole): string | null => {
@@ -14,7 +13,6 @@ export const getDashboardPathForRole = (role: AppRole): string | null => {
   }
 };
 
-// Accept redirect only if it belongs to the role's route space
 export const isPathAllowedForRole = (path: string, role: AppRole): boolean => {
   switch (role) {
     case 'admin':

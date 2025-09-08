@@ -1,4 +1,3 @@
-// src/Domain/repositories/users/IUserRepository.ts
 import { User } from "../../models/User";
 
 export interface IUserRepository {

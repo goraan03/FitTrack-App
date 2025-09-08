@@ -67,7 +67,6 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
     const ni = index + dir;
     if (ni < 0 || ni >= arr.length) return;
     const tmp = arr[index]; arr[index] = arr[ni]; arr[ni] = tmp;
-    // Recalculate positions
     arr.forEach((it, i) => it.position = i + 1);
     setDraft(arr);
   };
@@ -82,7 +81,6 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
     setSaving(true);
     try {
       if (!selected) {
-        // create
         if (!form.title.trim()) { alert('Title is required'); return; }
         const res = await trainerApi.createProgram(form);
         if (!res.success) return alert(res.message);
@@ -209,8 +207,6 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
               </button>
             </div>
           </div>
-
-          {/* Divider */}
           <div className="my-6 border-t border-gray-100"></div>
 
           {/* Add exercise */}

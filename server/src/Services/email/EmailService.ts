@@ -1,10 +1,6 @@
 import nodemailer, { type Transporter } from 'nodemailer';
 import { IEmailService } from '../../Domain/services/email/IEmailService';
 
-/**
- * Gmail SMTP (ili bilo koji SMTP).
- * Obavezno koristi App Password (ne običnu lozinku).
- */
 export class EmailService implements IEmailService {
   private transporter: Transporter;
   private from: string;
@@ -25,7 +21,7 @@ export class EmailService implements IEmailService {
     this.transporter = nodemailer.createTransport({
       host,
       port,
-      secure, // true za 465, false za 587
+      secure,
       auth: { user, pass },
     });
 

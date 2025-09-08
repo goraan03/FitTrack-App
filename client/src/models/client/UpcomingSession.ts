@@ -5,7 +5,7 @@ export interface UpcomingSession {
   title: string;
   programName: string;
   type: TrainingType;
-  startsAt: string;    // ISO
+  startsAt: string;    
   durationMin: number;
   isFull: boolean;
   trainerName: string;

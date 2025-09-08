@@ -1,10 +1,9 @@
 export type TrainingType = 'individual' | 'group' | 'INDIVIDUAL' | 'GROUP';
 
-/* WEEKLY SCHEDULE */
 export interface WeeklyEvent {
   termId: number;
   title: string;
-  day: number; // 0..6
+  day: number; 
   start: string;
   end: string;
   type: TrainingType;
@@ -13,7 +12,6 @@ export interface WeeklyEvent {
   cancellable: boolean;
 }
 
-/* AVAILABLE TERMS */
 export interface AvailableTermProgram {
   id: number;
   title: string;
@@ -27,7 +25,7 @@ export interface AvailableTermTrainer {
 
 export interface AvailableTerm {
   id: number;
-  startAt: string; // ISO
+  startAt: string; 
   durationMin: number;
   type: TrainingType;
   capacity: number;
@@ -38,10 +36,9 @@ export interface AvailableTerm {
   trainer: AvailableTermTrainer;
 }
 
-/* HISTORY */
 export interface HistoryItem {
   id: number;
-  date: string; // ISO
+  date: string; 
   programTitle: string;
   trainerName: string;
   status: string;
@@ -59,10 +56,9 @@ export interface HistoryData {
   stats: HistoryStats;
 }
 
-/* MY PROFILE (agregat) */
 export interface RatingsPoint {
-  date: string; // ISO
-  avg: number;  // 1-10
+  date: string; 
+  avg: number; 
 }
 
 export interface UpcomingSession {
@@ -70,7 +66,7 @@ export interface UpcomingSession {
   title: string;
   programName: string;
   type: TrainingType;
-  startsAt: string; // ISO
+  startsAt: string;
   durationMin: number;
   isFull: boolean;
   trainerName: string;
@@ -82,9 +78,9 @@ export interface ClientProfile {
   lastName: string;
   email: string;
   gender?: string | null;
-  age?: number | null;      // izračunato iz datumRodjenja
-  address?: string | null;  // nemamo u bazi — null
-  avatarUrl?: string | null;// nemamo u bazi — null
+  age?: number | null;     
+  address?: string | null;  
+  avatarUrl?: string | null;
   isBlocked: boolean;
   assignedTrainerId: number | null;
   stats: {
@@ -104,7 +100,5 @@ export interface IClientService {
   bookTerm(userId: number, termId: number): Promise<void>;
   cancelTerm(userId: number, termId: number): Promise<void>;
   getHistory(userId: number): Promise<HistoryData>;
-
-  //NOVO
   getMyProfile(userId: number): Promise<ClientProfile>;
 }

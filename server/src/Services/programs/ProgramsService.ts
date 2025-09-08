@@ -1,4 +1,3 @@
-// server/src/Services/programs/ProgramsService.ts
 import { Program } from "../../Domain/models/Program";
 import { IProgramsRepository } from "../../Domain/repositories/programs/IProgramsRepository";
 import { IProgramsService } from "../../Domain/services/programs/IProgramsService";

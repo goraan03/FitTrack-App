@@ -37,7 +37,7 @@ export class TrainerService implements ITrainerService {
 
     const [weekTerms, weekStats, avgRating, pendingRows] = await Promise.all([
       this.queries.getWeeklyTerms(trainerId, weekStart, weekEnd),
-      this.queries.getWeekStats(trainerId, statsFrom, weekEnd), // FIX: statistika od "sad" ako je tekuća nedelja
+      this.queries.getWeekStats(trainerId, statsFrom, weekEnd),
       this.queries.getAvgRatingAllTime(trainerId),
       this.queries.listPendingRatings(trainerId),
     ]);
@@ -45,8 +45,8 @@ export class TrainerService implements ITrainerService {
     const events = weekTerms.map(t => {
       const s = new Date(t.startAt);
       const e = new Date(s.getTime() + t.dur * 60000);
-      const jsDay = s.getDay(); // 0=Sun..6=Sat
-      const day = (jsDay + 6) % 7; // FIX: 0=Mon..6=Sun
+      const jsDay = s.getDay();
+      const day = (jsDay + 6) % 7;
       const cancellable = (s.getTime() - Date.now()) >= (60 * 60000);
       return {
         id: t.termId,
@@ -186,7 +186,7 @@ export class TrainerService implements ITrainerService {
     await this.exercisesRepo.update(trainerId, exerciseId, {
       name: input.name,
       description: input.description ?? null,
-      muscle_group: undefined as any, // TS hint ignore — already mapped above
+      muscle_group: undefined as any,
       muscleGroup: input.muscleGroup,
       equipment: input.equipment ?? 'none',
       level: input.level ?? 'beginner',
@@ -243,7 +243,6 @@ export class TrainerService implements ITrainerService {
   }
 
   async setProgramExercises(trainerId: number, programId: number, items: ProgramExerciseSet[]): Promise<void> {
-    // Security: svi exerciseId moraju pripadati istom treneru
     const ids = Array.from(new Set(items.map(x => x.exerciseId)));
     const owned = await this.exercisesRepo.getByIds(trainerId, ids);
     if (owned.length !== ids.length) throw new Error('EXERCISE_OWNERSHIP_MISMATCH');

@@ -125,10 +125,7 @@ export class TrainerProgramsRepository implements ITrainerProgramsRepository {
       args
     );
 
-    // Notes su opciono polje; ako treba i njega da unesemo:
     if (items.some(x => x.notes != null)) {
-      // MySQL ne podržava graceful multi-update za notes u istom INSERT-u,
-      // pa radimo dodatni update tamo gde notes nije null
       for (const it of items) {
         if (it.notes != null) {
           await db.execute<ResultSetHeader>(
@@ -141,7 +138,6 @@ export class TrainerProgramsRepository implements ITrainerProgramsRepository {
   }
 
   async assignToClient(programId: number, clientId: number): Promise<void> {
-    // Upsert: ako već postoji veza — update status i vreme
     await db.execute<ResultSetHeader>(
       `INSERT INTO client_programs (program_id, client_id, status)
        VALUES (?, ?, 'active')

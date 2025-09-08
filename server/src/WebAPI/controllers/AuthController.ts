@@ -107,7 +107,6 @@ export class AuthController {
       const rezultat = validacijaPodatakaAuth(korisnickoIme, lozinka);
 
       if (!rezultat.uspesno) {
-        // zabeleži loš unos (opciono)
         await this.audit.log('Upozorenje', 'REGISTER_INVALID_INPUT', null, korisnickoIme || null);
         res.status(400).json({ success: false, message: rezultat.poruka });
         return;
@@ -118,7 +117,6 @@ export class AuthController {
       );
 
       if (result.id !== 0) {
-        // siguran audit log uspeha (controller-level)
         await this.audit.log('Informacija', 'REGISTER_SUCCESS', result.id, korisnickoIme);
         const token = jwt.sign(
           { id: result.id, korisnickoIme: result.korisnickoIme, uloga: result.uloga },
@@ -126,7 +124,6 @@ export class AuthController {
         );
         res.status(201).json({success: true, message: 'Uspešna registracija', data: token});
       } else {
-        // siguran audit log konflikta
         await this.audit.log('Upozorenje', 'REGISTER_CONFLICT_EXISTING_USER', null, korisnickoIme);
         res.status(409).json({success: false, message: 'Korisničko ime već postoji.'});
       }

@@ -1,6 +1,6 @@
 export interface HistoryItem {
   id: number;
-  date: string;                // ISO
+  date: string;                
   programTitle: string;
   trainerName: string;
   status: string;

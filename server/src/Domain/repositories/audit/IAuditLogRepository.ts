@@ -1,4 +1,3 @@
-// src/Domain/repositories/audit/IAuditLogRepository.ts
 import { AuditCategory, AuditLogItem } from "../../models/AuditLog";
 
 export type AuditLogListParams = {

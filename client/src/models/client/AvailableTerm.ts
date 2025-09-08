@@ -4,7 +4,7 @@ import type { TrainingType } from "../../types/users/ClientProfile";
 
 export interface AvailableTerm {
   id: number;
-  startAt: string;              // ISO
+  startAt: string;              
   durationMin: number;
   type: TrainingType;
   capacity: number;

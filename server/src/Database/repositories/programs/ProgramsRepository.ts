@@ -1,4 +1,3 @@
-// server/src/Database/repositories/programs/ProgramsRepository.ts
 import db from "../../connection/DbConnectionPool";
 import { RowDataPacket } from "mysql2";
 import { IProgramsRepository } from "../../../Domain/repositories/programs/IProgramsRepository";

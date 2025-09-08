@@ -72,7 +72,7 @@ const adminController = new AdminController(adminService);
 const clientController = new ClientController(clientService, trainingService);
 const programsController = new ProgramsController(programsService);
 
-// Mount (sve pod /api)
+// Mount
 app.use('/api', authController.getRouter());     // /api/auth/*
 app.use('/api', adminController.getRouter());    // /api/admin/*
 app.use('/api', clientController.getRouter());   // /api/client/*

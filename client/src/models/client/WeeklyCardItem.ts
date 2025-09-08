@@ -2,8 +2,8 @@ export type WeeklyCardItem = {
   id: number;
   title: string;
   day: number;   
-  start: string;               // 'HH:mm'
-  end: string;                 // 'HH:mm'
+  start: string;               
+  end: string;                 
   type: 'individual' | 'group';
   cancellable: boolean;
   programTitle?: string;

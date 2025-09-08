@@ -7,5 +7,5 @@ export type AuditLog = {
   userId: number | null;
   username: string | null;
   details: any | null;
-  createdAt: string; // ISO
+  createdAt: string;
 };

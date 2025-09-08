@@ -18,13 +18,11 @@ export class TrainerController {
     this.router.post("/trainer/terms/:termId/cancel", authenticate, authorize("trener"), this.cancel.bind(this));
     this.router.get("/trainer/me/profile", authenticate, authorize("trener"), this.myProfile.bind(this));
 
-    // NEW: exercises
     this.router.get("/trainer/exercises", authenticate, authorize("trener"), this.listExercises.bind(this));
     this.router.post("/trainer/exercises", authenticate, authorize("trener"), this.createExercise.bind(this));
     this.router.put("/trainer/exercises/:id", authenticate, authorize("trener"), this.updateExercise.bind(this));
     this.router.delete("/trainer/exercises/:id", authenticate, authorize("trener"), this.deleteExercise.bind(this));
 
-    // NEW: programs
     this.router.get("/trainer/programs", authenticate, authorize("trener"), this.listPrograms.bind(this));
     this.router.post("/trainer/programs", authenticate, authorize("trener"), this.createProgram.bind(this));
     this.router.put("/trainer/programs/:id", authenticate, authorize("trener"), this.updateProgram.bind(this));
@@ -32,10 +30,8 @@ export class TrainerController {
     this.router.post("/trainer/programs/:id/exercises", authenticate, authorize("trener"), this.setProgramExercises.bind(this));
     this.router.post("/trainer/programs/:id/assign", authenticate, authorize("trener"), this.assignProgram.bind(this));
 
-    // NEW: clients
     this.router.get("/trainer/clients", authenticate, authorize("trener"), this.listClients.bind(this));
 
-    // NEW: terms
     this.router.get("/trainer/terms", authenticate, authorize("trener"), this.listTerms.bind(this));
     this.router.post("/trainer/terms", authenticate, authorize("trener"), this.createTerm.bind(this));
   }

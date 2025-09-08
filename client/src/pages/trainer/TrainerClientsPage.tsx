@@ -30,8 +30,6 @@ export default function TrainerClientsPage({ trainerApi }: TrainerClientsPagePro
               <div className="font-semibold">{c.firstName || ''} {c.lastName || ''}</div>
               <div className="text-sm text-gray-600">{c.email}</div>
               <div className="text-xs text-gray-500">{c.gender || ''} {c.age ? `• ${c.age}y` : ''}</div>
-              {/* Link ka javnom profilu klijenta – ovde stavite vašu postojeću rutu javnog profila */}
-              {/* Primer: <Link to={`/public/clients/${c.id}`} ...>View profile</Link> */}
             </div>
           ))}
           {items.length===0 && <div className="col-span-full text-sm text-gray-500">No clients yet.</div>}

@@ -20,8 +20,6 @@ export default function PrijavaStranica({ authApi }: LoginPageProps) {
     if (isAuthenticated && user?.uloga) {
       const fallback = getDashboardPathForRole(user.uloga) || "/";
 
-      // Use "from" only if it belongs to the logged-in user's role space
-      // and is not an auth page
       const isAuthPage =
         from?.startsWith("/login") ||
         from?.startsWith("/register") ||

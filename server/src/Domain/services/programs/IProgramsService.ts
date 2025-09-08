@@ -1,4 +1,3 @@
-// server/src/Domain/services/programs/IProgramsService.ts
 import { Program } from "../../models/Program";
 
 export interface IProgramsService {

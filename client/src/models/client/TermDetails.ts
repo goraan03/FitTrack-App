@@ -1,8 +1,8 @@
 export type TermDetails = {
   id: number;
   title: string;
-  startAt: string;        // ISO
-  endAt: string;          // ISO
+  startAt: string;        
+  endAt: string;          
   type: 'individual' | 'group';
   trainerName?: string;
   programTitle?: string;

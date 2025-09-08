@@ -2,10 +2,7 @@ import db from "../../connection/DbConnectionPool";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { AvailableTerm } from "../../../Domain/types/training_terms/AvailableTerm";
 import { TrainingType } from "../../../Domain/types/training_enrollments/TrainingType";
-import {
-  ITrainingTermsRepository,
-  TrainingTerm,
-} from "../../../Domain/repositories/training_terms/ITrainingTermsRepository";
+import {ITrainingTermsRepository, TrainingTerm,} from "../../../Domain/repositories/training_terms/ITrainingTermsRepository";
 
 export class TrainingTermsRepository implements ITrainingTermsRepository {
   async getAvailableTerms(

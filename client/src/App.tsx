@@ -1,4 +1,3 @@
-// client/src/App.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import LandingPage from "./pages/landing/LandingPage";
@@ -78,10 +77,7 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        {/* Stranica izbora trenera je dostupna uvek kada je korisnik klijent */}
         <Route path="choose-trainer" element={<ChooseTrainerPage clientApi={clientApi} />} />
-
-        {/* Sve ostale rute zahtevaju izabranog trenera */}
         <Route element={<RequireTrainer />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<ClientDashboardPage clientApi={clientApi} />} />

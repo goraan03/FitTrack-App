@@ -21,7 +21,6 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
   const [pending, setPending] = useState<{ termId: number; startAt: string; programTitle: string; count: number }[]>([]);
   const [rateModal, setRateModal] = useState<{ open: boolean; termId?: number; programTitle?: string; participants: { userId: number; userName: string }[] }>({ open: false, participants: [] });
 
-  // NEW: details modal
   const [details, setDetails] = useState<{ open: boolean; data?: TermDetails }>({ open: false });
 
   const weekStartISO = useMemo(() => {
@@ -71,7 +70,6 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
     await load();
   };
 
-  // NEW: cancel
   const cancelTerm = async (id: number) => {
     try {
       const res = await trainerApi.cancelTerm(id);
@@ -85,7 +83,6 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
     }
   };
 
-  // NEW: details
   const openDetails = (id: number) => {
     const ev = events.find(e => e.id === id);
     if (!ev) return;
@@ -185,7 +182,6 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
         onSubmit={submitRatings}
       />
 
-      {/* NEW: Details modal */}
       <TermDetailsModal
         open={details.open}
         onClose={() => setDetails({ open: false })}

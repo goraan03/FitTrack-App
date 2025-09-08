@@ -26,7 +26,6 @@ export default function TrainerLayout() {
       <BackgroundFX />
 
       <header className="sticky top-0 z-40 relative backdrop-blur-md bg-white/70 supports-[backdrop-filter]:bg-white/55">
-        {/* Frosted overlay + hairline */}
         <div aria-hidden className="pointer-events-none absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-white/40" />
           <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-black/10 to-transparent" />

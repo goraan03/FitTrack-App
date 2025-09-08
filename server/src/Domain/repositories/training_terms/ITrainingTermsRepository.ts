@@ -29,6 +29,5 @@ export interface ITrainingTermsRepository {
   decrementEnrolledCount(termId: number): Promise<void>;
   cancelTerm(termId: number): Promise<void>;
 
-  // NEW
   create(dto: { trainerId: number; programId: number; type: TrainingType; startAt: Date; durationMin: number; capacity: number }): Promise<number>;
 }

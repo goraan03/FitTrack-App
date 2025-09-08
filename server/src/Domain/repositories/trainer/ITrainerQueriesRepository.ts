@@ -27,8 +27,6 @@ export interface ITrainerQueriesRepository {
   getTotalCompletedMinutes(trainerId: number): Promise<number>;
   getProgramsCount(trainerId: number): Promise<number>;
   getRatingsTrend(trainerId: number): Promise<{ date: Date; avg: number | null }[]>;
-
-  // NEW
   getTermsBetweenDetailed(trainerId: number, from: Date, to: Date): Promise<{
     id: number;
     startAt: Date;

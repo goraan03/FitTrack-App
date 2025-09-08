@@ -17,7 +17,6 @@ declare global {
 }
 
 function extractToken(req: Request): string | null {
-  // Authorization (preferirano)
   const rawAuth =
     (req.headers.authorization as string | undefined) ||
     (req.headers as any)?.Authorization;
@@ -27,10 +26,9 @@ function extractToken(req: Request): string | null {
     if (trimmed.toLowerCase().startsWith("bearer ")) {
       return trimmed.slice(7).trim();
     }
-    if (trimmed) return trimmed; // podrži i slučaj bez "Bearer"
+    if (trimmed) return trimmed;
   }
 
-  // X-Auth-Token (fallback)
   const x = req.headers["x-auth-token"];
   if (typeof x === "string" && x.trim()) return x.trim();
   if (Array.isArray(x) && x.length > 0) return String(x[0]).trim();

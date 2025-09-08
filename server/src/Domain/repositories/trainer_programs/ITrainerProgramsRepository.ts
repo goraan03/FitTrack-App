@@ -17,7 +17,7 @@ export type ProgramExerciseRow = {
   tempo: string | null;
   restSec: number | null;
   notes: string | null;
-  name?: string; // joined
+  name?: string;
 };
 
 export interface ITrainerProgramsRepository {

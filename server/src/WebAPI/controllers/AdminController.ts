@@ -1,4 +1,3 @@
-// server/src/WebAPI/controllers/AdminController.ts
 import { Request, Response, Router } from 'express';
 import { IAdminService } from '../../Domain/services/admin/IAdminService';
 import { validateCreateTrainer, validateUpdateUser } from '../validators/admin/AdminValidators';
@@ -16,7 +15,6 @@ export class AdminController {
   }
 
   private initializeRoutes(): void {
-    // Guard za sve /admin rute
     this.router.use('/admin', authenticate, authorize('admin'));
 
     this.router.get('/admin/users', this.listUsers.bind(this));

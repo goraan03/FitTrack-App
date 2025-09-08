@@ -1,4 +1,3 @@
-// src/Services/auth/AuthService.ts
 import { IAuthService } from "../../Domain/services/auth/IAuthService";
 import { IUserRepository } from "../../Domain/repositories/users/IUserRepository";
 import { User } from "../../Domain/models/User";
@@ -9,7 +8,7 @@ import { IEmailService } from "../../Domain/services/email/IEmailService";
 import { parseOptionalDate } from "../../utils/date/DateUtils";
 import { IAuditService } from "../../Domain/services/audit/IAuditService";
 
-const OTP_TTL_MS = 5 * 60 * 1000; // 5 min
+const OTP_TTL_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
 const generateOtp6 = () => String(Math.floor(Math.random() * 1_000_000)).padStart(6, "0");

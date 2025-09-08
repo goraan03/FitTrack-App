@@ -4,8 +4,8 @@ export type TrainerWeeklyEvent = {
   id: number;
   title: string;
   day: number;
-  start: string; // HH:mm
-  end: string;   // HH:mm
+  start: string;
+  end: string;
   type: TrainingType;
   cancellable: boolean;
 };

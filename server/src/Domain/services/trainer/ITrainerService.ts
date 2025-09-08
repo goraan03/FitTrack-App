@@ -20,9 +20,9 @@ export type TrainerDashboard = {
   events: {
     id: number;
     title: string;
-    day: number;     // 0=Mon .. 6=Sun
-    start: string;   // HH:mm
-    end: string;     // HH:mm
+    day: number;
+    start: string;
+    end: string;
     type: 'individual'|'group';
     cancellable: boolean;
   }[];

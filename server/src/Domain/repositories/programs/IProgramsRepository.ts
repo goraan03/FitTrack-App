@@ -1,4 +1,3 @@
-// server/src/Domain/repositories/programs/IProgramsRepository.ts
 import { Program } from "../../models/Program";
 
 export interface IProgramsRepository {

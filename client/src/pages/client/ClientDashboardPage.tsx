@@ -98,7 +98,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
 
   useEffect(() => {
     loadWeekly();
-  }, [weekStart]); // logika ista
+  }, [weekStart]);
 
   const handleCancel = async (id: number) => {
     const r = await clientApi.cancel(id);

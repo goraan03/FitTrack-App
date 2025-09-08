@@ -100,7 +100,6 @@ export default function ClientProfilePage({ clientApi }: ClientProfilePageProps)
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50/60 to-white">
       <div className="mx-auto w-full max-w-7xl px-4 py-8">
-        {/* HERO */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 p-6 shadow-lg">
           <div className="flex items-center gap-4">
             <Avatar name={fullName} src={data?.avatarUrl ?? null} />
@@ -152,9 +151,7 @@ export default function ClientProfilePage({ clientApi }: ClientProfilePageProps)
               <StatCard label="Total Hours" value={(data.stats.totalHours ?? 0).toFixed(1)} />
             </div>
 
-            {/* GLAVNA MREŽA */}
             <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-              {/* Profil info */}
               <div className="rounded-2xl border border-gray-100 bg-white/70 p-6 shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900">Profile</h3>
                 <div className="mt-4 space-y-3 text-sm">

@@ -1,4 +1,3 @@
-// server/src/Middlewares/authorization/AuthorizeMiddleware.ts
 import { Request, Response, NextFunction } from "express";
 
 export const authorize = (...dozvoljeneUloge: string[]) => {

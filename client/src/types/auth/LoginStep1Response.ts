@@ -3,7 +3,7 @@ export type LoginStep1Response = {
   message: string;
   data?: {
     challengeId: string;
-    expiresAt: string; // ISO
+    expiresAt: string;
     maskedEmail: string;
   };
 };

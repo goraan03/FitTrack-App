@@ -1,4 +1,4 @@
 export interface RatingsPoint {
-  date: string;   // ISO
-  avg: number;    // 1-10
+  date: string;
+  avg: number;
 }
