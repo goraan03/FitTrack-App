@@ -1,4 +1,3 @@
-// client/src/components/autentifikacija/PrijavaForma.tsx
 import { useEffect, useMemo, useState, useId } from "react";
 import type { AuthFormProps } from "../../types/props/auth_form_props/AuthFormProps";
 import { validacijaPodatakaAuth } from "../../api_services/validators/auth/AuthValidator";

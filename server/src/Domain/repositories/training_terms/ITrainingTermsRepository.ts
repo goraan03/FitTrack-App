@@ -14,20 +14,10 @@ export type TrainingTerm = {
 };
 
 export interface ITrainingTermsRepository {
-  getAvailableTerms(
-    trainerId: number,
-    from: Date,
-    to: Date,
-    type?: TrainingType,
-    programId?: number,
-    status?: "free" | "full",
-    userId?: number
-  ): Promise<AvailableTerm[]>;
-
+  getAvailableTerms(trainerId: number, from: Date, to: Date, type?: TrainingType, programId?: number, status?: "free" | "full", userId?: number): Promise<AvailableTerm[]>;
   getById(termId: number): Promise<TrainingTerm | null>;
   incrementEnrolledCount(termId: number): Promise<void>;
   decrementEnrolledCount(termId: number): Promise<void>;
   cancelTerm(termId: number): Promise<void>;
-
   create(dto: { trainerId: number; programId: number; type: TrainingType; startAt: Date; durationMin: number; capacity: number }): Promise<number>;
 }

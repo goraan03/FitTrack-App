@@ -1,4 +1,3 @@
-// client/src/api_services/programs/IProgramsAPIService.ts
 import type { PublicProgramsResponse } from "../../types/programs/PublicProgramsResponse";
 
 export interface IProgramsAPIService {

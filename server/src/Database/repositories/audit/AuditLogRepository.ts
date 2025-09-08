@@ -1,20 +1,13 @@
 import { RowDataPacket } from "mysql2";
 import db from "../../connection/DbConnectionPool";
-import {
-  IAuditLogRepository,
-  AuditLogListParams,
-} from "../../../Domain/repositories/audit/IAuditLogRepository";
+import { IAuditLogRepository } from "../../../Domain/repositories/audit/IAuditLogRepository";
 import { AuditCategory, AuditLogItem } from "../../../Domain/models/AuditLog";
 import { decodeDetails } from "../../../helpers/repositories/decodeDetails";
+import { AuditLogListParams } from "../../../Domain/types/audit_log/AuditLogListParams";
+import { AuditLogEntry } from "../../../Domain/types/audit_log/AuditLogEntry";
 
 export class AuditLogRepository implements IAuditLogRepository {
-  async create(entry: {
-    category: AuditCategory;
-    action: string;
-    userId?: number | null;
-    username?: string | null;
-    details?: any;
-  }): Promise<void> {
+  async create(entry: AuditLogEntry): Promise<void> {
     const json = entry.details === undefined ? null : JSON.stringify(entry.details);
     await db.execute(
       "INSERT INTO `audit_log` (`category`, `action`, `user_id`, `username`, `details`) VALUES (?, ?, ?, ?, ?)",

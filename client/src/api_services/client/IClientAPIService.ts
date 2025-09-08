@@ -15,6 +15,5 @@ export interface IClientAPIService {
   book(termId: number): Promise<BasicResponse>;
   cancel(termId: number): Promise<BasicResponse>;
   getHistory(): Promise<HistoryResponse>;
-
   getMyProfile(): Promise<MyProfileResponse>;
 }

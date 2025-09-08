@@ -1,4 +1,3 @@
-// client/src/components/autentifikacija/OtpInput.tsx
 import { useRef } from "react";
 
 type OtpInputProps = {

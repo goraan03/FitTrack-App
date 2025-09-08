@@ -36,7 +36,6 @@ export default function ChooseTrainerPage({ clientApi }: ChooseTrainerPageProps)
     try {
       const r = await clientApi.chooseTrainer(id);
       if (r.success) {
-        // nakon izbora, guard će pustiti pristup ostatku app
         window.location.href = "/app/sessions";
       } else {
         alert(r.message || "Nije uspelo biranje trenera");

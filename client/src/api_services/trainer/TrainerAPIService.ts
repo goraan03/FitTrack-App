@@ -40,7 +40,6 @@ export const trainerApi: ITrainerAPIService = {
     return res.data;
   },
 
-  // Exercises
   async listExercises() {
     const res = await axios.get<{ success: boolean; message: string; data: Exercise[] }>(`${baseURL}/exercises`, { headers: authHeaders() });
     return res.data;
@@ -61,7 +60,6 @@ export const trainerApi: ITrainerAPIService = {
     return res.data;
   },
 
-  // Programs
   async listPrograms() {
     const res = await axios.get<{ success: boolean; message: string; data: ProgramListItem[] }>(`${baseURL}/programs`, { headers: authHeaders() });
     return res.data;
@@ -92,13 +90,11 @@ export const trainerApi: ITrainerAPIService = {
     return res.data;
   },
 
-  // Clients
   async listMyClients() {
     const res = await axios.get<{ success: boolean; message: string; data: TrainerClient[] }>(`${baseURL}/clients`, { headers: authHeaders() });
     return res.data;
   },
 
-  // Terms
   async listTerms(fromISO?: string, toISO?: string) {
     const res = await axios.get<{ success: boolean; message: string; data: TrainerTerm[] }>(`${baseURL}/terms`, {
       headers: authHeaders(),

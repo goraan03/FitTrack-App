@@ -45,8 +45,8 @@ app.use(express.json());
 app.get('/healthz', (_req, res) => res.status(200).send('OK'));
 
 // DI
-const exercisesRepo = new ExercisesRepository(); // NEW
-const trainerProgramsRepo = new TrainerProgramsRepository(); // NEW
+const exercisesRepo = new ExercisesRepository(); 
+const trainerProgramsRepo = new TrainerProgramsRepository(); 
 const userRepo = new UserRepository();
 const challengeRepo = new AuthChallengeRepository();
 const auditLogRepo = new AuditLogRepository();

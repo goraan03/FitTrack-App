@@ -1,21 +1,5 @@
-export type TrainerWeeklyTermRow = {
-  termId: number;
-  startAt: Date;
-  dur: number;
-  type: 'individual'|'group';
-  title: string;
-  enrolledCount: number;
-  capacity: number;
-};
-
-export type PendingRatingRow = {
-  termId: number;
-  startAt: Date;
-  durationMin: number;
-  title: string;
-  userId: number;
-  userName: string;
-};
+import { TrainerWeeklyTermRow } from "../../services/trainer/ITrainerService";
+import { PendingRatingRow } from "../../types/trainerqueries/PendingRatingRow";
 
 export interface ITrainerQueriesRepository {
   getWeeklyTerms(trainerId: number, weekStart: Date, weekEnd: Date): Promise<TrainerWeeklyTermRow[]>;
@@ -27,17 +11,7 @@ export interface ITrainerQueriesRepository {
   getTotalCompletedMinutes(trainerId: number): Promise<number>;
   getProgramsCount(trainerId: number): Promise<number>;
   getRatingsTrend(trainerId: number): Promise<{ date: Date; avg: number | null }[]>;
-  getTermsBetweenDetailed(trainerId: number, from: Date, to: Date): Promise<{
-    id: number;
-    startAt: Date;
-    durationMin: number;
-    type: 'individual'|'group';
-    capacity: number;
-    enrolledCount: number;
-    canceled: boolean;
-    programTitle: string;
-  }[]>;
-
+  getTermsBetweenDetailed(trainerId: number, from: Date, to: Date): Promise<{id: number; startAt: Date; durationMin: number; type: 'individual'|'group'; capacity: number; enrolledCount: number; canceled: boolean; programTitle: string;}[]>;
   listMyClients(trainerId: number): Promise<{ id: number; firstName: string | null; lastName: string | null; email: string; gender: string | null; birthDate: Date | null }[]>;
   isClientAssignedToTrainer(clientId: number, trainerId: number): Promise<boolean>;
 }

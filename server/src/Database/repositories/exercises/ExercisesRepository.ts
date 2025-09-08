@@ -1,6 +1,7 @@
 import db from "../../connection/DbConnectionPool";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
-import { IExercisesRepository, ExerciseRow } from "../../../Domain/repositories/exercises/IExercisesRepository";
+import { IExercisesRepository } from "../../../Domain/repositories/exercises/IExercisesRepository";
+import { ExerciseRow } from "../../../Domain/types/exercises/ExerciseRow";
 
 export class ExercisesRepository implements IExercisesRepository {
   async listByTrainer(trainerId: number): Promise<ExerciseRow[]> {

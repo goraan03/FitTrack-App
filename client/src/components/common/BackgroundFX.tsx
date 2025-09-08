@@ -1,7 +1,6 @@
 export default function BackgroundFX() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {/* Soft multi-radial + linear gradient */}
       <div
         className="absolute inset-0"
         style={{
@@ -15,8 +14,7 @@ export default function BackgroundFX() {
           backgroundAttachment: "fixed, fixed, fixed, fixed",
         }}
       />
-
-      {/* Suptilna grid tekstura sa blagim maskiranjem ka vrhu */}
+      
       <div
         className="absolute inset-0"
         style={{

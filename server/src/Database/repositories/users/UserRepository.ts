@@ -1,4 +1,3 @@
-// src/Database/repositories/users/UserRepository.ts
 import { IUserRepository } from "../../../Domain/repositories/users/IUserRepository";
 import { User } from "../../../Domain/models/User";
 import { RowDataPacket, ResultSetHeader } from "mysql2";

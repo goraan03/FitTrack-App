@@ -1,6 +1,8 @@
 import db from "../../connection/DbConnectionPool";
 import { RowDataPacket } from "mysql2";
-import { ITrainerQueriesRepository, TrainerWeeklyTermRow, PendingRatingRow } from "../../../Domain/repositories/trainer/ITrainerQueriesRepository";
+import { ITrainerQueriesRepository } from "../../../Domain/repositories/trainer/ITrainerQueriesRepository";
+import { TrainerWeeklyTermRow } from "../../../Domain/services/trainer/ITrainerService";
+import { PendingRatingRow } from "../../../Domain/types/trainerqueries/PendingRatingRow";
 
 export class TrainerQueriesRepository implements ITrainerQueriesRepository {
 

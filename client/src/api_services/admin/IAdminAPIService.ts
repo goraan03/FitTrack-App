@@ -10,10 +10,6 @@ export interface IAdminAPIService {
   listUsers(filters?: UserListFilter): Promise<ApiResponse<AdminUser[]>>;
   createTrainer(podaci: TrainerRegistration): Promise<ApiResponse<{ id: number }>>;
   setBlocked(id: number, blokiran: boolean): Promise<ApiResponse<null>>;
-  updateUser(
-    id: number,
-    input: UserUpdate
-  ): Promise<ApiResponse<null>>;
-
+  updateUser(id: number, input: UserUpdate): Promise<ApiResponse<null>>;
   getAuditLogs(params: GetAuditLogs): Promise<ApiResponse<{ items: AuditLog[]; total: number }>>;
 }
