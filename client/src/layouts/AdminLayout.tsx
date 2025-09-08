@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/auth/useAuthHook";
 import { ShieldCheck, UserPlus, Users, FileText, LogOut, Menu } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import BackgroundFX from "../components/common/BackgroundFX";
 
 const linkBase = "inline-flex items-center gap-2 px-3 py-2 rounded-lg text-[15px] font-medium";
 const linkActive = "text-emerald-700 bg-emerald-50 ring-1 ring-emerald-200";
@@ -44,10 +45,22 @@ export default function AdminLayout() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50/40">
+    <div className="relative min-h-screen">
+      <BackgroundFX />
+
       {/* Top bar */}
-      <header className="bg-white/80 backdrop-blur border-b sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <header className="sticky top-0 z-40 relative backdrop-blur-md bg-white/70 supports-[backdrop-filter]:bg-white/55">
+        {/* Soft frosted overlay */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-white/40" />
+          {/* Subtilan “hairline” separator umesto crne linije */}
+          <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-black/10 to-transparent" />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button ref={burgerRef} onClick={() => setOpen((o) => !o)} className="sm:hidden p-2 rounded-lg hover:bg-gray-100">
               <Menu className="h-6 w-6" />
@@ -77,7 +90,7 @@ export default function AdminLayout() {
 
         {/* mobile drawer */}
         {open && (
-          <div className="sm:hidden border-t bg-white">
+          <div className="sm:hidden bg-white/85 backdrop-blur-md shadow-[inset_0_1px_0_rgba(17,24,39,0.06)]">
             <div className="max-w-7xl mx-auto px-4 py-3">
               <NavLinks />
             </div>

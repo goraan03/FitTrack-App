@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import Brand from "../components/common/Brand";
 import { useAuth } from "../hooks/auth/useAuthHook";
+import BackgroundFX from "../components/common/BackgroundFX";
 
 const linkBase = "inline-flex items-center gap-2 px-3 py-2 rounded-lg text-[15px] font-medium";
 const linkActive = "text-emerald-700 bg-emerald-50 ring-1 ring-emerald-200";
@@ -18,17 +19,20 @@ export default function TrainerLayout() {
 
   const { logout, user } = useAuth();
   const navigate = useNavigate();
-  
-
-  const doLogout = () => {
-    logout();
-    navigate("/login", { replace: true });
-  };
+  const doLogout = () => { logout(); navigate("/login", { replace: true }); };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50/40">
-      <header className="bg-white/80 backdrop-blur border-b sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+    <div className="relative min-h-screen">
+      <BackgroundFX />
+
+      <header className="sticky top-0 z-40 relative backdrop-blur-md bg-white/70 supports-[backdrop-filter]:bg-white/55">
+        {/* Frosted overlay + hairline */}
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-white/40" />
+          <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-black/10 to-transparent" />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <Brand text="FitTrack Trainer"/>
           <nav className="hidden sm:flex items-center gap-2">
             {links.map(l => (
@@ -48,6 +52,7 @@ export default function TrainerLayout() {
           </div>
         </div>
       </header>
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Outlet />
       </main>

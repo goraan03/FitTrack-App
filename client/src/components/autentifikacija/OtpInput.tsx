@@ -1,3 +1,4 @@
+// client/src/components/autentifikacija/OtpInput.tsx
 import { useRef } from "react";
 
 type OtpInputProps = {
@@ -11,7 +12,9 @@ export function OtpInput({ value, onChange, length = 6 }: OtpInputProps) {
   const vals = value.padEnd(length, ' ').slice(0, length).split('');
 
   const setChar = (idx: number, ch: string) => {
-    const next = (value.slice(0, idx) + ch + value.slice(idx + 1)).slice(0, length).replace(/\s/g, '');
+    const next = (value.slice(0, idx) + ch + value.slice(idx + 1))
+      .slice(0, length)
+      .replace(/\s/g, '');
     onChange(next);
   };
 
@@ -46,11 +49,12 @@ export function OtpInput({ value, onChange, length = 6 }: OtpInputProps) {
           ref={refs[i]}
           inputMode="numeric"
           maxLength={1}
+          aria-label={`OTP digit ${i + 1}`}
           value={vals[i] === ' ' ? '' : vals[i]}
           onChange={(e) => handleChange(i, e)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={handlePaste}
-          className="text-center text-lg h-12 rounded-xl border border-gray-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+          className="text-center text-lg h-12 rounded-xl border border-gray-300 bg-white shadow-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
         />
       ))}
     </div>

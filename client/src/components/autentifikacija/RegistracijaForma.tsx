@@ -1,3 +1,4 @@
+// client/src/components/autentifikacija/RegistracijaForma.tsx
 import { useEffect, useId, useState } from "react";
 import type { IAuthAPIService } from "../../api_services/auth/IAuthAPIService";
 import { useAuth } from "../../hooks/auth/useAuthHook";

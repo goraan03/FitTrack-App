@@ -1,3 +1,4 @@
+// client/src/components/autentifikacija/PrijavaForma.tsx
 import { useEffect, useMemo, useState, useId } from "react";
 import type { AuthFormProps } from "../../types/props/auth_form_props/AuthFormProps";
 import { validacijaPodatakaAuth } from "../../api_services/validators/auth/AuthValidator";
@@ -24,6 +25,9 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [otp, setOtp] = useState("");
 
+  // "now" tick za precizno odbrojavanje
+  const [now, setNow] = useState<number>(Date.now());
+
   const { login } = useAuth();
 
   useEffect(() => {
@@ -46,17 +50,16 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
     }
   }, []);
 
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
   const secondsLeft = useMemo(() => {
     if (!expiresAt) return 0;
-    const diff = Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000);
+    const diff = Math.floor((new Date(expiresAt).getTime() - now) / 1000);
     return Math.max(0, diff);
-  }, [expiresAt]);
-
-  useEffect(() => {
-    if (!expiresAt) return;
-    const t = setInterval(() => setExpiresAt((prev) => (prev ? prev : null)), 1000);
-    return () => clearInterval(t);
-  }, [expiresAt]);
+  }, [expiresAt, now]);
 
   const persistTwoFA = (s: TwoFAState) => SačuvajVrednostPoKljuču(TWO_FA_KEY, JSON.stringify(s));
   const clearTwoFA = () => ObrišiVrednostPoKljuču(TWO_FA_KEY);
@@ -79,7 +82,11 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
         setMaskedEmail(odgovor.data.maskedEmail);
         setExpiresAt(odgovor.data.expiresAt);
         setPhase('code');
-        persistTwoFA({ challengeId: odgovor.data.challengeId, expiresAt: odgovor.data.expiresAt, maskedEmail: odgovor.data.maskedEmail });
+        persistTwoFA({
+          challengeId: odgovor.data.challengeId,
+          expiresAt: odgovor.data.expiresAt,
+          maskedEmail: odgovor.data.maskedEmail
+        });
       } else {
         setGreska(odgovor.message || "Login failed");
       }
@@ -128,7 +135,11 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
         setChallengeId(res.data.challengeId);
         setExpiresAt(res.data.expiresAt);
         setOtp("");
-        persistTwoFA({ challengeId: res.data.challengeId, expiresAt: res.data.expiresAt, maskedEmail: maskedEmail || "" });
+        persistTwoFA({
+          challengeId: res.data.challengeId,
+          expiresAt: res.data.expiresAt,
+          maskedEmail: maskedEmail || ""
+        });
       } else {
         setGreska(res.message || "Unable to resend code.");
       }
@@ -141,11 +152,7 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
 
   if (phase === 'credentials') {
     return (
-      <form
-        onSubmit={podnesiKredencijale}
-        className="space-y-5"
-        autoComplete="off"
-      >
+      <form onSubmit={podnesiKredencijale} className="space-y-5" autoComplete="off">
         <input className="hidden" type="text" name="username" autoComplete="username" />
         <input className="hidden" type="password" name="password" autoComplete="current-password" />
 
