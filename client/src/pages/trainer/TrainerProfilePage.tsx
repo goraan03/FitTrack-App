@@ -39,7 +39,7 @@ export default function TrainerProfilePage({ trainerApi }: TrainerProfilePagePro
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50/60 to-white">
-      <div className="mx-auto w-full max-w-7xl px-4 py-8">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* HERO */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 p-6 shadow-lg">
           <div className="flex items-center gap-4">
@@ -63,33 +63,33 @@ export default function TrainerProfilePage({ trainerApi }: TrainerProfilePagePro
 
         {/* LOADING / ERROR */}
         {loading && (
-          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="col-span-2 rounded-xl ring-1 ring-gray-200 bg-white p-6 shadow-sm animate-pulse h-72" />
-            <div className="rounded-xl ring-1 ring-gray-200 bg-white p-6 shadow-sm animate-pulse h-72" />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="col-span-2 rounded-2xl border border-gray-100 bg-white/70 p-6 shadow-sm animate-pulse h-72" />
+            <div className="rounded-2xl border border-gray-100 bg-white/70 p-6 shadow-sm animate-pulse h-72" />
             <div className="col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-24 rounded-xl ring-1 ring-gray-200 bg-white shadow-sm animate-pulse" />
+                <div key={i} className="h-24 rounded-2xl border border-gray-100 bg-white/70 shadow-sm animate-pulse" />
               ))}
             </div>
           </div>
         )}
 
         {err && !loading && (
-          <div className="mt-6 rounded-lg ring-1 ring-red-200 bg-red-50 px-4 py-3 text-red-800">{err}</div>
+          <div className="rounded-xl ring-1 ring-red-200 bg-red-50 px-4 py-3 text-red-800">{err}</div>
         )}
 
         {!loading && !err && data && (
           <>
             {/* STAT KARTICE (bez Average Rating) */}
-            <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
               <StatCard label="Completed Sessions" value={data.stats.sessionsCompleted ?? 0} />
               <StatCard label="Programs" value={data.stats.totalPrograms ?? 0} />
               <StatCard label="Total Hours" value={(data.stats.totalHours ?? 0).toFixed(1)} />
             </div>
 
             {/* PROFIL INFO */}
-            <div className="mt-6 grid grid-cols-1 gap-6">
-              <div className="rounded-2xl ring-1 ring-gray-200 bg-white p-6 shadow-sm">
+            <div className="grid grid-cols-1 gap-6">
+              <div className="rounded-2xl border border-gray-100 bg-white/70 p-6 shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900">Profile</h3>
                 <div className="mt-4 space-y-3 text-sm">
                   <div className="flex justify-between border-b border-gray-100 pb-2">

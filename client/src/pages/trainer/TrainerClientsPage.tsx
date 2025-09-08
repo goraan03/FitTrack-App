@@ -22,7 +22,7 @@ export default function TrainerClientsPage({ trainerApi }: TrainerClientsPagePro
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
+      <h1 className="text-2xl font-bold text-gray-900">Your Clients</h1>
       {loading ? <div>Loading...</div> : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {items.map(c => (

@@ -124,18 +124,18 @@ export default function ClientProfilePage({ clientApi }: ClientProfilePageProps)
         {/* LOADING / ERROR */}
         {loading && (
           <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="col-span-2 rounded-xl ring-1 ring-gray-200 bg-white p-6 shadow-sm animate-pulse h-72" />
-            <div className="rounded-xl ring-1 ring-gray-200 bg-white p-6 shadow-sm animate-pulse h-72" />
+            <div className="col-span-2 rounded-2xl border border-gray-100 bg-white/70 p-6 shadow-sm animate-pulse h-72" />
+            <div className="rounded-2xl border border-gray-100 bg-white/70 p-6 shadow-sm animate-pulse h-72" />
             <div className="col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-24 rounded-xl ring-1 ring-gray-200 bg-white shadow-sm animate-pulse" />
+                <div key={i} className="h-24 rounded-2xl border border-gray-100 bg-white/70 shadow-sm animate-pulse" />
               ))}
             </div>
           </div>
         )}
 
         {err && !loading && (
-          <div className="mt-6 rounded-lg ring-1 ring-red-200 bg-red-50 px-4 py-3 text-red-800">{err}</div>
+          <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-800">{err}</div>
         )}
 
         {!loading && !err && data && (
@@ -155,7 +155,7 @@ export default function ClientProfilePage({ clientApi }: ClientProfilePageProps)
             {/* GLAVNA MREŽA */}
             <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
               {/* Profil info */}
-              <div className="rounded-2xl ring-1 ring-gray-200 bg-white p-6 shadow-sm">
+              <div className="rounded-2xl border border-gray-100 bg-white/70 p-6 shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900">Profile</h3>
                 <div className="mt-4 space-y-3 text-sm">
                   <div className="flex justify-between border-b border-gray-100 pb-2">
@@ -186,7 +186,7 @@ export default function ClientProfilePage({ clientApi }: ClientProfilePageProps)
               </div>
 
               {/* Progress Chart */}
-              <div className="lg:col-span-2 rounded-2xl ring-1 ring-gray-200 bg-white p-6 shadow-sm flex flex-col">
+              <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white/70 p-6 shadow-sm flex flex-col">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-gray-900">Progress</h3>
                   <span className="text-xs text-gray-500">Average rating over time</span>

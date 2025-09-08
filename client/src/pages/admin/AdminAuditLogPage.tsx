@@ -8,16 +8,19 @@ interface AdminAuditLogPageProps {
 
 export default function AdminAuditLogPage({ adminApi }: AdminAuditLogPageProps) {
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
       <header>
-        <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
           <FileText className="h-7 w-7 text-emerald-600" />
           Audit Log
         </h1>
         <p className="text-gray-600 mt-1">Records of significant events in the system</p>
       </header>
 
-      <AuditLogTable adminApi={adminApi} />
+      {/* Suptilniji outline + glassy card */}
+      <div className="rounded-2xl border border-gray-100 bg-white/70 backdrop-blur-sm p-5 shadow-sm focus:outline-none">
+        <AuditLogTable adminApi={adminApi} />
+      </div>
     </div>
   );
 }

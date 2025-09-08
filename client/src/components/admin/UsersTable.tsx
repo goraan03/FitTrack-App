@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import type { IAdminAPIService } from "../../api_services/admin/IAdminAPIService";
 import type { AdminUser } from "../../types/admin/AdminUser";
+import { RefreshCcw } from "lucide-react";
 
 type Props = { adminApi: IAdminAPIService };
 
 export default function UsersTable({ adminApi }: Props) {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<AdminUser[]>([]);
-  const [role, setRole] = useState<'svi' | 'klijent' | 'trener' | 'admin'>('svi');
-  const [blocked, setBlocked] = useState<'svi' | 'da' | 'ne'>('svi');
+  const [role, setRole] = useState<"svi" | "klijent" | "trener" | "admin">("svi");
+  const [blocked, setBlocked] = useState<"svi" | "da" | "ne">("svi");
   const [error, setError] = useState<string | null>(null);
 
   const filtered = useMemo(() => users, [users]);
@@ -18,8 +19,8 @@ export default function UsersTable({ adminApi }: Props) {
     setLoading(true);
     try {
       const res = await adminApi.listUsers({
-        uloga: role === 'svi' ? undefined : role,
-        blokiran: blocked === 'svi' ? undefined : blocked === 'da'
+        uloga: role === "svi" ? undefined : role,
+        blokiran: blocked === "svi" ? undefined : blocked === "da",
       });
       if (res.success && res.data) setUsers(res.data);
       else setError(res.message || "Greška pri učitavanju.");
@@ -28,7 +29,9 @@ export default function UsersTable({ adminApi }: Props) {
     }
   };
 
-  useEffect(() => { fetchUsers(); }, [role, blocked]);
+  useEffect(() => {
+    fetchUsers();
+  }, [role, blocked]);
 
   const toggleBlock = async (u: AdminUser) => {
     const res = await adminApi.setBlocked(u.id, !u.blokiran);
@@ -36,7 +39,12 @@ export default function UsersTable({ adminApi }: Props) {
   };
 
   const [editUser, setEditUser] = useState<AdminUser | null>(null);
-  const [editState, setEditState] = useState({ ime: "", prezime: "", datumRodjenja: "", pol: "musko" as "musko" | "zensko" });
+  const [editState, setEditState] = useState({
+    ime: "",
+    prezime: "",
+    datumRodjenja: "",
+    pol: "musko" as "musko" | "zensko",
+  });
   const [editErr, setEditErr] = useState<string | null>(null);
   const [editLoading, setEditLoading] = useState(false);
 
@@ -71,16 +79,20 @@ export default function UsersTable({ adminApi }: Props) {
   };
 
   return (
-    <div className="bg-white border rounded-2xl p-5 shadow-sm">
+    <div className="bg-white/70 backdrop-blur-sm border border-gray-100 rounded-2xl p-5 shadow-sm">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-4">
         <div>
-          <h3 className="text-lg font-semibold">Users</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Users</h3>
           <p className="text-sm text-gray-600">Overview and management of client and trainer accounts</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap items-end gap-3">
           <div>
-            <label className="text-xs text-gray-500 block mb-1">Role</label>
-            <select className="border rounded-lg px-3 py-2" value={role} onChange={e => setRole(e.target.value as any)}>
+            <label className="text-[11px] text-gray-500 uppercase tracking-wider block mb-1">Role</label>
+            <select
+              className="border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+              value={role}
+              onChange={(e) => setRole(e.target.value as any)}
+            >
               <option value="svi">All</option>
               <option value="klijent">Clients</option>
               <option value="trener">Trainers</option>
@@ -88,18 +100,37 @@ export default function UsersTable({ adminApi }: Props) {
             </select>
           </div>
           <div>
-            <label className="text-xs text-gray-500 block mb-1">Status</label>
-            <select className="border rounded-lg px-3 py-2" value={blocked} onChange={e => setBlocked(e.target.value as any)}>
+            <label className="text-[11px] text-gray-500 uppercase tracking-wider block mb-1">Status</label>
+            <select
+              className="border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+              value={blocked}
+              onChange={(e) => setBlocked(e.target.value as any)}
+            >
               <option value="svi">All</option>
               <option value="da">Only Blocked</option>
               <option value="ne">Only Active</option>
             </select>
           </div>
-          <button onClick={fetchUsers} className="px-4 py-2 rounded-lg border">Refresh</button>
+          <div>
+            <label className="text-[11px] text-gray-500 uppercase tracking-wider block mb-1">Actions</label>
+            <button
+              type="button"
+              onClick={fetchUsers}
+              disabled={loading}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm disabled:opacity-60 transition"
+            >
+              <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              {loading ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
         </div>
       </div>
 
-      {error && <div className="text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm mb-3">{error}</div>}
+      {error && (
+        <div className="text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 text-sm mb-3">
+          {error}
+        </div>
+      )}
 
       <div className="overflow-auto">
         <table className="min-w-full text-sm">
@@ -118,12 +149,20 @@ export default function UsersTable({ adminApi }: Props) {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td className="p-3" colSpan={9}>Loading...</td></tr>
+              <tr>
+                <td className="p-3 text-gray-500" colSpan={9}>
+                  Loading...
+                </td>
+              </tr>
             ) : filtered.length === 0 ? (
-              <tr><td className="p-3" colSpan={9}>No results found</td></tr>
+              <tr>
+                <td className="p-3 text-gray-500" colSpan={9}>
+                  No results found
+                </td>
+              </tr>
             ) : (
-              filtered.map(u => (
-                <tr key={u.id} className="border-t">
+              filtered.map((u) => (
+                <tr key={u.id} className="border-t border-gray-100 hover:bg-gray-50/70 transition">
                   <td className="p-3">{u.id}</td>
                   <td className="p-3">{u.korisnickoIme}</td>
                   <td className="p-3">{u.uloga}</td>
@@ -133,18 +172,31 @@ export default function UsersTable({ adminApi }: Props) {
                   <td className="p-3">{u.pol || "-"}</td>
                   <td className="p-3">
                     {u.blokiran ? (
-                      <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700">Blocked</span>
+                      <span className="px-2 py-1 rounded-full text-xs bg-rose-100 text-rose-700 border border-rose-200">
+                        Blocked
+                      </span>
                     ) : (
-                      <span className="px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">Active</span>
+                      <span className="px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700 border border-emerald-200">
+                        Active
+                      </span>
                     )}
                   </td>
                   <td className="p-3 space-x-2">
-                    <button onClick={() => openEdit(u)} className="px-3 py-1 rounded-lg border hover:bg-gray-50">Edit</button>
+                    <button
+                      onClick={() => openEdit(u)}
+                      className="px-3 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+                    >
+                      Edit
+                    </button>
                     <button
                       onClick={() => toggleBlock(u)}
-                      className={`px-3 py-1 rounded-lg text-white ${u.blokiran ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'}`}
+                      className={`px-3 py-1 rounded-lg text-white transition ${
+                        u.blokiran
+                          ? "bg-emerald-600 hover:bg-emerald-700"
+                          : "bg-rose-600 hover:bg-rose-700"
+                      }`}
                     >
-                      {u.blokiran ? 'Odblokiraj' : 'Blokiraj'}
+                      {u.blokiran ? "Odblokiraj" : "Blokiraj"}
                     </button>
                   </td>
                 </tr>
@@ -155,39 +207,49 @@ export default function UsersTable({ adminApi }: Props) {
       </div>
 
       {editUser && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg">
-            <h4 className="text-lg font-semibold mb-4">Edit User #{editUser.id}</h4>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-50">
+          <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-6 w-full max-w-lg border border-gray-100">
+            <h4 className="text-lg font-semibold mb-4 text-gray-900">
+              Edit User #{editUser.id}
+            </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-gray-700">Name</label>
+                <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </label>
                 <input
-                  className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
                   value={editState.ime}
                   onChange={(e) => setEditState({ ...editState, ime: e.target.value })}
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-700">Surname</label>
+                <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">
+                  Surname
+                </label>
                 <input
-                  className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
                   value={editState.prezime}
                   onChange={(e) => setEditState({ ...editState, prezime: e.target.value })}
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-700">Date of Birth</label>
+                <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">
+                  Date of Birth
+                </label>
                 <input
                   type="date"
-                  className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
                   value={editState.datumRodjenja}
                   onChange={(e) => setEditState({ ...editState, datumRodjenja: e.target.value })}
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-700">Gender</label>
+                <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">
+                  Gender
+                </label>
                 <select
-                  className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
                   value={editState.pol}
                   onChange={(e) => setEditState({ ...editState, pol: e.target.value as "musko" | "zensko" })}
                 >
@@ -197,15 +259,22 @@ export default function UsersTable({ adminApi }: Props) {
               </div>
             </div>
 
-            {editErr && <div className="text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm my-4">{editErr}</div>}
+            {editErr && (
+              <div className="text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 text-sm my-4">
+                {editErr}
+              </div>
+            )}
 
             <div className="mt-5 flex items-center justify-end gap-3">
-              <button className="px-4 py-2 rounded-lg border hover:bg-gray-50" onClick={() => setEditUser(null)}>
+              <button
+                className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+                onClick={() => setEditUser(null)}
+              >
                 Cancel
               </button>
               <button
                 disabled={editLoading}
-                className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm disabled:opacity-60"
+                className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm disabled:opacity-60 transition"
                 onClick={saveEdit}
               >
                 {editLoading ? "Čuvanje..." : "Sačuvaj"}

@@ -102,10 +102,10 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back 👋</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Welcome back 👋</h1>
           <p className="text-gray-600">Overview of your scheduled sessions</p>
         </div>
         <WeekSwitcher weekStart={weekStart} onChange={setWeekStart} />
@@ -115,19 +115,19 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
         <div className="text-gray-500">Loading...</div>
       ) : (
         <>
-          {/* Stat cards (bez Avg rating) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4">
+          {/* Stat cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="text-sm text-gray-500">This week</div>
               <div className="text-3xl font-bold text-emerald-700 mt-1">{stats?.totalTerms ?? 0}</div>
               <div className="text-xs text-gray-500">Scheduled sessions</div>
             </div>
-            <div className="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="text-sm text-gray-500">Scheduled hours</div>
               <div className="text-3xl font-bold text-emerald-700 mt-1">{(stats?.scheduledHours ?? 0).toFixed(1)}</div>
               <div className="text-xs text-gray-500">This week</div>
             </div>
-            <div className="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="text-sm text-gray-500">Enrolled</div>
               <div className="text-3xl font-bold text-emerald-700 mt-1">{stats?.enrolledThisWeek ?? 0}</div>
               <div className="text-xs text-gray-500">Participants this week</div>
@@ -136,8 +136,8 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Weekly schedule */}
-            <div className="bg-transparent">
-              <div className="text-sm text-gray-700 mb-2">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="text-sm text-gray-700 mb-3">
                 This Week's Schedule · {format(weekStart, "MMM d")} – {format(new Date(weekStart.getTime()+6*86400000), "MMM d")}
               </div>
               <WeeklyCards
@@ -149,14 +149,14 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
             </div>
 
             {/* Pending ratings */}
-            <div className="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900">Pending ratings</h3>
                 <span className="text-sm text-gray-500">{pending.length} terms</span>
               </div>
-              <div className="mt-3 divide-y">
+              <div className="mt-3 divide-y divide-gray-100">
                 {pending.length === 0 ? (
-                  <div className="text-gray-500 text-sm">No sessions to rate.</div>
+                  <div className="text-gray-500 text-sm py-4">No sessions to rate.</div>
                 ) : pending.map(p => (
                   <div key={p.termId} className="py-3 flex items-center justify-between">
                     <div>
@@ -165,7 +165,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
                     </div>
                     <button
                       onClick={() => openRate(p.termId)}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm"
+                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm transition shadow-sm"
                     >
                       Rate
                     </button>

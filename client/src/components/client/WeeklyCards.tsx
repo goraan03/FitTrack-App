@@ -12,12 +12,10 @@ type Props = {
 export default function WeeklyCards({ weekStart, items, onCancel, onDetails }: Props) {
   const now = new Date();
 
-  // Da li prikazujemo tekuću nedelju (Mon–Sun)?
   const isCurrentWeek =
     startOfWeek(weekStart, { weekStartsOn: 1 }).getTime() ===
     startOfWeek(now, { weekStartsOn: 1 }).getTime();
 
-  // Ako je tekuća nedelja — sakrij sve čiji je KRAJ prošao.
   const visible = isCurrentWeek
     ? items.filter((it) => {
         const endDate = toDate(weekStart, it.day, it.end);
@@ -33,7 +31,7 @@ export default function WeeklyCards({ weekStart, items, onCancel, onDetails }: P
 
   if (sorted.length === 0) {
     return (
-      <div className="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 text-center text-gray-500">
+      <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-6 text-center text-gray-500">
         <div className="text-5xl mb-3">📅</div>
         <div>There are no sessions scheduled for this week.</div>
       </div>
@@ -77,7 +75,7 @@ export default function WeeklyCards({ weekStart, items, onCancel, onDetails }: P
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => onDetails?.(it.id)}
-                className="px-3 py-2 rounded-xl border text-gray-700 hover:bg-gray-50"
+                className="px-3 py-2 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50"
                 title="Details"
               >
                 Details
