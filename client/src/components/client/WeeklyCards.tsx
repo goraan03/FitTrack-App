@@ -1,4 +1,4 @@
-import { format, startOfWeek } from "date-fns";
+import { format } from "date-fns";
 import type { WeeklyCardItem } from "../../models/client/WeeklyCardItem";
 import { toDate } from "../../helpers/client/toDate";
 
@@ -10,20 +10,8 @@ type Props = {
 };
 
 export default function WeeklyCards({ weekStart, items, onCancel, onDetails }: Props) {
-  const now = new Date();
-
-  const isCurrentWeek =
-    startOfWeek(weekStart, { weekStartsOn: 1 }).getTime() ===
-    startOfWeek(now, { weekStartsOn: 1 }).getTime();
-
-  const visible = isCurrentWeek
-    ? items.filter((it) => {
-        const endDate = toDate(weekStart, it.day, it.end);
-        return endDate.getTime() >= now.getTime();
-      })
-    : items;
-
-  const sorted = [...visible].sort((a, b) => {
+  // ✔️ prikazujemo SVE termine u toj nedelji (uključujući i one koji su već prošli)
+  const sorted = [...items].sort((a, b) => {
     const da = toDate(weekStart, a.day, a.start).getTime();
     const db = toDate(weekStart, b.day, b.start).getTime();
     return da - db;
@@ -58,14 +46,14 @@ export default function WeeklyCards({ weekStart, items, onCancel, onDetails }: P
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${badge}`}>
+                <span
+                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${badge}`}
+                >
                   {it.type === "group" ? "Group" : "Individual"}
                 </span>
                 <span className="text-xs text-gray-500">{dateLabel}</span>
               </div>
-              <div className="mt-1 font-semibold text-gray-900 truncate">
-                {it.title}
-              </div>
+              <div className="mt-1 font-semibold text-gray-900 truncate">{it.title}</div>
               <div className="text-sm text-gray-600">
                 {timeLabel}
                 {it.trainerName ? ` • ${it.trainerName}` : ""}

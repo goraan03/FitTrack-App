@@ -1,3 +1,5 @@
+import { TrainingType } from "../training_enrollments/TrainingType";
+
 export type TrainingTerm = {
   id: number;
   trainerId: number;

@@ -14,7 +14,7 @@ const emptyProgram: UpsertProgram = { title: '', description: '', level: 'beginn
 export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageProps) {
   const [programs, setPrograms] = useState<ProgramListItem[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
-  const [details, setDetails] = useState<ProgramDetails | null>(null);
+  const [, setDetails] = useState<ProgramDetails | null>(null);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [clients, setClients] = useState<TrainerClient[]>([]);
   const [form, setForm] = useState<UpsertProgram>(emptyProgram);

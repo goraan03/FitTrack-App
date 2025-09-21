@@ -9,7 +9,13 @@ type Props = {
   className?: string;
 };
 
-export default function Brand({ showText = true, text, to = "/", size = "md", className = "" }: Props) {
+export default function Brand({
+  showText = true,
+  text,
+  to = "/",
+  size = "md",
+  className = "",
+}: Props) {
   const sizes = {
     sm: { box: "h-8 w-8", icon: "h-4 w-4", text: "text-lg" },
     md: { box: "h-9 w-9", icon: "h-5 w-5", text: "text-xl" },
@@ -18,12 +24,17 @@ export default function Brand({ showText = true, text, to = "/", size = "md", cl
 
   const content = (
     <div className={`inline-flex items-center gap-2 ${className}`}>
-      <div className={`${sizes.box} rounded-xl bg-emerald-600 text-white grid place-items-center shadow`}>
+      {/* Možeš zameniti ikonicu svojim logom iz /public/images/fittrack-logo.png */}
+      <div
+        className={`${sizes.box} rounded-xl bg-yellow-500 text-black grid place-items-center shadow`}
+      >
         <ShieldCheck className={sizes.icon} />
       </div>
       {showText && (
-        <span className={`${sizes.text} font-bold tracking-tight text-emerald-700`}>
-          {text || "FitTrack"}
+        <span
+          className={`${sizes.text} font-extrabold tracking-wider uppercase text-yellow-500`}
+        >
+          {text || "FitTrack App"}
         </span>
       )}
     </div>
