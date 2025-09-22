@@ -1,4 +1,3 @@
-// client/src/pages/client/ClientProgramsPage.tsx
 import { useEffect, useState } from "react";
 import type { IProgramsAPIService } from "../../api_services/programs/IProgramsAPIService";
 import { Search } from "lucide-react";
@@ -72,8 +71,8 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
 
   const header = (
     <header>
-      <h1 className="text-3xl font-bold tracking-tight text-gray-900">Programs</h1>
-      <p className="text-gray-600">Programs of your trainer</p>
+      <h1 className="text-3xl font-bold tracking-tight text-yellow-500">Programs</h1>
+      <p className="text-gray-400">Programs of your trainer</p>
     </header>
   );
 
@@ -83,7 +82,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
     return (
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {header}
-        <div className="rounded-2xl border border-gray-100 bg-white/70 backdrop-blur-sm p-4 text-gray-500 shadow-sm">
+        <div className="rounded-2xl border border-gray-200 bg-white text-black p-4 shadow">
           Loading profile…
         </div>
       </section>
@@ -94,7 +93,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
     return (
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {header}
-        <div className="rounded-2xl border border-yellow-200 bg-yellow-50/80 text-yellow-800 p-4 shadow-sm">
+        <div className="rounded-2xl border border-yellow-300 bg-yellow-50 text-yellow-900 p-4 shadow">
           Select a trainer to see their programs.
         </div>
       </section>
@@ -105,12 +104,12 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {header}
 
-      <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-4">
+      <div className="bg-white text-black rounded-2xl border border-gray-200 shadow p-4">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
-              className="w-full rounded-xl border border-gray-200 pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full rounded-xl border border-gray-200 pl-9 pr-3 py-2.5 bg-white text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
               placeholder="Search programs..."
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -118,7 +117,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
             />
           </div>
           <select
-            className="rounded-xl border border-gray-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+            className="rounded-xl border border-gray-200 px-3 py-2.5 bg-white text-black focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
             value={level}
             onChange={(e) => setLevel(e.target.value as any)}
           >
@@ -129,7 +128,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
           </select>
           <button
             onClick={load}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 shadow-sm"
+            className="px-4 py-2.5 rounded-xl bg-yellow-400 text-black font-semibold hover:bg-yellow-500 shadow"
           >
             Apply
           </button>
@@ -138,16 +137,16 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
 
       <div className="grid gap-4 sm:grid-cols-2">
         {loading ? (
-          <div className="rounded-2xl border border-gray-100 bg-white/70 backdrop-blur-sm p-4 text-gray-500 shadow-sm">
+          <div className="rounded-2xl border border-gray-200 bg-white text-black p-4 shadow">
             Loading programs…
           </div>
         ) : items.length === 0 ? (
-          <div className="text-gray-500">
+          <div className="text-gray-400">
             {isFiltered ? 'No programs found for the given filters.' : 'The trainer currently has no programs for you.'}
           </div>
         ) : (
           items.map((p) => (
-            <div key={p.id} className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-2">
+            <div key={p.id} className="bg-white text-black rounded-2xl border border-gray-200 shadow p-5 flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <div className="font-semibold text-gray-900">{p.title}</div>
                 <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 capitalize">
@@ -157,7 +156,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
               <div className="text-sm text-gray-600">{p.description || "—"}</div>
               <div className="text-sm text-gray-500">Author: {p.trainerName}</div>
               <div className="pt-2">
-                <a href="/app/sessions" className="inline-flex items-center rounded-xl bg-emerald-600 text-white px-4 py-2 font-semibold hover:bg-emerald-700 transition shadow-sm">
+                <a href="/app/sessions" className="inline-flex items-center rounded-xl bg-yellow-400 text-black px-4 py-2 font-semibold hover:bg-yellow-500 transition shadow">
                   View Sessions
                 </a>
               </div>

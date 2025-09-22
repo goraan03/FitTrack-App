@@ -3,9 +3,9 @@ import type { AuditCategory } from "../../types/admin/AuditLog";
 
 export const CatBadge = ({ c }: { c: AuditCategory }) => {
   const map: Record<AuditCategory, string> = {
-    Informacija: "bg-emerald-100 text-emerald-800",
-    Upozorenje: "bg-amber-100 text-amber-800",
-    Greška: "bg-red-100 text-red-800",
+    Informacija: "bg-gray-100 text-gray-700 ring-1 ring-gray-200",
+    Upozorenje: "bg-yellow-100 text-yellow-800 ring-1 ring-yellow-200",
+    Greška: "bg-red-100 text-red-800 ring-1 ring-red-200",
   };
   const Icon = c === "Informacija" ? Info : c === "Upozorenje" ? AlertTriangle : XOctagon;
   return (

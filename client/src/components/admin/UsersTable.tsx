@@ -10,7 +10,7 @@ export default function UsersTable({ adminApi }: Props) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [role, setRole] = useState<"svi" | "klijent" | "trener" | "admin">("svi");
   const [blocked, setBlocked] = useState<"svi" | "da" | "ne">("svi");
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
 
   const filtered = useMemo(() => users, [users]);
 
@@ -31,7 +31,7 @@ export default function UsersTable({ adminApi }: Props) {
 
   useEffect(() => {
     fetchUsers();
-  }, [role, blocked]);
+  }, [role, blocked]); // eslint-disable-line
 
   const toggleBlock = async (u: AdminUser) => {
     const res = await adminApi.setBlocked(u.id, !u.blokiran);
@@ -79,7 +79,7 @@ export default function UsersTable({ adminApi }: Props) {
   };
 
   return (
-    <div className="bg-white/70 backdrop-blur-sm border border-gray-100 rounded-2xl p-5 shadow-sm">
+    <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-2xl p-5 shadow-sm text-black">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-4">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Users</h3>
@@ -89,7 +89,7 @@ export default function UsersTable({ adminApi }: Props) {
           <div>
             <label className="text-[11px] text-gray-500 uppercase tracking-wider block mb-1">Role</label>
             <select
-              className="border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+              className="border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition"
               value={role}
               onChange={(e) => setRole(e.target.value as any)}
             >
@@ -102,7 +102,7 @@ export default function UsersTable({ adminApi }: Props) {
           <div>
             <label className="text-[11px] text-gray-500 uppercase tracking-wider block mb-1">Status</label>
             <select
-              className="border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+              className="border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition"
               value={blocked}
               onChange={(e) => setBlocked(e.target.value as any)}
             >
@@ -117,7 +117,7 @@ export default function UsersTable({ adminApi }: Props) {
               type="button"
               onClick={fetchUsers}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm disabled:opacity-60 transition"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-yellow-400 text-yellow-700 hover:bg-yellow-400/10 font-semibold disabled:opacity-60 transition"
             >
               <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               {loading ? "Refreshing..." : "Refresh"}
@@ -126,25 +126,19 @@ export default function UsersTable({ adminApi }: Props) {
         </div>
       </div>
 
-      {error && (
-        <div className="text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 text-sm mb-3">
-          {error}
-        </div>
-      )}
-
       <div className="overflow-auto">
         <table className="min-w-full text-sm">
           <thead>
             <tr className="text-left bg-gray-50">
-              <th className="p-3">ID</th>
-              <th className="p-3">Email</th>
-              <th className="p-3">Role</th>
-              <th className="p-3">First Name</th>
-              <th className="p-3">Last Name</th>
-              <th className="p-3">Date of Birth</th>
-              <th className="p-3">Gender</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Actions</th>
+              <th className="p-3 text-gray-700">ID</th>
+              <th className="p-3 text-gray-700">Email</th>
+              <th className="p-3 text-gray-700">Role</th>
+              <th className="p-3 text-gray-700">First Name</th>
+              <th className="p-3 text-gray-700">Last Name</th>
+              <th className="p-3 text-gray-700">Date of Birth</th>
+              <th className="p-3 text-gray-700">Gender</th>
+              <th className="p-3 text-gray-700">Status</th>
+              <th className="p-3 text-gray-700">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -163,13 +157,13 @@ export default function UsersTable({ adminApi }: Props) {
             ) : (
               filtered.map((u) => (
                 <tr key={u.id} className="border-t border-gray-100 hover:bg-gray-50/70 transition">
-                  <td className="p-3">{u.id}</td>
-                  <td className="p-3">{u.korisnickoIme}</td>
-                  <td className="p-3">{u.uloga}</td>
-                  <td className="p-3">{u.ime}</td>
-                  <td className="p-3">{u.prezime}</td>
-                  <td className="p-3">{u.datumRodjenja || "-"}</td>
-                  <td className="p-3">{u.pol || "-"}</td>
+                  <td className="p-3 text-gray-800">{u.id}</td>
+                  <td className="p-3 text-gray-800">{u.korisnickoIme}</td>
+                  <td className="p-3 text-gray-800">{u.uloga}</td>
+                  <td className="p-3 text-gray-800">{u.ime}</td>
+                  <td className="p-3 text-gray-800">{u.prezime}</td>
+                  <td className="p-3 text-gray-800">{u.datumRodjenja || "-"}</td>
+                  <td className="p-3 text-gray-800">{u.pol || "-"}</td>
                   <td className="p-3">
                     {u.blokiran ? (
                       <span className="px-2 py-1 rounded-full text-xs bg-rose-100 text-rose-700 border border-rose-200">
@@ -184,19 +178,17 @@ export default function UsersTable({ adminApi }: Props) {
                   <td className="p-3 space-x-2">
                     <button
                       onClick={() => openEdit(u)}
-                      className="px-3 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+                      className="px-3 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition text-gray-800"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => toggleBlock(u)}
                       className={`px-3 py-1 rounded-lg text-white transition ${
-                        u.blokiran
-                          ? "bg-emerald-600 hover:bg-emerald-700"
-                          : "bg-rose-600 hover:bg-rose-700"
+                        u.blokiran ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"
                       }`}
                     >
-                      {u.blokiran ? "Odblokiraj" : "Blokiraj"}
+                      {u.blokiran ? "Unblock" : "Block"}
                     </button>
                   </td>
                 </tr>
@@ -208,7 +200,7 @@ export default function UsersTable({ adminApi }: Props) {
 
       {editUser && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-50">
-          <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-6 w-full max-w-lg border border-gray-100">
+          <div className="bg-white/85 backdrop-blur-md rounded-2xl shadow-xl p-6 w-full max-w-lg border border-gray-100 text-black">
             <h4 className="text-lg font-semibold mb-4 text-gray-900">
               Edit User #{editUser.id}
             </h4>
@@ -218,7 +210,7 @@ export default function UsersTable({ adminApi }: Props) {
                   Name
                 </label>
                 <input
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white"
                   value={editState.ime}
                   onChange={(e) => setEditState({ ...editState, ime: e.target.value })}
                 />
@@ -228,7 +220,7 @@ export default function UsersTable({ adminApi }: Props) {
                   Surname
                 </label>
                 <input
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white"
                   value={editState.prezime}
                   onChange={(e) => setEditState({ ...editState, prezime: e.target.value })}
                 />
@@ -239,7 +231,7 @@ export default function UsersTable({ adminApi }: Props) {
                 </label>
                 <input
                   type="date"
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white"
                   value={editState.datumRodjenja}
                   onChange={(e) => setEditState({ ...editState, datumRodjenja: e.target.value })}
                 />
@@ -249,7 +241,7 @@ export default function UsersTable({ adminApi }: Props) {
                   Gender
                 </label>
                 <select
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white"
                   value={editState.pol}
                   onChange={(e) => setEditState({ ...editState, pol: e.target.value as "musko" | "zensko" })}
                 >
@@ -274,10 +266,10 @@ export default function UsersTable({ adminApi }: Props) {
               </button>
               <button
                 disabled={editLoading}
-                className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm disabled:opacity-60 transition"
+                className="px-4 py-2 rounded-lg bg-yellow-400 hover:bg-yellow-400/90 text-black font-semibold shadow-sm disabled:opacity-60 transition"
                 onClick={saveEdit}
               >
-                {editLoading ? "Čuvanje..." : "Sačuvaj"}
+                {editLoading ? "Saving..." : "Save"}
               </button>
             </div>
           </div>

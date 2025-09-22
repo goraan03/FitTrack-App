@@ -75,90 +75,79 @@ export default function RegistracijaForma({ authApi }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Ime</label>
+          <label className="block text-sm font-medium text-gray-800 mb-1">First Name</label>
           <input
             type="text"
             name={`fn_${seed}`}
-            autoComplete="off"
             value={ime}
             onChange={(e) => setIme(e.target.value)}
             placeholder="Name"
             required
-            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+            className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-yellow-300 focus:border-yellow-400"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+          <label className="block text-sm font-medium text-gray-800 mb-1">Last Name</label>
           <input
             type="text"
             name={`ln_${seed}`}
-            autoComplete="off"
             value={prezime}
             onChange={(e) => setPrezime(e.target.value)}
             placeholder="Last Name"
             required
-            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+            className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-yellow-300 focus:border-yellow-400"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <label className="block text-sm font-medium text-gray-800 mb-1">Email</label>
         <input
           type="text"
           name={`e_${seed}`}
-          autoComplete="off"
           inputMode="email"
-          autoCapitalize="none"
-          spellCheck={false}
-          data-lpignore="true"
-          data-1p-ignore="true"
           value={email}
           onChange={(e) => setEmail(e.target.value.trim())}
           placeholder="Your email"
           required
-          className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+          className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-yellow-300 focus:border-yellow-400"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <label className="block text-sm font-medium text-gray-800 mb-1">Password</label>
         <input
           type="password"
           name={`p_${seed}`}
-          autoComplete="new-password"
-          data-lpignore="true"
-          data-1p-ignore="true"
           value={lozinka}
           onChange={(e) => setLozinka(e.target.value)}
           placeholder="Create password"
           required
-          className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+          className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-yellow-300 focus:border-yellow-400"
         />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+          <label className="block text-sm font-medium text-gray-800 mb-1">Age</label>
           <input
             type="number"
             min={1}
             max={120}
             name={`a_${seed}`}
-            autoComplete="off"
             value={age}
             onChange={(e) => setAge(e.target.value)}
             placeholder="Age"
-            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+            className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-yellow-300 focus:border-yellow-400"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+          <label className="block text-sm font-medium text-gray-800 mb-1">Gender</label>
           <select
             name={`g_${seed}`}
             value={pol}
             onChange={(e) => setPol(e.target.value as "musko" | "zensko")}
-            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+            className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-yellow-300 focus:border-yellow-400"
           >
             <option value="musko">Male</option>
             <option value="zensko">Female</option>
@@ -166,12 +155,16 @@ export default function RegistracijaForma({ authApi }: Props) {
         </div>
       </div>
 
-      {greska && <div className="rounded-lg border border-red-200 bg-red-50 text-red-700 px-4 py-2 text-sm">{greska}</div>}
+      {greska && (
+        <div className="rounded-lg border border-red-300 bg-red-50 text-red-700 px-4 py-2 text-sm">
+          {greska}
+        </div>
+      )}
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full inline-flex justify-center items-center rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-200 transition disabled:opacity-60"
+        className="w-full inline-flex justify-center items-center rounded-xl bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-3 shadow-md focus:outline-none focus:ring-4 focus:ring-yellow-300 transition disabled:opacity-60"
       >
         {loading ? "Creating..." : "Create account"}
       </button>

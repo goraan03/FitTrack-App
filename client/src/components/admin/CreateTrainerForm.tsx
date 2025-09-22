@@ -37,7 +37,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
         pol: form.pol,
       });
       if (res.success) {
-        setMsg(`Trener kreiran (ID: ${res.data?.id ?? "?"})`);
+        setMsg(`Trainer created (ID: ${res.data?.id ?? "?"})`);
         setForm({ korisnickoIme: "", lozinka: "", ime: "", prezime: "", datumRodjenja: "", pol: "musko" });
       } else setErr(res.message);
     } finally {
@@ -46,10 +46,10 @@ export default function CreateTrainerForm({ adminApi }: Props) {
   };
 
   return (
-    <section className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
+    <section className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
       <header className="mb-6 flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-700 grid place-items-center border border-emerald-200">
-          <UserPlus className="h-5 w-5" />
+        <div className="h-10 w-10 rounded-xl bg-yellow-50 text-yellow-700 grid place-items-center border border-yellow-200">
+            <UserPlus className="h-5 w-5" />
         </div>
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Create a Trainer</h3>
@@ -58,7 +58,6 @@ export default function CreateTrainerForm({ adminApi }: Props) {
       </header>
 
       <form onSubmit={submit} className="space-y-5" autoComplete="off">
-        {/* Honey pot to avoid autofill */}
         <input className="hidden" type="text" name="username" autoComplete="username" />
         <input className="hidden" type="password" name="password" autoComplete="new-password" />
 
@@ -66,7 +65,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
           <div>
             <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">First Name</label>
             <input
-              className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition bg-white"
+              className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition bg-white text-black"
               autoComplete="off"
               name={`fn_${seed}`}
               value={form.ime}
@@ -77,7 +76,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
           <div>
             <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Last Name</label>
             <input
-              className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition bg-white"
+              className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition bg-white text-black"
               autoComplete="off"
               name={`ln_${seed}`}
               value={form.prezime}
@@ -90,7 +89,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
         <div>
           <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Email (Username)</label>
           <input
-            className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition bg-white"
+            className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition bg-white text-black"
             type="text"
             name={`em_${seed}`}
             autoComplete="off"
@@ -104,7 +103,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
         <div>
           <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Password</label>
           <input
-            className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition bg-white"
+            className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition bg-white text-black"
             type="password"
             name={`pw_${seed}`}
             autoComplete="new-password"
@@ -119,7 +118,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
           <div>
             <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Date of Birth (optional)</label>
             <input
-              className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition bg-white"
+              className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition bg-white text-black"
               type="date"
               name={`dob_${seed}`}
               autoComplete="off"
@@ -130,7 +129,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
           <div>
             <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Gender</label>
             <select
-              className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition bg-white"
+              className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition bg-white text-black"
               value={form.pol}
               onChange={(e) => setForm({ ...form, pol: e.target.value as "musko" | "zensko" })}
             >
@@ -141,7 +140,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
         </div>
 
         {msg && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 px-4 py-2 text-sm">
+          <div className="rounded-xl border border-yellow-200 bg-yellow-50 text-yellow-800 px-4 py-2 text-sm">
             {msg}
           </div>
         )}
@@ -154,7 +153,7 @@ export default function CreateTrainerForm({ adminApi }: Props) {
         <div className="flex justify-end">
           <button
             disabled={loading}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm disabled:opacity-60 transition"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-400/90 text-black font-semibold shadow-sm disabled:opacity-60 transition"
           >
             {loading ? "Creating..." : "Create Trainer"}
           </button>

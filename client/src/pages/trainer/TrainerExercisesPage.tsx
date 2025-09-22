@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import type { Exercise, UpsertExercise, MuscleGroup, Equipment, Level } from "../../types/trainer/Exercise";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
 
-interface TrainerExercisesPageProps {
-  trainerApi: ITrainerAPIService;
-}
+interface TrainerExercisesPageProps { trainerApi: ITrainerAPIService; }
 
 const groups: MuscleGroup[] = ['full_body','chest','back','legs','shoulders','arms','core','cardio','mobility'];
 const equipments: Equipment[] = ['none','bodyweight','dumbbells','barbell','kettlebell','machine','bands','other'];
@@ -73,7 +71,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
 
   const LevelBadge = ({ level }: { level: Level }) => {
     const styles: Record<Level, string> = {
-      beginner: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
+      beginner: "bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200",
       intermediate: "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100",
       advanced: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
     };
@@ -86,16 +84,17 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Exercises</h1>
-        <button onClick={openNew} className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition">New exercise</button>
+    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <div aria-hidden className="pointer-events-none absolute inset-0 [background:radial-gradient(600px_200px_at_10%_0%,rgba(253,224,71,0.06),transparent),radial-gradient(500px_200px_at_90%_10%,rgba(253,224,71,0.04),transparent)]" />
+      <div className="relative flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-white">Exercises</h1>
+        <button onClick={openNew} className="px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-400/90 text-black font-semibold shadow-sm">New exercise</button>
       </div>
 
-      {loading ? <div className="text-sm text-gray-500">Loading...</div> : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      {loading ? <div className="relative text-sm text-gray-400">Loading...</div> : (
+        <div className="relative grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {items.map(ex => (
-            <div key={ex.id} className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div key={ex.id} className="bg-white/90 backdrop-blur-sm text-black rounded-2xl border border-gray-200 shadow-sm p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="font-semibold text-gray-900 truncate">{ex.name}</div>
                 <LevelBadge level={ex.level} />
@@ -103,86 +102,60 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
               <div className="text-sm text-gray-600 mt-1">{ex.muscleGroup} • {ex.equipment}</div>
               {ex.description && <div className="text-sm text-gray-700 mt-2">{ex.description}</div>}
               <div className="pt-3 flex items-center gap-2">
-                <button onClick={()=> openEdit(ex)} className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition">Edit</button>
-                <button onClick={()=> del(ex.id)} className="px-3 py-1.5 rounded-lg bg-rose-600/80 hover:bg-rose-700 text-white transition">Delete</button>
+                <button onClick={()=> openEdit(ex)} className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">Edit</button>
+                <button onClick={()=> del(ex.id)} className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white">Delete</button>
               </div>
             </div>
           ))}
           {items.length === 0 && (
-            <div className="col-span-full bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-6 text-center text-gray-500">
-              No exercises yet.
-            </div>
+            <div className="col-span-full text-center text-gray-400">No exercises yet.</div>
           )}
         </div>
       )}
 
       {modal.open && (
-        <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-gray-100">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-black/70 grid place-items-center p-4">
+          <div className="bg-white text-black w-full max-w-lg rounded-2xl shadow-xl border border-gray-200">
+            <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="font-semibold">{modal.editId ? 'Edit exercise' : 'New exercise'}</h3>
-              <button onClick={()=> setModal(m=> ({...m, open:false}))} className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition">Close</button>
+              <button onClick={()=> setModal(m=> ({...m, open:false}))} className="px-3 py-1.5 rounded-lg border hover:bg-gray-100">Close</button>
             </div>
             <div className="p-5 space-y-3">
               <div>
-                <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Name</label>
-                <input
-                  value={modal.data.name}
-                  onChange={(e)=> setModal(m=> ({...m, data:{...m.data, name: e.target.value}}))}
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-                />
+                <label className="block text-xs text-gray-600 uppercase">Name</label>
+                <input value={modal.data.name} onChange={(e)=> setModal(m=> ({...m, data:{...m.data, name: e.target.value}}))} className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 bg-white text-black placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"/>
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Description</label>
-                <textarea
-                  value={modal.data.description || ''}
-                  onChange={(e)=> setModal(m=> ({...m, data:{...m.data, description: e.target.value}}))}
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 min-h-[90px] focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-                />
+                <label className="block text-xs text-gray-600 uppercase">Description</label>
+                <textarea value={modal.data.description || ''} onChange={(e)=> setModal(m=> ({...m, data:{...m.data, description: e.target.value}}))} className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 min-h-[90px] bg-white text-black placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"/>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Muscle</label>
-                  <select
-                    value={modal.data.muscleGroup}
-                    onChange={(e)=> setModal(m=> ({...m, data:{...m.data, muscleGroup: e.target.value as any}}))}
-                    className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-                  >
+                  <label className="block text-xs text-gray-600 uppercase">Muscle</label>
+                  <select value={modal.data.muscleGroup} onChange={(e)=> setModal(m=> ({...m, data:{...m.data, muscleGroup: e.target.value as any}}))} className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 bg-white text-black focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400">
                     {groups.map(g=> <option key={g} value={g}>{g}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Equip</label>
-                  <select
-                    value={modal.data.equipment || 'none'}
-                    onChange={(e)=> setModal(m=> ({...m, data:{...m.data, equipment: e.target.value as any}}))}
-                    className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-                  >
+                  <label className="block text-xs text-gray-600 uppercase">Equip</label>
+                  <select value={modal.data.equipment || 'none'} onChange={(e)=> setModal(m=> ({...m, data:{...m.data, equipment: e.target.value as any}}))} className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 bg-white text-black focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400">
                     {equipments.map(g=> <option key={g} value={g}>{g}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Level</label>
-                  <select
-                    value={modal.data.level || 'beginner'}
-                    onChange={(e)=> setModal(m=> ({...m, data:{...m.data, level: e.target.value as any}}))}
-                    className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-                  >
+                  <label className="block text-xs text-gray-600 uppercase">Level</label>
+                  <select value={modal.data.level || 'beginner'} onChange={(e)=> setModal(m=> ({...m, data:{...m.data, level: e.target.value as any}}))} className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 bg-white text-black focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400">
                     {levels.map(l=> <option key={l} value={l}>{l}</option>)}
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Video URL</label>
-                <input
-                  value={modal.data.videoUrl || ''}
-                  onChange={(e)=> setModal(m=> ({...m, data:{...m.data, videoUrl: e.target.value}}))}
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-                />
+                <label className="block text-xs text-gray-600 uppercase">Video URL</label>
+                <input value={modal.data.videoUrl || ''} onChange={(e)=> setModal(m=> ({...m, data:{...m.data, videoUrl: e.target.value}}))} className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 bg-white text-black placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"/>
               </div>
               <div className="pt-2 flex items-center justify-end gap-2">
-                <button onClick={()=> setModal(m=> ({...m, open:false}))} className="px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition">Cancel</button>
-                <button onClick={save} className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition">Save</button>
+                <button onClick={()=> setModal(m=> ({...m, open:false}))} className="px-3 py-2 rounded-xl border hover:bg-gray-100">Cancel</button>
+                <button onClick={save} className="px-3 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-400/90 text-black">Save</button>
               </div>
             </div>
           </div>

@@ -10,7 +10,7 @@ export function Avatar({ name, src }: { name: string; src?: string | null }) {
     return <img src={src} alt={name} className="h-20 w-20 rounded-full object-cover ring-4 ring-white shadow" />;
   }
   return (
-    <div className="h-20 w-20 rounded-full bg-emerald-600 text-white ring-4 ring-white shadow flex items-center justify-center text-2xl font-semibold">
+    <div className="h-20 w-20 rounded-full bg-yellow-400 text-black ring-4 ring-white shadow flex items-center justify-center text-2xl font-semibold">
       {initials || "?"}
     </div>
   );

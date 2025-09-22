@@ -4,14 +4,12 @@ import WeekSwitcher from "../../components/client/WeekSwitcher";
 import WeeklyCards from "../../components/client/WeeklyCards";
 import type { WeeklyCardItem } from "../../models/client/WeeklyCardItem";
 import RateTermModal from "../../components/trainer/RateTermModal";
-import TermDetailsModal from "../../components/client/TermDetailsModal";   // NEW
-import type { TermDetails } from "../../models/client/TermDetails";       // NEW
-import { toDate } from "../../helpers/client/toDate";                      // NEW
+import TermDetailsModal from "../../components/client/TermDetailsModal";
+import type { TermDetails } from "../../models/client/TermDetails";
+import { toDate } from "../../helpers/client/toDate";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
 
-interface TrainerDashboardPageProps {
-  trainerApi: ITrainerAPIService;
-}
+interface TrainerDashboardPageProps { trainerApi: ITrainerAPIService; }
 
 export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPageProps) {
   const [weekStart, setWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -20,7 +18,6 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
   const [events, setEvents] = useState<WeeklyCardItem[]>([]);
   const [pending, setPending] = useState<{ termId: number; startAt: string; programTitle: string; count: number }[]>([]);
   const [rateModal, setRateModal] = useState<{ open: boolean; termId?: number; programTitle?: string; participants: { userId: number; userName: string }[] }>({ open: false, participants: [] });
-
   const [details, setDetails] = useState<{ open: boolean; data?: TermDetails }>({ open: false });
 
   const weekStartISO = useMemo(() => {
@@ -42,45 +39,34 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
           day: e.day,
           start: e.start,
           end: e.end,
-          type: e.type === "INDIVIDUAL" ? "individual" : e.type === "GROUP" ? "group" : (e.type as any),
+          type: e.type === "INDIVIDUAL" ? "individual" : "group",
           trainerName: "",
           cancellable: e.cancellable,
         }));
         setEvents(items);
       }
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   useEffect(() => { load(); }, [weekStartISO]);
 
   const openRate = async (termId: number) => {
     const r = await trainerApi.getUnrated(termId);
-    if (r.success) {
-      setRateModal({ open: true, termId, programTitle: r.data.programTitle, participants: r.data.participants });
-    }
+    if (r.success) setRateModal({ open: true, termId, programTitle: r.data.programTitle, participants: r.data.participants });
   };
 
   const submitRatings = async (ratings: { userId: number; rating: number }[]) => {
     const termId = rateModal.termId!;
-    for (const r of ratings) {
-      await trainerApi.rateParticipant(termId, r.userId, r.rating);
-    }
+    for (const r of ratings) await trainerApi.rateParticipant(termId, r.userId, r.rating);
     await load();
   };
 
   const cancelTerm = async (id: number) => {
     try {
       const res = await trainerApi.cancelTerm(id);
-      if (!res.success) {
-        alert(res.message || "Failed to cancel");
-        return;
-      }
+      if (!res.success) { alert(res.message || "Failed to cancel"); return; }
       await load();
-    } catch (e: any) {
-      alert(e?.message || "Cancel failed");
-    }
+    } catch (e: any) { alert(e?.message || "Cancel failed"); }
   };
 
   const openDetails = (id: number) => {
@@ -88,65 +74,52 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
     if (!ev) return;
     const start = toDate(weekStart, ev.day, ev.start);
     const end = toDate(weekStart, ev.day, ev.end);
-    const data: TermDetails = {
-      id: ev.id,
-      title: ev.title,
-      startAt: start.toISOString(),
-      endAt: end.toISOString(),
-      type: ev.type,
-    };
-    setDetails({ open: true, data });
+    setDetails({ open: true, data: { id: ev.id, title: ev.title, startAt: start.toISOString(), endAt: end.toISOString(), type: ev.type } });
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-      <div className="flex items-center justify-between gap-4">
+    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <div aria-hidden className="pointer-events-none absolute inset-0 [background:radial-gradient(600px_200px_at_10%_0%,rgba(253,224,71,0.06),transparent),radial-gradient(500px_200px_at_90%_10%,rgba(253,224,71,0.04),transparent)]" />
+
+      <div className="relative flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Welcome back 👋</h1>
-          <p className="text-gray-600">Overview of your scheduled sessions</p>
+          <h1 className="text-3xl font-bold tracking-tight text-white">Dashboard</h1>
+          <p className="text-gray-400">Overview of your scheduled sessions</p>
         </div>
         <WeekSwitcher weekStart={weekStart} onChange={setWeekStart} />
       </div>
 
       {loading ? (
-        <div className="text-gray-500">Loading...</div>
+        <div className="relative text-gray-400">Loading...</div>
       ) : (
         <>
-          {/* Stat cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
-              <div className="text-sm text-gray-500">This week</div>
-              <div className="text-3xl font-bold text-emerald-700 mt-1">{stats?.totalTerms ?? 0}</div>
+          <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm p-5 text-black">
+              <div className="text-sm text-gray-600">This week</div>
+              <div className="text-3xl font-bold text-yellow-500 mt-1">{stats?.totalTerms ?? 0}</div>
               <div className="text-xs text-gray-500">Scheduled sessions</div>
             </div>
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
-              <div className="text-sm text-gray-500">Scheduled hours</div>
-              <div className="text-3xl font-bold text-emerald-700 mt-1">{(stats?.scheduledHours ?? 0).toFixed(1)}</div>
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm p-5 text-black">
+              <div className="text-sm text-gray-600">Scheduled hours</div>
+              <div className="text-3xl font-bold text-yellow-500 mt-1">{(stats?.scheduledHours ?? 0).toFixed(1)}</div>
               <div className="text-xs text-gray-500">This week</div>
             </div>
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
-              <div className="text-sm text-gray-500">Enrolled</div>
-              <div className="text-3xl font-bold text-emerald-700 mt-1">{stats?.enrolledThisWeek ?? 0}</div>
-              <div className="text-xs text-gray-500">Participants this week</div>
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm p-5 text-black">
+              <div className="text-sm text-gray-600">Participants</div>
+              <div className="text-3xl font-bold text-yellow-500 mt-1">{stats?.enrolledThisWeek ?? 0}</div>
+              <div className="text-xs text-gray-500">This week</div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Weekly schedule */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm p-5 text-black">
               <div className="text-sm text-gray-700 mb-3">
-                This Week's Schedule · {format(weekStart, "MMM d")} – {format(new Date(weekStart.getTime()+6*86400000), "MMM d")}
+                This Week&apos;s Schedule · {format(weekStart, "MMM d")} – {format(new Date(weekStart.getTime()+6*86400000), "MMM d")}
               </div>
-              <WeeklyCards
-                weekStart={weekStart}
-                items={events}
-                onCancel={cancelTerm}
-                onDetails={openDetails}
-              />
+              <WeeklyCards weekStart={weekStart} items={events} onCancel={cancelTerm} onDetails={openDetails} />
             </div>
 
-            {/* Pending ratings */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm p-5 text-black">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900">Pending ratings</h3>
                 <span className="text-sm text-gray-500">{pending.length} terms</span>
@@ -162,7 +135,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
                     </div>
                     <button
                       onClick={() => openRate(p.termId)}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm transition shadow-sm"
+                      className="px-3 py-1.5 rounded-lg bg-yellow-400 hover:bg-yellow-400/90 text-black text-sm shadow-sm"
                     >
                       Rate
                     </button>
@@ -182,11 +155,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
         onSubmit={submitRatings}
       />
 
-      <TermDetailsModal
-        open={details.open}
-        onClose={() => setDetails({ open: false })}
-        data={details.data}
-      />
+      <TermDetailsModal open={details.open} onClose={() => setDetails({ open: false })} data={details.data} />
     </div>
   );
 }

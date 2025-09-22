@@ -4,9 +4,7 @@ import type { Exercise } from "../../types/trainer/Exercise";
 import type { TrainerClient } from "../../types/trainer/TrainerClient";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
 
-interface TrainerProgramsPageProps {
-  trainerApi: ITrainerAPIService;
-}
+interface TrainerProgramsPageProps { trainerApi: ITrainerAPIService; }
 
 type DraftItem = Omit<ProgramExerciseItem, 'name'>;
 const emptyProgram: UpsertProgram = { title: '', description: '', level: 'beginner', isPublic: false };
@@ -22,6 +20,10 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
 
   const [draft, setDraft] = useState<DraftItem[]>([]);
   const [chosenExercise, setChosenExercise] = useState<number | ''>('');
+
+  // Mobile modal editor
+  const [showEditorModal, setShowEditorModal] = useState(false);
+  const isMobile = () => (typeof window !== "undefined" ? window.innerWidth < 1024 : false);
 
   const loadAll = async () => {
     const [p, e, c] = await Promise.all([
@@ -95,14 +97,6 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
     } finally { setSaving(false); }
   };
 
-  const saveExercises = async () => {
-    if (!selected) return alert('Select a program first');
-    const res = await trainerApi.setProgramExercises(selected, draft);
-    if (!res.success) return alert(res.message);
-    await loadDetails(selected);
-    alert('Program exercises saved');
-  };
-
   const [assignClientId, setAssignClientId] = useState<number | ''>('');
   const assignToClient = async () => {
     if (!selected) return alert('Select a program');
@@ -115,216 +109,156 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
 
   const exerciseName = (id: number) => exercises.find(x => x.id === id)?.name || `#${id}`;
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Programs</h1>
+  // responsive open handlers
+  const openNewResponsive = () => {
+    setSelected(null);
+    if (isMobile()) setShowEditorModal(true);
+  };
+  const openEditResponsive = (id: number) => {
+    setSelected(id);
+    if (isMobile()) setShowEditorModal(true);
+  };
+
+  // Reusable editor content
+  const inputBase = "mt-1 w-full border rounded px-3 py-2 bg-white text-black placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:ring-inset focus:border-yellow-400";
+  const selectBase = "rounded-xl border px-3 py-2 bg-white text-black focus:ring-2 focus:ring-yellow-400 focus:ring-inset focus:border-yellow-400";
+
+  const EditorContent = (
+    <>
+      <div className="grid gap-4">
+        <div>
+          <label className="text-xs text-gray-600 uppercase">Title</label>
+          <input
+            value={form.title}
+            onChange={e=> setForm(f=>({...f,title:e.target.value}))}
+            className={inputBase}
+          />
+        </div>
+        <div>
+          <label className="text-xs text-gray-600 uppercase">Description</label>
+          <textarea
+            value={form.description||''}
+            onChange={e=>setForm(f=>({...f,description:e.target.value}))}
+            className={`${inputBase} min-h-[90px]`}
+          />
+        </div>
+        <div className="flex flex-wrap gap-4">
+          <select
+            value={form.level}
+            onChange={e=> setForm(f=>({...f,level:e.target.value as any}))}
+            className={selectBase}
+          >
+            <option value="beginner">beginner</option>
+            <option value="intermediate">intermediate</option>
+            <option value="advanced">advanced</option>
+          </select>
+          <label className="inline-flex items-center gap-2">
+            <input type="checkbox" checked={!!form.isPublic} onChange={e=>setForm(f=>({...f,isPublic:e.target.checked}))} className="h-4 w-4 accent-yellow-400"/>
+            Public
+          </label>
+          <button onClick={saveProgram} disabled={saving} className="ml-auto px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-black font-semibold">
+            {selected ? 'Save' : 'Create'}
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left: Programs list */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5 lg:sticky lg:top-24 h-fit">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-gray-900">My programs</h3>
-            <button
-              onClick={()=> setSelected(null)}
-              className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition"
-            >
-              New
-            </button>
+      <div className="my-6 border-t"/>
+
+      <div className="flex gap-3">
+        <select value={chosenExercise} onChange={e=> setChosenExercise(e.target.value as any)} className={selectBase}>
+          <option value="">Pick exercise</option>
+          {exercises.map(e=> <option key={e.id} value={e.id}>{e.name}</option>)}
+        </select>
+        <button onClick={addDraft} className="px-3 py-2 border rounded hover:bg-gray-100">Add</button>
+      </div>
+
+      <div className="mt-4 space-y-3">
+        {draft.map((it,idx)=>(
+          <div key={idx} className="p-4 border rounded-xl bg-white/60 text-black">
+            <div className="font-medium text-black">{it.position}. {exerciseName(it.exerciseId)}</div>
+            <div className="mt-2 flex gap-1">
+              <button onClick={()=> move(idx,-1)} className="px-2 py-1 border rounded hover:bg-gray-100">↑</button>
+              <button onClick={()=> move(idx,1)} className="px-2 py-1 border rounded hover:bg-gray-100">↓</button>
+              <button onClick={()=> remove(idx)} className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">X</button>
+            </div>
+          </div>
+        ))}
+        {draft.length===0 && <div className="text-sm text-gray-500">No exercises in this program yet.</div>}
+      </div>
+
+      <div className="mt-6 border-t pt-4 flex flex-col sm:flex-row gap-3 sm:items-center">
+        <select
+          value={assignClientId}
+          onChange={e=>setAssignClientId(e.target.value as any)}
+          className={`${selectBase} w-full sm:w-auto flex-1 min-w-0`}
+        >
+          <option value="">Assign to client</option>
+          {clients.map(c=> <option key={c.id} value={c.id}>{c.firstName} {c.lastName} ({c.email})</option>)}
+        </select>
+        <button onClick={assignToClient} className="px-3 py-2 border rounded hover:bg-gray-100 sm:self-auto self-start">
+          Assign
+        </button>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <div aria-hidden className="pointer-events-none absolute inset-0 [background:radial-gradient(600px_200px_at_10%_0%,rgba(253,224,71,0.06),transparent),radial-gradient(500px_200px_at_90%_10%,rgba(253,224,71,0.04),transparent)]" />
+      <h1 className="relative text-3xl font-bold text-white">Programs</h1>
+
+      <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left: list */}
+        <div className="bg-white/90 text-black rounded-2xl border border-gray-200 shadow p-5 lg:sticky lg:top-24 h-fit backdrop-blur-sm">
+          <div className="flex justify-between">
+            <h3 className="font-semibold text-black">My Programs</h3>
+            <button onClick={openNewResponsive} className="text-sm px-3 py-1.5 border rounded hover:bg-gray-100">New</button>
           </div>
           <div className="mt-3 divide-y divide-gray-100 max-h-[70vh] overflow-y-auto pr-1">
             {programs.map(p => (
-              <button
+              <div
                 key={p.id}
                 onClick={()=> setSelected(p.id)}
-                className={`w-full text-left py-3 px-3 rounded-xl border transition-all hover:border-gray-200 hover:bg-gray-50 ${
-                  selected===p.id ? 'bg-emerald-50 border-emerald-200 ring-1 ring-emerald-100' : 'border-transparent'
-                }`}
+                className={`w-full text-left py-3 px-3 rounded-xl border transition ${selected===p.id ? 'bg-yellow-100 border-yellow-300' : 'hover:bg-gray-50'}`}
               >
-                <div className="font-medium text-gray-900 truncate">{p.title}</div>
-                <div className="text-xs text-gray-500 mt-0.5">
-                  {p.level} {p.isPublic ? '• public' : ''}
-                </div>
-              </button>
-            ))}
-            {programs.length===0 && (
-              <div className="text-sm text-gray-500 py-8 text-center">No programs yet.</div>
-            )}
-          </div>
-        </div>
-
-        {/* Right: Editor */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5 lg:col-span-2">
-          {/* Program form */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-            <div className="md:col-span-12">
-              <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Title</label>
-              <input
-                value={form.title}
-                onChange={e=> setForm(f=> ({...f, title: e.target.value}))}
-                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-              />
-            </div>
-            <div className="md:col-span-12">
-              <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Description</label>
-              <textarea
-                value={form.description || ''}
-                onChange={e=> setForm(f=> ({...f, description: e.target.value}))}
-                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 min-h-[90px] focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-              />
-            </div>
-            <div className="md:col-span-5">
-              <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Level</label>
-              <select
-                value={form.level}
-                onChange={e=> setForm(f=> ({...f, level: e.target.value as any}))}
-                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition bg-white"
-              >
-                <option value="beginner">beginner</option>
-                <option value="intermediate">intermediate</option>
-                <option value="advanced">advanced</option>
-              </select>
-            </div>
-            <div className="md:col-span-4 flex items-end">
-              <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={!!form.isPublic}
-                  onChange={e=> setForm(f=> ({...f, isPublic: e.target.checked}))}
-                  className="h-4 w-4 rounded accent-emerald-600"
-                />
-                Public
-              </label>
-            </div>
-            <div className="md:col-span-3 flex items-end justify-end">
-              <button
-                onClick={saveProgram}
-                disabled={saving}
-                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm disabled:opacity-60 disabled:cursor-not-allowed transition"
-              >
-                {selected ? 'Save' : 'Create'}
-              </button>
-            </div>
-          </div>
-          <div className="my-6 border-t border-gray-100"></div>
-
-          {/* Add exercise */}
-          <div className="flex flex-wrap items-center gap-3">
-            <select
-              value={chosenExercise}
-              onChange={e=> setChosenExercise(e.target.value as any)}
-              className="rounded-xl border border-gray-200 px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-            >
-              <option value="">Pick exercise</option>
-              {exercises.map(e=> <option key={e.id} value={e.id}>{e.name}</option>)}
-            </select>
-            <button
-              onClick={addDraft}
-              className="px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition"
-            >
-              Add
-            </button>
-          </div>
-
-          {/* Draft list */}
-          <div className="mt-4 space-y-3">
-            {draft.map((it, idx) => (
-              <div
-                key={`${it.exerciseId}-${it.position}`}
-                className="p-4 rounded-xl border border-gray-200 bg-white/60 flex flex-col md:flex-row md:items-center justify-between gap-4"
-              >
-                <div className="min-w-0">
-                  <div className="font-medium text-gray-900">
-                    {it.position}. {exerciseName(it.exerciseId)}
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0">
+                    <div className="font-medium text-black truncate">{p.title}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{p.level} {p.isPublic ? '• public' : ''}</div>
                   </div>
-                  <div className="text-xs text-gray-500">sets / reps / tempo / rest / notes</div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 mt-3">
-                    <input
-                      type="number"
-                      placeholder="sets"
-                      value={it.sets ?? ''}
-                      onChange={e=> {
-                        const v = e.target.value ? Number(e.target.value) : null;
-                        setDraft(arr => arr.map((x, i)=> i===idx? {...x, sets: v }: x));
-                      }}
-                      className="rounded-lg border border-gray-200 px-2 py-1 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                    <input
-                      placeholder="reps"
-                      value={it.reps ?? ''}
-                      onChange={e=> setDraft(arr => arr.map((x,i)=> i===idx? {...x, reps: e.target.value || null}: x))}
-                      className="rounded-lg border border-gray-200 px-2 py-1 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                    <input
-                      placeholder="tempo"
-                      value={it.tempo ?? ''}
-                      onChange={e=> setDraft(arr => arr.map((x,i)=> i===idx? {...x, tempo: e.target.value || null}: x))}
-                      className="rounded-lg border border-gray-200 px-2 py-1 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                    <input
-                      type="number"
-                      placeholder="rest (sec)"
-                      value={it.restSec ?? ''}
-                      onChange={e=> setDraft(arr => arr.map((x,i)=> i===idx? {...x, restSec: e.target.value? Number(e.target.value): null}: x))}
-                      className="rounded-lg border border-gray-200 px-2 py-1 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                    <input
-                      placeholder="notes"
-                      value={it.notes ?? ''}
-                      onChange={e=> setDraft(arr => arr.map((x,i)=> i===idx? {...x, notes: e.target.value || null}: x))}
-                      className="rounded-lg border border-gray-200 px-2 py-1 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 md:self-start">
-                  <button onClick={()=> move(idx,-1)} className="px-2 py-1 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition">↑</button>
-                  <button onClick={()=> move(idx,1)} className="px-2 py-1 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition">↓</button>
-                  <button onClick={()=> remove(idx)} className="px-2 py-1 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition">X</button>
+                  <button
+                    onClick={(e)=> { e.stopPropagation(); openEditResponsive(p.id); }}
+                    className="lg:hidden ml-2 px-3 py-1 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100"
+                  >
+                    Edit
+                  </button>
                 </div>
               </div>
             ))}
-            {draft.length === 0 && (
-              <div className="text-sm text-gray-500 py-6">No exercises in this program yet.</div>
-            )}
+            {programs.length===0 && <div className="text-sm text-gray-500 py-8 text-center">No programs yet.</div>}
           </div>
+        </div>
 
-          <div className="pt-4 flex items-center justify-end gap-2">
-            <button
-              onClick={saveExercises}
-              className="px-4 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition"
-            >
-              Save program content
-            </button>
-          </div>
+        {/* Right: editor (desktop) */}
+        <div className="hidden lg:block bg-white/90 text-black rounded-2xl border border-gray-200 shadow p-5 lg:col-span-2 backdrop-blur-sm">
+          {EditorContent}
+        </div>
+      </div>
 
-          {/* Assign section */}
-          <div className="mt-6 border-t border-gray-100 pt-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <select
-                value={assignClientId}
-                onChange={e=> setAssignClientId(e.target.value as any)}
-                className="rounded-xl border border-gray-200 px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-              >
-                <option value="">Assign to client</option>
-                {clients.map(c=> (
-                  <option key={c.id} value={c.id}>
-                    {(c.firstName || '')} {(c.lastName || '')} ({c.email})
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={assignToClient}
-                className="px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition"
-              >
-                Assign
-              </button>
+      {/* Modal editor (mobile) – header izvan scroll, sadržaj skroluje i ne “curi” van ivica */}
+      {showEditorModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 grid place-items-center p-4">
+          <div className="bg-white text-black w-full max-w-2xl rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="font-semibold">{selected ? "Edit Program" : "New Program"}</h3>
+              <button onClick={()=> setShowEditorModal(false)} className="px-3 py-1.5 rounded-lg border hover:bg-gray-100">Close</button>
+            </div>
+            <div className="max-h-[85vh] overflow-y-auto p-5">
+              {EditorContent}
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

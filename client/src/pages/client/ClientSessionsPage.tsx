@@ -32,9 +32,7 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
     }
   };
 
-  useEffect(() => { 
-    load();
-  }, [filters.type, filters.status]);
+  useEffect(() => { load(); }, [filters.type, filters.status]);
 
   const book = async (id: number) => {
     try {
@@ -44,7 +42,6 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
       else alert(r.message);
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'An error occurred';
-      console.error('Book error:', err?.response?.data || err);
       alert(msg);
     } finally {
       setBookingId(null);
@@ -59,7 +56,6 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
       else alert(r.message);
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'An error occurred';
-      console.error('Cancel error:', err?.response?.data || err);
       alert(msg);
     } finally {
       setBookingId(null);
@@ -71,20 +67,18 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
 
   const visibleList = useMemo(() => {
     let items = list;
-    if (filters.status === 'free') {
-      items = items.filter(i => !i.isEnrolled);
-    }
+    if (filters.status === 'free') items = items.filter(i => !i.isEnrolled);
     return items;
   }, [list, filters.status]);
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <header>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Training Sessions 🏋️‍♂️</h1>
-        <p className="text-gray-600">Browse and book available workout sessions</p>
+        <h1 className="text-3xl font-bold tracking-tight text-yellow-500">Training Sessions</h1>
+        <p className="text-gray-400">Browse and book available workout sessions</p>
       </header>
 
-      <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-4">
+      <div className="bg-white text-black rounded-2xl border border-gray-200 shadow p-4">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
           <div className="flex items-center gap-2 text-gray-700 font-semibold">
             <Filter className="h-4 w-4" />
@@ -93,14 +87,25 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
           <div className="flex flex-1 gap-3">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input className="w-full rounded-xl border border-gray-200 pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Search sessions..." />
+              <input
+                className="w-full rounded-xl border border-gray-200 pl-9 pr-3 py-2.5 bg-white text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
+                placeholder="Search sessions..."
+              />
             </div>
-            <select className="rounded-xl border border-gray-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white" value={filters.type} onChange={e=> setFilters(f=>({...f, type:e.target.value as any}))}>
+            <select
+              className="rounded-xl border border-gray-200 px-3 py-2.5 bg-white text-black focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
+              value={filters.type}
+              onChange={e=> setFilters(f=>({...f, type:e.target.value as any}))}
+            >
               <option value="">All Types</option>
               <option value="individual">Individual</option>
               <option value="group">Group</option>
             </select>
-            <select className="rounded-xl border border-gray-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white" value={filters.status} onChange={e=> setFilters(f=>({...f, status:e.target.value as any}))}>
+            <select
+              className="rounded-xl border border-gray-200 px-3 py-2.5 bg-white text-black focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
+              value={filters.status}
+              onChange={e=> setFilters(f=>({...f, status:e.target.value as any}))}
+            >
               <option value="">All Sessions</option>
               <option value="free">Free</option>
               <option value="full">Full</option>
@@ -111,17 +116,17 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
 
       <div className="grid gap-4">
         {loading ? (
-          <div className="rounded-2xl border border-gray-100 bg-white/70 backdrop-blur-sm p-4 text-gray-500 shadow-sm">
+          <div className="rounded-2xl border border-gray-200 bg-white text-black p-4 shadow">
             Loading...
           </div>
         ) : visibleList.length === 0 ? (
-          <div className="text-center text-gray-500 py-10">
+          <div className="text-center text-gray-400 py-10">
             <div className="text-6xl mb-3">📅</div>
             <div>No sessions found</div>
           </div>
         ) : (
           visibleList.map(item=>(
-            <div key={item.id} className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between">
+            <div key={item.id} className="bg-white text-black rounded-2xl border border-gray-200 shadow p-4 flex items-center justify-between">
               <div>
                 <div className="font-semibold text-gray-900">{item.program.title}</div>
                 <div className="text-sm text-gray-600">
@@ -145,7 +150,7 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
                   <button
                     onClick={() => book(item.id)}
                     disabled={bookingId === item.id}
-                    className="inline-flex items-center rounded-xl bg-emerald-600 text-white px-4 py-2 font-semibold hover:bg-emerald-700 transition disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+                    className="inline-flex items-center rounded-xl bg-yellow-400 text-black px-4 py-2 font-semibold hover:bg-yellow-500 transition disabled:opacity-60 disabled:cursor-not-allowed shadow"
                   >
                     {bookingId === item.id ? 'Booking…' : 'Book'}
                   </button>

@@ -92,13 +92,8 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
     }
   };
 
-  useEffect(() => {
-    loadMeta();
-  }, []);
-
-  useEffect(() => {
-    loadWeekly();
-  }, [weekStart]);
+  useEffect(() => { loadMeta(); }, []);
+  useEffect(() => { loadWeekly(); }, [weekStart]);
 
   const handleCancel = async (id: number) => {
     const r = await clientApi.cancel(id);
@@ -147,35 +142,33 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-      <header className="flex items-start justify-between gap-3">
+      <header className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            Welcome back <span className="ml-1">👋</span>
-          </h1>
-          <p className="text-gray-600">Here&apos;s your fitness journey overview</p>
+          <h1 className="text-3xl font-bold tracking-tight text-yellow-500">Dashboard</h1>
+          <p className="text-gray-400">Here&apos;s your fitness journey overview</p>
         </div>
         <WeekSwitcher weekStart={weekStart} onChange={(d) => setWeekStart(d)} />
       </header>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-white text-black rounded-2xl border border-gray-200 shadow p-5">
           <div className="text-sm text-gray-600">Total Sessions</div>
-          <div className="text-3xl font-bold mt-2 text-emerald-700">
+          <div className="text-3xl font-bold mt-2 text-yellow-500">
             {profile?.stats.sessionsCompleted ?? 0}
           </div>
           <div className="text-xs text-gray-500">Sessions completed</div>
         </div>
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-white text-black rounded-2xl border border-gray-200 shadow p-5">
           <div className="text-sm text-gray-600">Average Rating</div>
-          <div className="text-3xl font-bold mt-2 text-emerald-700">
+          <div className="text-3xl font-bold mt-2 text-yellow-500">
             {profile?.stats.avgRating != null ? profile.stats.avgRating.toFixed(1) : "N/A"}
           </div>
           <div className="text-xs text-gray-500">Out of 10</div>
         </div>
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-white text-black rounded-2xl border border-gray-200 shadow p-5">
           <div className="text-sm text-gray-600">Scheduled</div>
-          <div className="text-3xl font-bold mt-2 text-emerald-700">{events.length}</div>
+          <div className="text-3xl font-bold mt-2 text-yellow-500">{events.length}</div>
           <div className="text-xs text-gray-500">This week • {weekHours}h</div>
         </div>
       </div>
@@ -183,7 +176,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Left: Week cards */}
         <div className="space-y-3">
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm px-4 py-3">
+          <div className="bg-white text-black rounded-2xl border border-gray-200 shadow px-4 py-3">
             <h3 className="text-lg font-semibold text-gray-900">This Week&apos;s Schedule</h3>
             <p className="text-gray-600 text-sm">{weekLabel}</p>
           </div>
@@ -196,7 +189,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
         </div>
 
         {/* Right: Progress & Recent */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="bg-white text-black rounded-2xl border border-gray-200 shadow p-6">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">
               {tab === 'progress' ? 'Progress' : 'Recent Activity'}
@@ -219,7 +212,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
 
           <div className="mt-4">
             {loadingMeta ? (
-              <div className="h-64 rounded-2xl border border-gray-100 bg-white/70 shadow-sm animate-pulse" />
+              <div className="h-64 rounded-2xl border border-gray-200 bg-white shadow animate-pulse" />
             ) : tab === 'progress' ? (
               <div className="h-64">
                 {profile?.ratingsTrend?.length ? (
@@ -230,8 +223,8 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
                         label: "Prosek ocena",
                         data: profile.ratingsTrend.map((p) => p.avg ?? 0),
                         fill: true,
-                        backgroundColor: "rgba(16, 185, 129, 0.15)",
-                        borderColor: "#10B981",
+                        backgroundColor: "rgba(250, 204, 21, 0.20)", // yellow-400 @ 20%
+                        borderColor: "#EAB308", // yellow-500
                         tension: 0.35,
                         pointRadius: 3,
                       },

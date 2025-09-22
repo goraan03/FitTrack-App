@@ -22,27 +22,27 @@ export default function ClientHistoryPage({ clientApi }: ClientHistoryPageProps)
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <header>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">My Progress 📈</h1>
-        <p className="text-gray-600">Your completed sessions and ratings</p>
+        <h1 className="text-3xl font-bold tracking-tight text-yellow-500">My Progress 📈</h1>
+        <p className="text-gray-400">Your completed sessions and ratings</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-white text-black rounded-2xl border border-gray-200 shadow p-5">
           <div className="text-sm text-gray-600">Sessions Attended</div>
-          <div className="text-3xl font-bold mt-2 text-emerald-700">{stats.total}</div>
+          <div className="text-3xl font-bold mt-2 text-yellow-500">{stats.total}</div>
         </div>
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-white text-black rounded-2xl border border-gray-200 shadow p-5">
           <div className="text-sm text-gray-600">Average Rating</div>
-          <div className="text-3xl font-bold mt-2 text-emerald-700">{stats.avgRating ?? 'N/A'}</div>
+          <div className="text-3xl font-bold mt-2 text-yellow-500">{stats.avgRating ?? 'N/A'}</div>
         </div>
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-white text-black rounded-2xl border border-gray-200 shadow p-5">
           <div className="text-sm text-gray-600">Streak</div>
-          <div className="text-3xl font-bold mt-2 text-emerald-700">—</div>
+          <div className="text-3xl font-bold mt-2 text-yellow-500">—</div>
         </div>
       </div>
 
-      <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm">
-        <div className="p-4 border-b border-gray-100">
+      <div className="bg-white text-black rounded-2xl border border-gray-200 shadow">
+        <div className="p-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">History</h3>
         </div>
         <div className="divide-y divide-gray-100">

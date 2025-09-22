@@ -32,12 +32,12 @@ export default function AuditLogTable({ adminApi }: Props) {
 
   useEffect(() => {
     load();
-  }, [page, category]);
+  }, [page, category]); // eslint-disable-line
 
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <section className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm">
+    <section className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm text-black">
       <div className="p-5 border-b border-gray-100">
         <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
           <div className="flex items-center gap-2 text-gray-700 font-semibold">
@@ -48,7 +48,7 @@ export default function AuditLogTable({ adminApi }: Props) {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
-                className="w-full rounded-xl border border-gray-200 pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition placeholder:text-gray-400 bg-white"
+                className="w-full rounded-xl border border-gray-200 pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition placeholder:text-gray-400 bg-white text-black"
                 placeholder="Search action or email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -56,7 +56,7 @@ export default function AuditLogTable({ adminApi }: Props) {
               />
             </div>
             <select
-              className="rounded-xl border border-gray-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition bg-white"
+              className="rounded-xl border border-gray-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition bg-white text-black"
               value={category}
               onChange={(e) => {
                 setCategory(e.target.value as any);
@@ -69,7 +69,7 @@ export default function AuditLogTable({ adminApi }: Props) {
               <option value="Greška">Error</option>
             </select>
             <button
-              className="px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 shadow-sm transition"
+              className="px-4 py-2.5 rounded-xl border border-yellow-400 text-yellow-700 hover:bg-yellow-400/10 font-semibold transition"
               onClick={() => {
                 setPage(1);
                 load();
@@ -108,14 +108,12 @@ export default function AuditLogTable({ adminApi }: Props) {
             ) : (
               items.map((r) => (
                 <tr key={r.id} className="border-t border-gray-100 hover:bg-gray-50/70 transition">
-                  <td className="p-3">{new Date(r.createdAt).toLocaleString()}</td>
-                  <td className="p-3">
-                    <CatBadge c={r.category} />
-                  </td>
+                  <td className="p-3 text-gray-800">{new Date(r.createdAt).toLocaleString()}</td>
+                  <td className="p-3"><CatBadge c={r.category} /></td>
                   <td className="p-3 font-medium text-gray-900">{r.action}</td>
                   <td className="p-3 text-gray-700">{r.username ?? `#${r.userId ?? "-"}`}</td>
                   <td className="p-3">
-                    <pre className="text-xs whitespace-pre-wrap break-all text-gray-600">
+                    <pre className="text-xs whitespace-pre-wrap break-all text-gray-700">
                       {r.details ? JSON.stringify(r.details, null, 2) : "-"}
                     </pre>
                   </td>

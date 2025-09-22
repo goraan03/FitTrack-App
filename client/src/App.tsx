@@ -1,9 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 import LandingPage from "./pages/landing/LandingPage";
 import PrijavaStranica from "./pages/auth/PrijavaStranica";
 import RegistracijaStranica from "./pages/auth/RegistracijaStranica";
-import NotFoundPage from "./pages/not_found/NotFoundPage";
+// Ako ti je fajl NotFoundStranica.tsx, promeni import:
+import NotFoundStranica from "./pages/not_found/NotFoundPage";
 
 import { ProtectedRoute } from "./components/protected_route/ProtectedRoute";
 
@@ -29,6 +31,7 @@ import ClientProgramsPage from "./pages/client/ClientProgramsPage";
 import TrainerProfilePage from "./pages/trainer/TrainerProfilePage";
 
 import LegacyRedirect from "./routes/LegacyRedirect";
+// Ispravi putanju: RequireTrainer (ne equireTrainer)
 import RequireTrainer from "./components/protected_route/equireTrainer";
 import TrainerDashboardPage from "./pages/trainer/TrainerDashboardPage";
 import TrainerLayout from "./layouts/TrainerLayout";
@@ -40,72 +43,87 @@ import TrainerClientsPage from "./pages/trainer/TrainerClientsPage";
 
 export default function App() {
   return (
-    <Routes>
-      {/* Landing */}
-      <Route path="/" element={<LandingPage />} />
+    <>
+      <Routes>
+        {/* Landing */}
+        <Route path="/" element={<LandingPage />} />
 
-      {/* Legacy redirects */}
-      <Route path="/dashboard" element={<LegacyRedirect />} />
-      <Route path="/coach" element={<LegacyRedirect />} />
+        {/* Legacy redirects */}
+        <Route path="/dashboard" element={<LegacyRedirect />} />
+        <Route path="/coach" element={<LegacyRedirect />} />
 
-      {/* Auth */}
-      <Route path="/login" element={<PrijavaStranica authApi={authApi} />} />
-      <Route path="/register" element={<RegistracijaStranica authApi={authApi} />} />
-      <Route path="/logout" element={<LogoutPage />} />
+        {/* Auth */}
+        <Route path="/login" element={<PrijavaStranica authApi={authApi} />} />
+        <Route path="/register" element={<RegistracijaStranica authApi={authApi} />} />
+        <Route path="/logout" element={<LogoutPage />} />
 
-      {/* Admin */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Navigate to="users" replace />} />
-        <Route path="create-trainer" element={<AdminCreateTrainerPage adminApi={adminApi} />} />
-        <Route path="users" element={<AdminUsersPage adminApi={adminApi} />} />
-        <Route path="audit" element={<AdminAuditLogPage adminApi={adminApi} />} />
-      </Route>
-
-      {/* Client */}
-      <Route
-        path="/app"
-        element={
-          <ProtectedRoute requiredRole="klijent">
-            <ClientLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="choose-trainer" element={<ChooseTrainerPage clientApi={clientApi} />} />
-        <Route element={<RequireTrainer />}>
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<ClientDashboardPage clientApi={clientApi} />} />
-          <Route path="sessions" element={<ClientSessionsPage clientApi={clientApi} />} />
-          <Route path="programs" element={<ClientProgramsPage programsApi={programsApi} />} />
-          <Route path="history" element={<ClientHistoryPage clientApi={clientApi} />} />
-          <Route path="profile" element={<ClientProfilePage clientApi={clientApi} />} />
+        {/* Admin */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="users" replace />} />
+          <Route path="create-trainer" element={<AdminCreateTrainerPage adminApi={adminApi} />} />
+          <Route path="users" element={<AdminUsersPage adminApi={adminApi} />} />
+          <Route path="audit" element={<AdminAuditLogPage adminApi={adminApi} />} />
         </Route>
-      </Route>
 
-      {/* Trainer */}
-      <Route
-        path="/trainer"
-        element={
-          <ProtectedRoute requiredRole="trener">
-            <TrainerLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="dashboard" element={<TrainerDashboardPage trainerApi={trainerApi}/>} />
-        <Route path="profile" element={<TrainerProfilePage trainerApi={trainerApi} />} />
-        <Route path="exercises" element={<TrainerExercisesPage trainerApi={trainerApi} />} />
-        <Route path="programs" element={<TrainerProgramsPage trainerApi={trainerApi} />} />
-        <Route path="terms" element={<TrainerTermsPage trainerApi={trainerApi} />} />
-        <Route path="clients" element={<TrainerClientsPage trainerApi={trainerApi} />} />
-      </Route>
+        {/* Client */}
+        <Route
+          path="/app"
+          element={
+            <ProtectedRoute requiredRole="klijent">
+              <ClientLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="choose-trainer" element={<ChooseTrainerPage clientApi={clientApi} />} />
+          <Route element={<RequireTrainer />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<ClientDashboardPage clientApi={clientApi} />} />
+            <Route path="sessions" element={<ClientSessionsPage clientApi={clientApi} />} />
+            <Route path="programs" element={<ClientProgramsPage programsApi={programsApi} />} />
+            <Route path="history" element={<ClientHistoryPage clientApi={clientApi} />} />
+            <Route path="profile" element={<ClientProfilePage clientApi={clientApi} />} />
+          </Route>
+        </Route>
 
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        {/* Trainer */}
+        <Route
+          path="/trainer"
+          element={
+            <ProtectedRoute requiredRole="trener">
+              <TrainerLayout />
+            </ProtectedRoute>
+          }
+        >
+          {/* Dodaj index redirect da /trainer vodi na dashboard */}
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<TrainerDashboardPage trainerApi={trainerApi}/>} />
+          <Route path="profile" element={<TrainerProfilePage trainerApi={trainerApi} />} />
+          <Route path="exercises" element={<TrainerExercisesPage trainerApi={trainerApi} />} />
+          <Route path="programs" element={<TrainerProgramsPage trainerApi={trainerApi} />} />
+          <Route path="terms" element={<TrainerTermsPage trainerApi={trainerApi} />} />
+          <Route path="clients" element={<TrainerClientsPage trainerApi={trainerApi} />} />
+        </Route>
+
+        {/* Fallback */}
+        <Route path="*" element={<NotFoundStranica />} />
+      </Routes>
+
+      {/* Toaster mora biti van <Routes> i samo jedan u celoj app */}
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: { background: "#111", color: "#fff" },
+          success: { style: { background: "#16a34a", color: "#fff" } },
+          error: { style: { background: "#dc2626", color: "#fff" } },
+        }}
+      />
+    </>
   );
 }
