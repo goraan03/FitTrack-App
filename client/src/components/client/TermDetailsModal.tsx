@@ -1,25 +1,27 @@
 import { format } from "date-fns";
 import type { TermDetails } from "../../models/client/TermDetails";
+import { useLockBodyScroll } from "../../hooks/other/useLockBodyScroll";
 
 type Props = { open: boolean; onClose: () => void; data?: TermDetails; };
 
 export default function TermDetailsModal({ open, onClose, data }: Props) {
+  useLockBodyScroll(open);
   if (!open || !data) return null;
 
   const start = new Date(data.startAt);
   const end = new Date(data.endAt);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 grid place-items-center p-4">
-      <div className="bg-white text-black w-full max-w-lg rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+      <div className="bg-white text-black w-full max-w-lg max-h-[90vh] rounded-2xl shadow-xl border border-gray-200 overflow-hidden flex flex-col">
+        <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10">
           <h3 className="text-lg font-semibold text-gray-900">Session details</h3>
           <button onClick={onClose} className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
             Close
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
+        <div className="p-5 space-y-4 overflow-y-auto overscroll-contain">
           <div>
             <div className="text-sm text-gray-600">Title</div>
             <div className="font-semibold text-gray-900">{data.title}</div>

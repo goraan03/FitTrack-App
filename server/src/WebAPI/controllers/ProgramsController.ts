@@ -1,4 +1,3 @@
-// server/src/WebAPI/controllers/ProgramsController.ts
 import { Request, Response, Router } from "express";
 import { IProgramsService } from "../../Domain/services/programs/IProgramsService";
 
@@ -12,6 +11,7 @@ export class ProgramsController {
   private init() {
     this.router.get('/programs/public', this.listPublic.bind(this));
     this.router.get('/programs/visible', this.listVisibleForClient.bind(this));
+    this.router.get('/programs/:id/details', this.getDetailsVisibleForClient.bind(this)); // NEW
   }
 
   private async listPublic(req: Request, res: Response) {
@@ -58,6 +58,31 @@ export class ProgramsController {
       res.json({ success: true, message: 'OK', data });
     } catch {
       res.status(500).json({ success: false, message: 'Greška na serveru' });
+    }
+  }
+
+  private async getDetailsVisibleForClient(req: Request, res: Response) {
+    try {
+      const id = Number(req.params.id);
+      const trainerId =
+        typeof req.query.trainerId === "string" && /^\d+$/.test(req.query.trainerId as string)
+          ? Number(req.query.trainerId)
+          : undefined;
+      const clientId =
+        typeof req.query.clientId === "string" && /^\d+$/.test(req.query.clientId as string)
+          ? Number(req.query.clientId)
+          : undefined;
+
+      if (!Number.isFinite(id) || !trainerId || !clientId) {
+        return res.status(400).json({ success: false, message: "Bad input" });
+      }
+
+      const data = await this.programs.getVisibleDetails({ programId: id, trainerId, clientId });
+      if (!data) return res.status(404).json({ success: false, message: "Program nije vidljiv ili ne postoji" });
+
+      res.json({ success: true, message: "OK", data });
+    } catch {
+      res.status(500).json({ success: false, message: "Greška na serveru" });
     }
   }
 

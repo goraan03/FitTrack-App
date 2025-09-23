@@ -3,6 +3,8 @@ import type { IProgramsAPIService } from "../../api_services/programs/IProgramsA
 import { Search } from "lucide-react";
 import type { PublicProgram } from "../../types/programs/PublicProgram";
 import { clientApi } from "../../api_services/client/ClientAPIService";
+import ProgramDetailsModal from "../../components/client/ProgramDetailsModal";
+import type { ProgramDetails } from "../../types/programs/ProgramDetails";
 
 interface ClientProgramsPageProps {
   programsApi: IProgramsAPIService;
@@ -12,10 +14,15 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
   const [items, setItems] = useState<PublicProgram[]>([]);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState("");
-  const [level, setLevel] = useState<'' | 'beginner' | 'intermediate' | 'advanced'>('');
+  const [level, setLevel] = useState<"" | "beginner" | "intermediate" | "advanced">("");
   const [trainerId, setTrainerId] = useState<number | null>(null);
   const [clientId, setClientId] = useState<number | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+
+  // details modal state
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsData, setDetailsData] = useState<ProgramDetails | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -29,11 +36,11 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
         const tIdRaw = data?.assignedTrainerId ?? null;
         const cIdRaw = data?.id ?? data?.userId ?? data?.user?.id ?? null;
 
-        const tId = typeof tIdRaw === 'string' ? Number(tIdRaw) : tIdRaw;
-        const cId = typeof cIdRaw === 'string' ? Number(cIdRaw) : cIdRaw;
+        const tId = typeof tIdRaw === "string" ? Number(tIdRaw) : tIdRaw;
+        const cId = typeof cIdRaw === "string" ? Number(cIdRaw) : cIdRaw;
 
-        setTrainerId(typeof tId === 'number' && !Number.isNaN(tId) ? tId : null);
-        setClientId(typeof cId === 'number' && !Number.isNaN(cId) ? cId : null);
+        setTrainerId(typeof tId === "number" && !Number.isNaN(tId) ? tId : null);
+        setClientId(typeof cId === "number" && !Number.isNaN(cId) ? cId : null);
       } catch {
         if (!alive) return;
         setTrainerId(null);
@@ -42,7 +49,9 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
         if (alive) setProfileLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const load = async () => {
@@ -67,7 +76,27 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
     }
   };
 
-  useEffect(() => { if (trainerId != null && clientId != null) void load(); }, [trainerId, clientId]);
+  useEffect(() => {
+    if (trainerId != null && clientId != null) void load();
+  }, [trainerId, clientId]);
+
+  const openProgramDetails = async (programId: number) => {
+    if (trainerId == null || clientId == null) return;
+    setDetailsLoading(true);
+    try {
+      const res = await programsApi.getVisibleDetails({ programId, trainerId, clientId });
+      if (res.success && res.data) {
+        setDetailsData(res.data);
+        setDetailsOpen(true);
+      } else {
+        alert(res.message || "Details not available");
+      }
+    } catch (e: any) {
+      alert(e?.message || "Failed to load details");
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
 
   const header = (
     <header>
@@ -75,7 +104,6 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
       <p className="text-gray-400">Programs of your trainer</p>
     </header>
   );
-
   const isFiltered = Boolean(q || level);
 
   if (profileLoading) {
@@ -88,7 +116,6 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
       </section>
     );
   }
-
   if (!trainerId) {
     return (
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -113,7 +140,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
               placeholder="Search programs..."
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && load()}
+              onKeyDown={(e) => e.key === "Enter" && load()}
             />
           </div>
           <select
@@ -142,11 +169,16 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
           </div>
         ) : items.length === 0 ? (
           <div className="text-gray-400">
-            {isFiltered ? 'No programs found for the given filters.' : 'The trainer currently has no programs for you.'}
+            {isFiltered
+              ? "No programs found for the given filters."
+              : "The trainer currently has no programs for you."}
           </div>
         ) : (
           items.map((p) => (
-            <div key={p.id} className="bg-white text-black rounded-2xl border border-gray-200 shadow p-5 flex flex-col gap-2">
+            <div
+              key={p.id}
+              className="bg-white text-black rounded-2xl border border-gray-200 shadow p-5 flex flex-col gap-2"
+            >
               <div className="flex items-center justify-between">
                 <div className="font-semibold text-gray-900">{p.title}</div>
                 <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 capitalize">
@@ -156,14 +188,24 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
               <div className="text-sm text-gray-600">{p.description || "—"}</div>
               <div className="text-sm text-gray-500">Author: {p.trainerName}</div>
               <div className="pt-2">
-                <a href="/app/sessions" className="inline-flex items-center rounded-xl bg-yellow-400 text-black px-4 py-2 font-semibold hover:bg-yellow-500 transition shadow">
-                  View Sessions
-                </a>
+                <button
+                  onClick={() => openProgramDetails(p.id)}
+                  className="inline-flex items-center rounded-xl bg-yellow-400 text-black px-4 py-2 font-semibold hover:bg-yellow-500 transition shadow disabled:opacity-60"
+                  disabled={detailsLoading}
+                >
+                  {detailsLoading ? "Loading…" : "View Details"}
+                </button>
               </div>
             </div>
           ))
         )}
       </div>
+
+      <ProgramDetailsModal
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        data={detailsData || undefined}
+      />
     </section>
   );
 }
