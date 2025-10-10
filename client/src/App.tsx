@@ -4,7 +4,6 @@ import { Toaster } from "react-hot-toast";
 import LandingPage from "./pages/landing/LandingPage";
 import PrijavaStranica from "./pages/auth/PrijavaStranica";
 import RegistracijaStranica from "./pages/auth/RegistracijaStranica";
-// Ako ti je fajl NotFoundStranica.tsx, promeni import:
 import NotFoundStranica from "./pages/not_found/NotFoundPage";
 
 import { ProtectedRoute } from "./components/protected_route/ProtectedRoute";
@@ -31,7 +30,6 @@ import ClientProgramsPage from "./pages/client/ClientProgramsPage";
 import TrainerProfilePage from "./pages/trainer/TrainerProfilePage";
 
 import LegacyRedirect from "./routes/LegacyRedirect";
-// Ispravi putanju: RequireTrainer (ne equireTrainer)
 import RequireTrainer from "./components/protected_route/equireTrainer";
 import TrainerDashboardPage from "./pages/trainer/TrainerDashboardPage";
 import TrainerLayout from "./layouts/TrainerLayout";
