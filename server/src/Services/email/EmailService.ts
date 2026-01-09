@@ -60,4 +60,20 @@ export class EmailService implements IEmailService {
       html,
     });
   }
+
+  async sendInvoiceEmail(to: string, subject: string, text: string, pdf: Buffer, filename: string) : Promise<void> {
+    await this.transporter.sendMail({
+      from: this.from,
+      to,
+      subject,
+      text,
+      attachments: [
+        {
+          filename,
+          content: pdf,
+          contentType: 'application/pdf'
+        },
+      ],
+    });
+  }
 }

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12px; }
+    h1 { font-size: 18px; }
+    .header { margin-bottom: 20px; }
+    .company, .trainer { margin-bottom: 10px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Račun za uslugu korišćenja platforme</h1>
+    <div class="company">
+      <strong>{{companyName}}</strong><br/>
+      {{companyAddress}}<br/>
+      PIB: {{companyPib}}<br/>
+      Matični broj: {{companyMatric}}<br/>
+      Banka: {{bankName}}<br/>
+      IBAN: {{iban}}<br/>
+      SWIFT/BIC: {{swift}}
+    </div>
+
+    <div class="trainer">
+      Račun za: <strong>{{trainerName}}</strong><br/>
+      Email: {{trainerEmail}}<br/>
+      Period: {{billingPeriod}}<br/>
+      Datum izdavanja: {{issueDate}}
+    </div>
+  </div>
+
+  <table>
+    <tr>
+      <th>Opis</th>
+      <th>Broj klijenata</th>
+      <th>Cena po klijentu (EUR)</th>
+      <th>Ukupno (EUR)</th>
+    </tr>
+    <tr>
+      <td>Mesečna pretplata po klijentu</td>
+      <td>{{clientCount}}</td>
+      <td>{{pricePerClient}}</td>
+      <td>{{totalAmount}}</td>
+    </tr>
+  </table>
+
+  <p style="margin-top:20px;">
+    Molimo vas da iznos uplatite na navedene bankovne podatke do {{dueDate}}.
+  </p>
+</body>
+</html>
