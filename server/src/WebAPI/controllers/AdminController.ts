@@ -22,6 +22,8 @@ export class AdminController {
     this.router.patch('/admin/users/:id/block', this.blockToggle.bind(this));
     this.router.patch('/admin/users/:id', this.updateUser.bind(this));
     this.router.get('/admin/audit', this.getAudit.bind(this));
+    this.router.get('/admin/invoices', this.listInvoices.bind(this));
+    this.router.patch('/admin/invoices/:id/status', this.setInvoiceStatus.bind(this));
   }
 
   private async listUsers(req: Request, res: Response): Promise<void> {
@@ -87,6 +89,43 @@ export class AdminController {
       const userId = req.query.userId ? Number(req.query.userId) : undefined;
       const data = await this.adminService.getAuditLogs({ page, pageSize, category, search, userId });
       res.status(200).json({ success: true, message: 'OK', data });
+    } catch {
+      res.status(500).json({ success: false, message: 'Greška na serveru' });
+    }
+  }
+
+  private async listInvoices(req: Request, res: Response): Promise<void> {
+    try {
+      const trainerId = req.query.trainerId ? Number(req.query.trainerId) : undefined;
+      const status = req.query.status as "issued" | "paid" | "overdue" | undefined;
+
+      const data = await this.adminService.getInvoices({
+        trainerId: Number.isFinite(trainerId as number) ? trainerId : undefined,
+        status
+      });
+
+      res.status(200).json({ success: true, message: 'OK', data });
+    } catch {
+      res.status(500).json({ success: false, message: 'Greška na serveru' });
+    }
+  }
+
+  private async setInvoiceStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const id = Number(req.params.id);
+      if(!Number.isFinite(id) || id <= 0) {
+        res.status(400).json({ success: false, message: 'Neispravan ID' });;
+        return;
+      }
+
+      const { status } = req.body as { status: "issued" | "paid" | "overdue" };
+      if(!status || !["issued", "paid", "overdue"].includes(status)) {
+        res.status(400).json({ success: false, message: 'Neispravan status' });;
+        return;
+      }
+
+      await this.adminService.setInvoiceStatus(id, status);
+      res.status(200).json({ success: true, message: 'Status ažuriran' });
     } catch {
       res.status(500).json({ success: false, message: 'Greška na serveru' });
     }

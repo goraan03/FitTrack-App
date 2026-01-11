@@ -4,11 +4,14 @@ import { IAuditService } from "../../Domain/services/audit/IAuditService";
 import { User } from "../../Domain/models/User";
 import bcrypt from "bcryptjs";
 import { parseOptionalDate } from "../../utils/date/DateUtils";
+import { InvoicesRepository } from "../../Database/repositories/invoice/InvoicesRepository";
+import { InvoiceRow } from "../../Domain/repositories/invoice/IInvoicesRepository";
 
 export class AdminService implements IAdminService {
   constructor(
     private users: IUserRepository,
-    private audit: IAuditService
+    private audit: IAuditService,
+    private invoiceRepo: InvoicesRepository
   ) {}
 
   async createTrainer(input: CreateTrainerDto, byId: number, byUsername: string): Promise<{ id: number }> {
@@ -74,5 +77,13 @@ export class AdminService implements IAdminService {
       })),
       total
     };
+  }
+
+  async getInvoices(params: { trainerId?: number; status?: "issued" | "paid" | "overdue" }): Promise<InvoiceRow[]> {
+    return this.invoiceRepo.listInvoices(params);
+  }
+
+  async setInvoiceStatus(id: number, status: "issued" | "paid" | "overdue"): Promise<void> {
+    return this.invoiceRepo.setStatus(id, status);
   }
 }

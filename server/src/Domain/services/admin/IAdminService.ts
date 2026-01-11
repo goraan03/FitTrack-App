@@ -1,3 +1,5 @@
+import { InvoiceRow } from "../../repositories/invoice/IInvoicesRepository";
+
 export interface CreateTrainerDto {
   korisnickoIme: string;
   lozinka: string;
@@ -14,6 +16,11 @@ export interface UpdateUserDto {
   pol: 'musko' | 'zensko';
 }
 
+export interface AdminGetInvoicesParams {
+  trainerId?: number;
+  status?: "issued" | "paid" | "overdue";
+}
+
 export interface IAdminService {
   createTrainer(input: CreateTrainerDto, performedByUserId: number, performedByUsername: string): Promise<{ id: number }>;
   listUsers(filters?: { uloga?: 'klijent' | 'trener' | 'admin'; blokiran?: boolean }): Promise<any[]>;
@@ -23,4 +30,7 @@ export interface IAdminService {
   getAuditLogs(params: {
     page: number; pageSize: number; category?: 'Informacija'|'Upozorenje'|'Greška'; userId?: number; search?: string;
   }): Promise<{ items: any[]; total: number }>;
+
+  getInvoices(params: AdminGetInvoicesParams): Promise<InvoiceRow[]>;
+  setInvoiceStatus(id: number, status: "issued" | "paid" | "overdue"): Promise<void>;
 }

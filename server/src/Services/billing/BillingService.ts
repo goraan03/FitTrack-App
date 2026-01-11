@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import puppeteer from 'puppeteer';
+import os from "os";
 
 const PRICE_PER_CLIENT = 3; // EUR po klijentu
 
@@ -91,4 +92,30 @@ export async function htmlToPdfBuffer(html: string): Promise<Buffer> {
 
 export function getPricePerClient(): number {
   return PRICE_PER_CLIENT;
+}
+
+export async function savePdfToDisk(
+  pdfBuffer: Buffer,
+  meta: InvoiceMeta,
+  trainerName?: string
+): Promise<string> {
+  const baseDir = path.join(__dirname, "..", "..", "..", "invoices");
+  console.log("[Billing] savePdfToDisk baseDir =", baseDir);
+
+  if(!fs.existsSync(baseDir)){
+    console.log("[Billing] invoices dir ne postoji, kreiram...");
+    fs.mkdirSync(baseDir, { recursive: true });
+  }
+
+  const safeName = (trainerName || "")
+    .trim()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-zA-Z0-9_]/g, "");
+
+  const fileName = `Racun1_${meta.period.replace("/", "-")}_${safeName}.pdf`;
+  const fullPath = path.join(baseDir, fileName);
+  console.log("[Billing] upisujem fajl:", fullPath);
+  await fs.promises.writeFile(fullPath, pdfBuffer);
+  console.log("[Billing] fajl sacuvan:", fullPath);
+  return fullPath;
 }
