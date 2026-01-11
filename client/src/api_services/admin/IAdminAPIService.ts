@@ -15,4 +15,5 @@ export interface IAdminAPIService {
   getAuditLogs(params: GetAuditLogs): Promise<ApiResponse<{ items: AuditLog[]; total: number }>>;
   getInvoices(params?: { trainerId?: number; status?: InvoiceStatus }): Promise<ApiResponse<Invoice[]>>;
   setInvoiceStatus(id: number, status: InvoiceStatus): Promise<ApiResponse<null>>;
+  downloadInvoicePdf(id: number): Promise<void>;
 }

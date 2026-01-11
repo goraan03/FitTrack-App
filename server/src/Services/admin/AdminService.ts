@@ -86,4 +86,8 @@ export class AdminService implements IAdminService {
   async setInvoiceStatus(id: number, status: "issued" | "paid" | "overdue"): Promise<void> {
     return this.invoiceRepo.setStatus(id, status);
   }
+
+  async getInvoiceById(id: number) {
+    return this.invoiceRepo.getById(id);
+  }
 }

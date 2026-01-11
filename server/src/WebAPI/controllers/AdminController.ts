@@ -24,6 +24,7 @@ export class AdminController {
     this.router.get('/admin/audit', this.getAudit.bind(this));
     this.router.get('/admin/invoices', this.listInvoices.bind(this));
     this.router.patch('/admin/invoices/:id/status', this.setInvoiceStatus.bind(this));
+    this.router.get('/admin/invoices/:id/pdf', this.downloadInvoice.bind(this));
   }
 
   private async listUsers(req: Request, res: Response): Promise<void> {
@@ -128,6 +129,30 @@ export class AdminController {
       res.status(200).json({ success: true, message: 'Status ažuriran' });
     } catch {
       res.status(500).json({ success: false, message: 'Greška na serveru' });
+    }
+  }
+
+  private async downloadInvoice(req: Request, res: Response): Promise<void> {
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isFinite(id) || id <= 0) {
+        res.status(400).json({ success: false, message: "Neispravan ID" });
+        return;
+      }
+
+      const invoice = await this.adminService.getInvoiceById(id);
+      if (!invoice) {
+        res.status(404).json({ success: false, message: "Račun nije pronađen" });
+        return;
+      }
+
+      res.download(invoice.pdfPath, (err) => {
+        if (err) {
+          console.error("Download error:", err);
+        }
+      });
+    } catch {
+      res.status(500).json({ success: false, message: "Greška na serveru" });
     }
   }
 

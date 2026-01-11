@@ -34,6 +34,15 @@ export default function InvoicesTable({ adminApi }: Props) {
     else setError(res.message || "Greška pri učitavanju računa.");
   };
 
+  const download = async (inv: Invoice) => {
+  try {
+    await adminApi.downloadInvoicePdf(inv.id);
+  } catch (e: any) {
+    console.error(e);
+    alert(e.message || "Greška pri preuzimanju računa.");
+  }
+};
+
   useEffect(() => {
     load();
   }, [statusFilter]); // eslint-disable-line
@@ -139,20 +148,29 @@ export default function InvoicesTable({ adminApi }: Props) {
                   <td className="p-3 text-gray-800">
                     {inv.paidAt ? new Date(inv.paidAt).toLocaleString() : "-"}
                   </td>
-                  <td className="p-3 space-x-2">
-                    <button
-                      className="px-3 py-1 rounded-lg border border-emerald-500 text-emerald-700 hover:bg-emerald-50 text-xs"
-                      onClick={() => changeStatus(inv, "paid")}
-                    >
-                      Mark as paid
-                    </button>
-                    <button
-                      className="px-3 py-1 rounded-lg border border-rose-500 text-rose-700 hover:bg-rose-50 text-xs"
-                      onClick={() => changeStatus(inv, "overdue")}
-                    >
-                      Overdue
-                    </button>
-                    {/* ovde kasnije možeš dodati "Download" dugme ako napraviš API za serviranje PDF-a */}
+                  <td className="p-3">
+                    <div className="flex flex-col gap-1 min-w-[210px]">
+                      <div className="flex gap-1">
+                        <button
+                          className="flex-1 px-3 py-1.5 rounded-lg border border-emerald-500 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 text-xs font-medium"
+                          onClick={() => changeStatus(inv, "paid")}
+                        >
+                          Mark as paid
+                        </button>
+                        <button
+                          className="flex-1 px-3 py-1.5 rounded-lg border border-rose-500 text-rose-700 bg-rose-50 hover:bg-rose-100 text-xs font-medium"
+                          onClick={() => changeStatus(inv, "overdue")}
+                        >
+                          Overdue
+                        </button>
+                      </div>
+                      <button
+                        className="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 text-xs font-medium"
+                        onClick={() => download(inv)}
+                      >
+                        Download
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

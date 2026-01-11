@@ -27,4 +27,5 @@ export interface IInvoiceRepository {
         status?: "issued" | "paid" | "overdue";
     }) : Promise<InvoiceRow[]>;
     setStatus(id: number, status: "issued" | "paid" | "overdue"): Promise<void>;
+    getById(id: number): Promise<InvoiceRow | null>;
 }

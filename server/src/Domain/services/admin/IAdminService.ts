@@ -33,4 +33,5 @@ export interface IAdminService {
 
   getInvoices(params: AdminGetInvoicesParams): Promise<InvoiceRow[]>;
   setInvoiceStatus(id: number, status: "issued" | "paid" | "overdue"): Promise<void>;
+  getInvoiceById(id: number): Promise<InvoiceRow | null>;
 }

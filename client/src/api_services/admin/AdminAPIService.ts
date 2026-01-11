@@ -136,5 +136,43 @@ export const adminApi: IAdminAPIService = {
       }
       return fallback;
     }
+  },
+
+  async downloadInvoicePdf(id: number): Promise<void> {
+    const url = `${API_URL}/invoices/${id}/pdf`;
+
+    const rawHeaders = authHeader();
+    const headers: Record<string, string> = {};
+
+    if (rawHeaders.Authorization) {
+      headers.Authorization = rawHeaders.Authorization;
+    }
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers,
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(txt || "Greška pri preuzimanju računa.");
+    }
+
+    const blob = await res.blob();
+    const contentDisposition = res.headers.get("Content-Disposition");
+    let filename = `invoice-${id}.pdf`;
+    if (contentDisposition) {
+      const match = /filename="?([^"]+)"?/.exec(contentDisposition);
+      if (match?.[1]) filename = match[1];
+    }
+
+    const urlBlob = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = urlBlob;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(urlBlob);
   }
 };
