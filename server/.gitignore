@@ -75,3 +75,5 @@ typings/
 .scripts/seedAdmin.ts
 
 dist
+
+/invoices
