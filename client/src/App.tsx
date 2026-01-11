@@ -38,6 +38,7 @@ import TrainerExercisesPage from "./pages/trainer/TrainerExercisesPage";
 import TrainerProgramsPage from "./pages/trainer/TrainerProgramsPage";
 import TrainerTermsPage from "./pages/trainer/TrainerTermsPage";
 import TrainerClientsPage from "./pages/trainer/TrainerClientsPage";
+import AdminInvoicesPage from "./pages/admin/AdminInvoicesPage";
 
 export default function App() {
   return (
@@ -68,6 +69,7 @@ export default function App() {
           <Route path="create-trainer" element={<AdminCreateTrainerPage adminApi={adminApi} />} />
           <Route path="users" element={<AdminUsersPage adminApi={adminApi} />} />
           <Route path="audit" element={<AdminAuditLogPage adminApi={adminApi} />} />
+          <Route path="invoices" element={<AdminInvoicesPage adminApi={adminApi} />} />
         </Route>
 
         {/* Client */}

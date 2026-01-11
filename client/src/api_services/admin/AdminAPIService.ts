@@ -4,6 +4,7 @@ import type { ApiResponse } from "../../types/common/ApiResponse";
 import type { AdminUser } from "../../types/admin/AdminUser";
 import type { AuditLog } from "../../types/admin/AuditLog";
 import { authHeader } from "../../helpers/admin/authHeader";
+import type { Invoice } from "../../types/admin/Invoice";
 const API_URL = (import.meta.env.VITE_API_URL || "") + "admin";
 
 export const adminApi: IAdminAPIService = {
@@ -88,6 +89,51 @@ export const adminApi: IAdminAPIService = {
         success: false, message: "Greška pri učitavanju audit log-a."
       };
       if (isAxiosError(err)) return { ...fallback, message: err.response?.data?.message || fallback.message };
+      return fallback;
+    }
+  },
+
+  async getInvoices(params) {
+    try {
+      const res = await axios.get<ApiResponse<Invoice[]>>(
+        `${API_URL}/invoices`,
+        {
+          headers: { ...authHeader(), "Content-Type": "application/json" },
+          params: {
+            trainerId: params?.trainerId,
+            status: params?.status
+          },
+        }
+      );
+      return res.data;
+    } catch (error) {
+      const fallback: ApiResponse<Invoice[]> = {
+        success: false,
+        message: "Greška pri učitavanju faktura."
+      };
+      if(isAxiosError(error)) {
+        return { ...fallback, message: error.response?.data?.message || fallback.message };
+      }
+      return fallback;
+    }
+  },
+
+  async setInvoiceStatus(id, status) {
+    try {
+      const res = await axios.patch<ApiResponse<null>>(
+        `${API_URL}/invoices/${id}/status`,
+        { status },
+        { headers: { ...authHeader(), "Content-Type": "application/json" } }
+      );
+      return res.data;
+    } catch (error) {
+      const fallback: ApiResponse<null> = {
+        success: false,
+        message: "Greška pri ažuriranju statusa fakture."
+      };
+      if(isAxiosError(error)) {
+        return { ...fallback, message: error.response?.data?.message || fallback.message };
+      }
       return fallback;
     }
   }

@@ -24,6 +24,7 @@ export default function AdminLayout() {
     { to: "/admin/create-trainer", label: "Create Trainer", icon: UserPlus },
     { to: "/admin/users", label: "User List", icon: Users },
     { to: "/admin/audit", label: "Audit Log", icon: FileText },
+    { to: "/admin/invoices", label: "Invoices", icon: FileText },
   ];
 
   const NavLinks = () => (
