@@ -21,8 +21,9 @@ export interface InvoiceMeta {
 export function calculateInvoiceMeta(forDate: Date): InvoiceMeta {
   const d =   new Date(forDate);
   d.setMonth(d.getMonth() - 1);
-  const month = forDate.getMonth() + 1;
-  const year = forDate.getFullYear();
+
+  const month = d.getMonth() + 1;
+  const year = d.getFullYear();
 
   const period = `${month.toString().padStart(2, '0')}/${year}`;
   const issueDate = forDate.toLocaleDateString('sr-RS');
