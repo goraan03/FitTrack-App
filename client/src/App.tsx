@@ -40,12 +40,23 @@ import TrainerTermsPage from "./pages/trainer/TrainerTermsPage";
 import TrainerClientsPage from "./pages/trainer/TrainerClientsPage";
 import AdminInvoicesPage from "./pages/admin/AdminInvoicesPage";
 
+// NOVO
+import PublicLayout from "./layouts/PublicLayout";
+import AboutPage from "./pages/landing/AboutPage";
+import GuidePage from "./pages/landing/GuidePage";
+import ContactPage from "./pages/landing/ContactPage";
+
 export default function App() {
   return (
     <>
       <Routes>
-        {/* Landing */}
-        <Route path="/" element={<LandingPage />} />
+        {/* PUBLIC: landing + info stranice */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/guide" element={<GuidePage />} />
+          <Route path="/contact" element={<ContactPage />} />
+        </Route>
 
         {/* Legacy redirects */}
         <Route path="/dashboard" element={<LegacyRedirect />} />
@@ -101,9 +112,8 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          {/* Dodaj index redirect da /trainer vodi na dashboard */}
           <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<TrainerDashboardPage trainerApi={trainerApi}/>} />
+          <Route path="dashboard" element={<TrainerDashboardPage trainerApi={trainerApi} />} />
           <Route path="profile" element={<TrainerProfilePage trainerApi={trainerApi} />} />
           <Route path="exercises" element={<TrainerExercisesPage trainerApi={trainerApi} />} />
           <Route path="programs" element={<TrainerProgramsPage trainerApi={trainerApi} />} />
@@ -115,7 +125,6 @@ export default function App() {
         <Route path="*" element={<NotFoundStranica />} />
       </Routes>
 
-      {/* Toaster mora biti van <Routes> i samo jedan u celoj app */}
       <Toaster
         position="top-center"
         toastOptions={{

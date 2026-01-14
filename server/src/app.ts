@@ -15,6 +15,7 @@ import { ClientService } from './Services/client/ClientService';
 import { AuthController } from './WebAPI/controllers/AuthController';
 import { AdminController } from './WebAPI/controllers/AdminController';
 import { ClientController } from './WebAPI/controllers/ClientController';
+import { PublicContactController } from './WebAPI/controllers/PublicContactController';
 
 import { ProgramsService } from './Services/programs/ProgramsService';
 import { ProgramsController } from './WebAPI/controllers/ProgramsController';
@@ -60,6 +61,7 @@ const auditService = new AuditService(auditLogRepo);
 const trainerQueriesRepo = new TrainerQueriesRepository();
 const trainerService = new TrainerService(trainerQueriesRepo, trainingTermsRepo, trainingEnrollmentsRepo, auditService, userRepo, exercisesRepo, trainerProgramsRepo);
 const trainerController = new TrainerController(trainerService);
+const publicContactController = new PublicContactController(emailService);
 
 
 const authService = new AuthService(userRepo, challengeRepo, emailService, auditService);
@@ -80,5 +82,6 @@ app.use('/api', adminController.getRouter());    // /api/admin/*
 app.use('/api', clientController.getRouter());   // /api/client/*
 app.use('/api', programsController.getRouter()); // /api/programs/public
 app.use('/api', trainerController.getRouter());   // /api/trainer/*
+app.use('/api', publicContactController.getRouter()); // /api/public/contact
 
 export default app;

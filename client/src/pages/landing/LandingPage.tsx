@@ -1,113 +1,80 @@
 import { Link } from "react-router-dom";
 import { Activity, Users, Star } from "lucide-react";
-import Brand from "../../components/common/Brand";
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen bg-black text-white">
-      {/* HERO Background */}
+    <div className="relative">
+      {/* BACKGROUND */}
       <div className="absolute inset-0">
         <img
-          src="/images/gym-hero.jpg" // ubaci pravu sliku u /public/images/
+          src="/images/gym-hero.jpg"
           alt="Gym Hero"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-3xl"
         />
-        <div className="absolute inset-0 bg-black/70" />
+        <div className="absolute inset-0 bg-black/80 rounded-3xl" />
       </div>
 
-      {/* NAVBAR */}
-      <header className="sticky top-0 z-40 relative bg-black/90 border-b border-yellow-500">
-        <div className="max-w-7xl mx-auto h-16 px-6 flex items-center justify-between">
-          <Brand />
-
-          <nav className="hidden sm:flex items-center gap-8 text-sm font-semibold uppercase">
-            <Link to="/login" className="text-white hover:text-yellow-400">
-              Sign In
-            </Link>
-            <Link
-              to="/register"
-              className="inline-flex items-center rounded-lg bg-yellow-500 text-black px-5 py-2 font-bold shadow hover:bg-yellow-400 transition"
-            >
-              Get Started
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* HERO TEXT */}
-        <section className="flex flex-col items-center justify-center text-center pt-28 sm:pt-32">
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-wide uppercase">
-            <span className="text-yellow-500">Drugačiji</span> koncept vežbanja
-          </h1>
-          <p className="mt-5 text-gray-200 text-lg max-w-3xl mx-auto">
-            Treniraj sa najboljima, koristi najsavremeniju opremu i doživi novu
-            dimenziju fitness iskustva.
+      <div className="relative z-10 py-16 sm:py-20 px-4 sm:px-8 rounded-3xl bg-gradient-to-b from-black/70 to-black/90 border border-yellow-500/40 shadow-xl">
+        {/* HERO */}
+        <section className="text-center max-w-3xl mx-auto">
+          <p className="text-xs font-semibold tracking-[0.3em] text-yellow-400 uppercase">
+            Softver za trenere i klijente
           </p>
-          <div className="mt-10 flex items-center justify-center gap-6">
+          <h1 className="mt-4 text-4xl sm:text-5xl font-extrabold tracking-tight">
+            <span className="text-yellow-500">FitTrack</span> – vodi svoj
+            fitness biznis pametnije
+          </h1>
+          <p className="mt-5 text-gray-200 text-base sm:text-lg">
+            Platforma za personalne trenere i studije: termini, programi,
+            klijenti i naplata – sve na jednom mestu.
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/register"
               className="inline-flex items-center rounded-lg bg-yellow-500 text-black px-6 py-3 font-bold hover:bg-yellow-400 transition shadow-lg"
             >
-              Postani član
+              Započni kao trener
             </Link>
             <Link
-              to="/programs"
-              className="inline-flex items-center rounded-lg border-2 border-yellow-500 text-yellow-500 px-6 py-3 font-bold hover:bg-yellow-500 hover:text-black transition"
+              to="/about"
+              className="inline-flex items-center rounded-lg border-2 border-yellow-500 text-yellow-300 px-6 py-3 font-bold hover:bg-yellow-500 hover:text-black transition"
             >
-              Pogledaj programe
+              Saznaj više
             </Link>
           </div>
         </section>
 
-        {/* FEATURES */}
-        <section className="mt-28">
-          <h2 className="text-center text-3xl font-extrabold text-yellow-500 uppercase">
-            Zašto izabrati FitTrack?
-          </h2>
-          <p className="text-center text-gray-300 mt-2">
-            Sve što ti je potrebno na tvom fitness putu
-          </p>
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-black border-2 border-yellow-500 rounded-xl p-6 shadow-lg text-center hover:scale-105 transition">
-              <div className="h-12 w-12 mx-auto rounded-full bg-yellow-100 text-black grid place-items-center mb-4">
-                <Activity className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold uppercase">
-                Praćenje napretka
-              </h3>
-              <p className="text-gray-300 mt-2 text-sm">
-                Pregledan prikaz napretka, statistika i planova.
-              </p>
-            </div>
-
-            <div className="bg-black border-2 border-yellow-500 rounded-xl p-6 shadow-lg text-center hover:scale-105 transition">
-              <div className="h-12 w-12 mx-auto rounded-full bg-yellow-100 text-black grid place-items-center mb-4">
-                <Users className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold uppercase">Stručni treneri</h3>
-              <p className="text-gray-300 mt-2 text-sm">
-                Radi sa sertifikovanim trenerima.
-              </p>
-            </div>
-
-            <div className="bg-black border-2 border-yellow-500 rounded-xl p-6 shadow-lg text-center hover:scale-105 transition">
-              <div className="h-12 w-12 mx-auto rounded-full bg-yellow-100 text-black grid place-items-center mb-4">
-                <Star className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold uppercase">Raznovrsni programi</h3>
-              <p className="text-gray-300 mt-2 text-sm">
-                Programi prilagođeni tvojim ciljevima.
-              </p>
-            </div>
-          </div>
+        {/* KRATKE PREDNOSTI */}
+        <section className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <FeatureCard
+            icon={<Activity className="h-6 w-6" />}
+            title="Manje administracije"
+            text="Termini, klijenti i programi na jednom mestu – bez papira i haosa u porukama."
+          />
+          <FeatureCard
+            icon={<Users className="h-6 w-6" />}
+            title="Jača veza sa klijentima"
+            text="Jasan pregled termina, programa i povratnih informacija za svakog klijenta."
+          />
+          <FeatureCard
+            icon={<Star className="h-6 w-6" />}
+            title="Profesionalan nastup"
+            text="Automatski računi, statistika rada i moderan sistem za tvoj brend."
+          />
         </section>
+      </div>
+    </div>
+  );
+}
 
-        {/* FOOTER */}
-        <footer className="mt-16 py-8 text-center text-sm text-gray-400 border-t border-yellow-500">
-          © {new Date().getFullYear()} FitTrack App. Sva prava zadržana.
-        </footer>
-      </main>
+function FeatureCard(props: { icon: React.ReactNode; title: string; text: string }) {
+  return (
+    <div className="bg-black/80 border border-yellow-500/50 rounded-xl p-5 shadow-lg text-center hover:translate-y-1 hover:shadow-yellow-500/20 transition">
+      <div className="h-12 w-12 mx-auto rounded-full bg-yellow-100 text-black grid place-items-center mb-3">
+        {props.icon}
+      </div>
+      <h3 className="text-base font-bold uppercase">{props.title}</h3>
+      <p className="text-gray-300 mt-2 text-sm">{props.text}</p>
     </div>
   );
 }
