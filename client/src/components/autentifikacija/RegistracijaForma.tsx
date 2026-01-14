@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from "react";
 import type { IAuthAPIService } from "../../api_services/auth/IAuthAPIService";
 import { useAuth } from "../../hooks/auth/useAuthHook";
+import { useNavigate } from "react-router-dom";
 
 type Props = { authApi: IAuthAPIService };
 
@@ -17,6 +18,7 @@ export default function RegistracijaForma({ authApi }: Props) {
   const [greska, setGreska] = useState<string | null>(null);
 
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setIme(""); setPrezime(""); setEmail(""); setLozinka(""); setAge("");
@@ -57,7 +59,8 @@ export default function RegistracijaForma({ authApi }: Props) {
         pol,
       });
       if (odgovor.success && odgovor.data) {
-        login(odgovor.data);
+        await login(odgovor.data);
+        navigate("/app", { replace: true });
       } else {
         setGreska(odgovor.message || "Registration failed.");
       }
