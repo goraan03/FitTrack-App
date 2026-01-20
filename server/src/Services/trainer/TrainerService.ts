@@ -41,7 +41,9 @@ export class TrainerService implements ITrainerService {
       this.queries.listPendingRatings(trainerId),
     ]);
 
-    const events = weekTerms.map(t => {
+    const filteredTerms = weekTerms.filter(t => t.enrolledCount > 0);
+
+    const events = filteredTerms.map(t => {
       const s = new Date(t.startAt);
       const e = new Date(s.getTime() + t.dur * 60000);
       const jsDay = s.getDay();
@@ -55,8 +57,13 @@ export class TrainerService implements ITrainerService {
         end: toHHMM(e),
         type: t.type,
         cancellable,
+        programId: t.programId,
       };
     });
+
+    const totalTerms = filteredTerms.length;
+    const totalMinutes = filteredTerms.reduce((sum, t) => sum + t.dur, 0);
+    const enrolledSum = filteredTerms.reduce((sum, t) => sum + t.enrolledCount, 0);
 
     const pendingMap = new Map<number, { termId: number; startAt: string; programTitle: string; count: number }>();
     for (const r of pendingRows) {
@@ -70,10 +77,10 @@ export class TrainerService implements ITrainerService {
 
     return {
       stats: {
-        totalTerms: weekStats.totalTerms,
-        scheduledHours: weekStats.totalMinutes / 60,
-        avgRating: avgRating,
-        enrolledThisWeek: weekStats.enrolledSum,
+        totalTerms,
+        scheduledHours: totalMinutes / 60,
+        avgRating,
+        enrolledThisWeek: enrolledSum,
       },
       events,
       pendingRatings: Array.from(pendingMap.values()),

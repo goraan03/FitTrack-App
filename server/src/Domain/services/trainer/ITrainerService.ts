@@ -6,6 +6,7 @@ export type TrainerWeeklyTermRow = {
   title: string;
   enrolledCount: number;
   capacity: number;
+  programId: number;
 };
 
 export type PendingParticipant = { userId: number; userName: string };

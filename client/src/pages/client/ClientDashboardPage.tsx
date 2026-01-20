@@ -19,6 +19,7 @@ import type { HistoryItem } from "../../models/client/HistoryItem";
 import WeeklyCards from "../../components/client/WeeklyCards";
 import { hhmmToMinutes } from "../../helpers/client/hhmmToMinutes";
 import type { IClientAPIService } from "../../api_services/client/IClientAPIService";
+import { programsApi } from "../../api_services/programs/ProgramsAPIService";
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Legend, Filler);
 
 const normalizeType = (t: unknown): 'individual' | 'group' =>
@@ -74,6 +75,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
         cancellable: e.cancellable,
         programTitle: e.programTitle,
         trainerName: e.trainerName,
+        programId: e.programId,
       }));
       setEvents(mapped);
     } else {
@@ -101,7 +103,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
     await loadWeekly();
   };
 
-  const handleDetails = (id: number) => {
+  const handleDetails = async (id: number) => {
     const ev = events.find((x) => x.id === id);
     if (!ev) return;
 
@@ -116,6 +118,36 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
     const [eh, em] = ev.end.split(":").map(Number);
     e.setHours(eh || 0, em || 0, 0, 0);
 
+    let exerciseNames: string[] = [];
+
+    try {
+      console.log("DETAILS ev:", ev, "profile:", profile);
+      if (ev.programId && profile?.assignedTrainerId != null && profile?.id) {
+
+        console.log("Calling getVisibleDetails with", {
+        programId: ev.programId,
+        trainerId: profile.assignedTrainerId,
+        clientId: profile.id,
+      });
+
+        const res = await programsApi.getVisibleDetails({
+          programId: ev.programId,
+          trainerId: profile.assignedTrainerId,
+          clientId: profile.id,
+        });
+
+         console.log("getVisibleDetails response:", res);
+        if (res.success && res.data) {
+          exerciseNames = res.data.exercises.map(ex => ex.name);
+          console.log("exerciseNames:", exerciseNames);
+        }
+      } else {
+        console.warn("Missing programId or trainerId/id in profile, skipping fetch");
+      }
+    } catch (err) {
+      console.error("Failed to load program details for term", err);
+    }
+
     setDetails({
       id: ev.id,
       title: ev.title,
@@ -124,10 +156,10 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
       type: ev.type,
       trainerName: ev.trainerName,
       programTitle: ev.programTitle,
-      exercises: [],
+      exercises: exerciseNames,
     });
     setDetailsOpen(true);
-  };
+};
 
   const [tab, setTab] = useState<'progress' | 'recent'>('progress');
 

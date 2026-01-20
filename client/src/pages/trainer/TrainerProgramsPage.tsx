@@ -82,20 +82,48 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
   const saveProgram = async () => {
     setSaving(true);
     try {
-      if (!selected) {
-        if (!form.title.trim()) { alert('Title is required'); return; }
+      let programId = selected;
+
+      // 1) ako je novi program – prvo ga kreiraj
+      if (!programId) {
+        if (!form.title.trim()) {
+          alert('Title is required');
+          return;
+        }
         const res = await trainerApi.createProgram(form);
-        if (!res.success) return alert(res.message);
-        setSelected(res.data.id);
+        if (!res.success) {
+          alert(res.message);
+          return;
+        }
+        programId = res.data.id;
+        setSelected(programId);
         await loadAll();
       } else {
-        const res = await trainerApi.updateProgram(selected, form);
-        if (!res.success) return alert(res.message);
+        // 2) ako već postoji – update osnovnih podataka
+        const res = await trainerApi.updateProgram(programId, form);
+        if (!res.success) {
+          alert(res.message);
+          return;
+        }
         await loadAll();
-        await loadDetails(selected);
       }
-    } finally { setSaving(false); }
-  };
+
+      // 3) U SVAKOM SLUČAJU: snimi vežbe u programu
+      if (programId) {
+        // draft: DraftItem[] = { exerciseId, position, sets, reps, tempo, restSec, notes }
+        // setProgramExercises očekuje Omit<ProgramExerciseItem, 'name'>, to je ovo
+        const resEx = await trainerApi.setProgramExercises(programId, draft);
+        if (!resEx.success) {
+          alert(resEx.message);
+          return;
+        }
+        // ponovo učitaj detalje da osvežiš state
+        await loadDetails(programId);
+      }
+    } finally {
+      setSaving(false);
+    }
+};
 
   const [assignClientId, setAssignClientId] = useState<number | ''>('');
   const assignToClient = async () => {

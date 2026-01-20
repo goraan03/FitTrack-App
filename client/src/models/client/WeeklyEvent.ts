@@ -10,4 +10,5 @@ export interface WeeklyEvent {
   programTitle: string;
   trainerName: string;
   cancellable: boolean;
+  programId: number;
 }

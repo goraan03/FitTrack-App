@@ -39,9 +39,10 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
           day: e.day,
           start: e.start,
           end: e.end,
-          type: e.type === "INDIVIDUAL" ? "individual" : "group",
+          type: String(e.type).toLowerCase() === "individual" ? "individual" : "group",
           trainerName: "",
           cancellable: e.cancellable,
+          programId: e.programId,
         }));
         setEvents(items);
       }

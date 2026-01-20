@@ -12,6 +12,7 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
               t.start_at AS startAt,
               t.duration_min AS dur,
               t.type AS type,
+              t.program_id AS programId,
               p.title AS title,
               t.enrolled_count AS enrolledCount,
               t.capacity AS capacity
@@ -29,6 +30,7 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
       dur: Number(r.dur || 0),
       type: r.type,
       title: r.title,
+      programId: r.programId,
       enrolledCount: Number(r.enrolledCount || 0),
       capacity: Number(r.capacity || 0),
     }));

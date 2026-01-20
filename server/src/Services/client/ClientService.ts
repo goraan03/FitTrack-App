@@ -157,6 +157,7 @@ export class ClientService implements IClientService {
       durationMin: r.durationMin,
       isFull: r.enrolledCount >= r.capacity,
       trainerName: r.trainerName,
+      trainerId: user.assigned_trener_id ?? null,
     }));
 
     const ratingsTrend: RatingsPoint[] = ratingsTrendRows.map(r => ({

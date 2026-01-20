@@ -8,4 +8,5 @@ export type WeeklyCardItem = {
   cancellable: boolean;
   programTitle?: string;
   trainerName?: string;
+  programId?: number;
 };

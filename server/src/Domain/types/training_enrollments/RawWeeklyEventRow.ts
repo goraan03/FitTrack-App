@@ -5,4 +5,5 @@ export interface RawWeeklyEventRow {
   type: string;
   programTitle: string;
   trainerName: string;
+  programId: number;
 }

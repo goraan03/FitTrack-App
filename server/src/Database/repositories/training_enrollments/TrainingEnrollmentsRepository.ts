@@ -11,7 +11,7 @@ import {
 export class TrainingEnrollmentRepository implements ITrainingEnrollmentsRepository {
   async getWeeklySchedule(userId: number, weekStart: Date, weekEnd: Date): Promise<RawWeeklyEventRow[]> {
     const query = `
-      SELECT e.term_id as termId, t.start_at as startAt, t.duration_min as dur, t.type,
+      SELECT e.term_id as termId, t.start_at as startAt, t.duration_min as dur, t.type, t.program_id as programId,
              p.title as programTitle, CONCAT(u.ime,' ',u.prezime) as trainerName
       FROM training_enrollments e
       JOIN training_terms t ON t.id=e.term_id
