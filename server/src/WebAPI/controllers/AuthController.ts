@@ -45,7 +45,11 @@ export class AuthController {
       try {
         const data = await this.authService.startLogin(korisnickoIme, lozinka);
         res.status(200).json({ success: true, message: '2FA kod poslat na email', data });
-      } catch {
+      } catch (e: any) {
+        if (String(e?.message) === 'Account blocked') {
+        res.status(403).json({ success: false, message: 'Vaš nalog je blokiran. Kontaktirajte administratora.' });
+        return;
+      }
         res.status(401).json({ success: false, message: 'Neispravno korisničko ime ili lozinka' });
       }
     } catch {

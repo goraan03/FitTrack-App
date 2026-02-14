@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { format, startOfWeek, addDays } from "date-fns";
+import { format, startOfWeek, addDays, setHours, setMinutes } from "date-fns";
 import TermDetailsModal from "../../components/client/TermDetailsModal";
 import WeekSwitcher from "../../components/client/WeekSwitcher";
 import { Line } from "react-chartjs-2";
@@ -107,16 +107,16 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
     const ev = events.find((x) => x.id === id);
     if (!ev) return;
 
-    const uiDay = (ev.day + 6) % 7;
-    const s = new Date(weekStart);
-    s.setDate(s.getDate() + uiDay);
     const [sh, sm] = ev.start.split(":").map(Number);
-    s.setHours(sh || 0, sm || 0, 0, 0);
-
-    const e = new Date(weekStart);
-    e.setDate(e.getDate() + uiDay);
     const [eh, em] = ev.end.split(":").map(Number);
-    e.setHours(eh || 0, em || 0, 0, 0);
+    
+    let startDate = addDays(weekStart, ev.day);
+    startDate = setHours(startDate, sh || 0);
+    startDate = setMinutes(startDate, sm || 0);
+    
+    let endDate = addDays(weekStart, ev.day);
+    endDate = setHours(endDate, eh || 0);
+    endDate = setMinutes(endDate, em || 0);
 
     let exerciseNames: string[] = [];
 
@@ -151,8 +151,8 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
     setDetails({
       id: ev.id,
       title: ev.title,
-      startAt: s.toISOString(),
-      endAt: e.toISOString(),
+      startAt: startDate.toISOString(),
+      endAt: endDate.toISOString(),
       type: ev.type,
       trainerName: ev.trainerName,
       programTitle: ev.programTitle,

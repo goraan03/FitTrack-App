@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { clientApi } from "../../api_services/client/ClientAPIService";
 import { Filter, Search } from "lucide-react";
 import type { TermItem } from "../../types/client/TermItem";
@@ -14,7 +14,7 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
   const [bookingId, setBookingId] = useState<number | null>(null);
   const [filters, setFilters] = useState<{ type?: 'individual'|'group'|''; status?: 'free'|'full'|'' }>({ type:'', status:'free' });
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const resp = await clientApi.getAvailableTerms({
@@ -30,9 +30,11 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters.status, filters.type, clientApi]);
 
-  useEffect(() => { load(); }, [filters.type, filters.status]);
+  useEffect(() => { 
+    load(); 
+  }, [load]);
 
   const book = async (id: number) => {
     try {

@@ -24,7 +24,7 @@ export default function RequireTrainer() {
       }
     })();
     return () => { alive = false; };
-  }, [location.pathname]);
+  }, []);
 
   if (checking) {
     return (

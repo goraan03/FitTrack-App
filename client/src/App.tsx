@@ -30,7 +30,7 @@ import ClientProgramsPage from "./pages/client/ClientProgramsPage";
 import TrainerProfilePage from "./pages/trainer/TrainerProfilePage";
 
 import LegacyRedirect from "./routes/LegacyRedirect";
-import RequireTrainer from "./components/protected_route/equireTrainer";
+import RequireTrainer from "./components/protected_route/RequireTrainer";
 import TrainerDashboardPage from "./pages/trainer/TrainerDashboardPage";
 import TrainerLayout from "./layouts/TrainerLayout";
 import LogoutPage from "./pages/auth/LogoutPage";

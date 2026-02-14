@@ -49,6 +49,11 @@ export class AuthService implements IAuthService {
       throw new Error("Invalid credentials");
     }
 
+    if (user.blokiran) {
+    await this.audit.log("Upozorenje", "LOGIN_FAILED_USER_BLOCKED", user.id, user.korisnickoIme);
+    throw new Error("Account blocked");
+  }
+
     const code = generateOtp6();
     const codeHash = await bcrypt.hash(code, 10);
     const expiresAt = new Date(Date.now() + OTP_TTL_MS);

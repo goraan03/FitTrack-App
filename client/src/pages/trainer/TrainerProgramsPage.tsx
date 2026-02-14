@@ -133,6 +133,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
     const res = await trainerApi.assignProgramToClient(selected, cid);
     if (!res.success) return alert(res.message);
     alert('Assigned to client');
+    setAssignClientId('');
   };
 
   const exerciseName = (id: number) => exercises.find(x => x.id === id)?.name || `#${id}`;

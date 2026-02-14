@@ -19,13 +19,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     (async () => {
       try {
-        const bootRes = await authApi.getBoot();
-        const serverBootId = bootRes?.data?.bootId;
 
         const savedToken = PročitajVrednostPoKljuču(AUTH_TOKEN_KEY);
-        const savedBootId = PročitajVrednostPoKljuču(AUTH_BOOT_KEY);
 
-        if (!savedToken || !serverBootId || savedBootId !== serverBootId) {
+        if (!savedToken) {
           ObrišiVrednostPoKljuču(AUTH_TOKEN_KEY);
           ObrišiVrednostPoKljuču(AUTH_BOOT_KEY);
           setIsLoading(false);
