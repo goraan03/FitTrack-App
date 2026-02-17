@@ -20,6 +20,15 @@ export type ProgramExerciseRow = {
   name?: string;
 };
 
+export type ProgramAssignedClientRow = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  status: 'active' | 'paused' | 'completed' | 'canceled';
+  assignedAt: Date;
+};
+
 export interface ITrainerProgramsRepository {
   listByTrainer(trainerId: number): Promise<ProgramRow[]>;
   create(trainerId: number, data: Omit<ProgramRow,'id'|'trainerId'|'createdAt'>): Promise<number>;
@@ -28,4 +37,5 @@ export interface ITrainerProgramsRepository {
   getDetails(trainerId: number, programId: number): Promise<{ program: ProgramRow; exercises: ProgramExerciseRow[] }>;
   replaceProgramExercises(trainerId: number, programId: number, items: ProgramExerciseRow[]): Promise<void>;
   assignToClient(programId: number, clientId: number): Promise<void>;
+  listAssignedClients(trainerId: number, programId: number): Promise<ProgramAssignedClientRow[]>;
 }

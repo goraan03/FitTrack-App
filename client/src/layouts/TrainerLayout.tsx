@@ -1,77 +1,102 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import Brand from "../components/common/Brand";
 import { useAuth } from "../hooks/auth/useAuthHook";
-import { LayoutDashboard, Dumbbell, ListChecks, CalendarDays, Users, User } from "lucide-react";
+import { 
+  LayoutDashboard, 
+  Dumbbell, 
+  ListChecks, 
+  CalendarDays, 
+  Users, 
+  User, 
+  LogOut 
+} from "lucide-react";
 
-const linkBase = "inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition";
-const linkActive = "text-yellow-300 ring-1 ring-yellow-400/60 bg-yellow-400/10";
-const linkIdle = "text-gray-300 hover:text-yellow-300 hover:bg-yellow-400/5";
+const linkBase = "relative inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold uppercase tracking-wider transition-all duration-300";
+const linkActive = "text-yellow-400 bg-white/5 shadow-[0_0_15px_rgba(250,204,21,0.1)] border border-yellow-400/20";
+const linkIdle = "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent";
 
 export default function TrainerLayout() {
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
-  const doLogout = () => { logout(); navigate("/login", { replace: true }); };
+  
+  const doLogout = () => { 
+    logout(); 
+    navigate("/login", { replace: true }); 
+  };
 
   const nav = [
-    { to: "/trainer/dashboard", label: "Dashboard" },
-    { to: "/trainer/exercises", label: "Exercises" },
-    { to: "/trainer/programs", label: "Programs" },
-    { to: "/trainer/terms", label: "Terms" },
-    { to: "/trainer/clients", label: "Clients" },
-    { to: "/trainer/profile", label: "My Profile" },
+    { to: "/trainer/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/trainer/exercises", label: "Exercises", icon: Dumbbell },
+    { to: "/trainer/programs", label: "Programs", icon: ListChecks },
+    { to: "/trainer/terms", label: "Terms", icon: CalendarDays },
+    { to: "/trainer/clients", label: "Clients", icon: Users },
+    { to: "/trainer/profile", label: "Profile", icon: User },
   ];
 
   return (
-    <div className="bg-black min-h-screen text-white">
-      <header className="sticky top-0 z-40 bg-black border-b border-yellow-400/70">
-        <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          <Brand text="FitTrack • Trainer"/>
-          <nav className="hidden sm:flex items-center gap-2">
+    <div className="bg-[#0a0a0a] min-h-screen text-gray-100 selection:bg-yellow-400 selection:text-black">
+      <header className="sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
+        <div className="max-w-7xl mx-auto h-20 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+          
+          {/* LEVO: Brand */}
+          <div className="flex-shrink-0">
+            <Brand text="FitTrack"/>
+          </div>
+          
+          {/* CENTAR: Desktop Navigation (Sada zauzima sredinu) */}
+          <nav className="hidden xl:flex items-center justify-center gap-1 flex-1">
             {nav.map(l => (
-              <NavLink key={l.to} to={l.to} className={({isActive})=> `${linkBase} ${isActive?linkActive:linkIdle}`}>
+              <NavLink 
+                key={l.to} 
+                to={l.to} 
+                className={({isActive}) => `${linkBase} ${isActive ? linkActive : linkIdle}`}
+              >
+                <l.icon className="w-4 h-4" />
                 {l.label}
               </NavLink>
             ))}
           </nav>
-          <div className="flex items-center gap-3">
-            <span className="hidden md:block text-sm text-gray-300">{user?.korisnickoIme}</span>
+
+          {/* DESNO: Logout dugme */}
+          <div className="flex-shrink-0">
             <button
               onClick={doLogout}
-              className="px-3 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-500/90 text-black font-semibold"
+              className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-red-500/50 hover:bg-red-500/10 transition-all duration-300"
             >
-              Logout
+              <span className="hidden sm:inline text-xs font-black uppercase tracking-widest group-hover:text-red-500">Logout</span>
+              <LogOut className="w-4 h-4 text-gray-400 group-hover:text-red-500" />
             </button>
           </div>
         </div>
       </header>
 
-      {/* bitan pb-20 da sadržaj ne prelazi preko bottom bara na mobilu */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-32 sm:pb-12">
         <Outlet />
       </main>
 
-      {/* Bottom nav (mobile) – sada sa svih 6 stavki */}
-      <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-black/90 border-t border-yellow-400/50">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid grid-cols-6">
-            <NavLink to="/trainer/dashboard" className={({isActive}) => `flex flex-col items-center justify-center py-2 ${isActive ? "text-yellow-300" : "text-gray-300"}`}>
-              <LayoutDashboard className="h-5 w-5" /><span className="text-[11px]">Home</span>
-            </NavLink>
-            <NavLink to="/trainer/exercises" className={({isActive}) => `flex flex-col items-center justify-center py-2 ${isActive ? "text-yellow-300" : "text-gray-300"}`}>
-              <Dumbbell className="h-5 w-5" /><span className="text-[11px]">Exercises</span>
-            </NavLink>
-            <NavLink to="/trainer/programs" className={({isActive}) => `flex flex-col items-center justify-center py-2 ${isActive ? "text-yellow-300" : "text-gray-300"}`}>
-              <ListChecks className="h-5 w-5" /><span className="text-[11px]">Programs</span>
-            </NavLink>
-            <NavLink to="/trainer/terms" className={({isActive}) => `flex flex-col items-center justify-center py-2 ${isActive ? "text-yellow-300" : "text-gray-300"}`}>
-              <CalendarDays className="h-5 w-5" /><span className="text-[11px]">Terms</span>
-            </NavLink>
-            <NavLink to="/trainer/clients" className={({isActive}) => `flex flex-col items-center justify-center py-2 ${isActive ? "text-yellow-300" : "text-gray-300"}`}>
-              <Users className="h-5 w-5" /><span className="text-[11px]">Clients</span>
-            </NavLink>
-            <NavLink to="/trainer/profile" className={({isActive}) => `flex flex-col items-center justify-center py-2 ${isActive ? "text-yellow-300" : "text-gray-300"}`}>
-              <User className="h-5 w-5" /><span className="text-[11px]">Profile</span>
-            </NavLink>
+      {/* MOBILE BOTTOM NAV */}
+      <nav className="sm:hidden fixed bottom-6 inset-x-4 z-50">
+        <div className="bg-[#161616]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
+          <div className="grid grid-cols-6 items-center">
+            {nav.map(l => (
+              <NavLink 
+                key={l.to}
+                to={l.to} 
+                className={({isActive}) => `
+                  flex flex-col items-center justify-center py-3 px-1 transition-all duration-300
+                  ${isActive ? "text-yellow-400 bg-white/5" : "text-gray-500 hover:text-gray-300"}
+                `}
+              >
+                {({isActive}) => (
+                  <>
+                    <l.icon className={`h-5 w-5 ${isActive ? "scale-110" : ""}`} />
+                    <span className="text-[9px] mt-1 font-bold uppercase tracking-tighter truncate w-full text-center">
+                      {l.label}
+                    </span>
+                  </>
+                )}
+              </NavLink>
+            ))}
           </div>
         </div>
       </nav>

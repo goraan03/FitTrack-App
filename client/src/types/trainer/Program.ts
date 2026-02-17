@@ -18,12 +18,20 @@ export type ProgramExerciseItem = {
   notes: string | null;
 };
 
+export type ProgramAssignedClient = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+};
+
 export type ProgramDetails = {
   id: number;
   title: string;
   description: string | null;
   level: Level;
   exercises: ProgramExerciseItem[];
+  assignedClients: ProgramAssignedClient[];
 };
 
 export type UpsertProgram = {

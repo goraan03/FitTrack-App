@@ -236,17 +236,36 @@ export class TrainerService implements ITrainerService {
   }
 
   async getProgramDetails(trainerId: number, programId: number): Promise<ProgramDetailsType> {
-    const { program, exercises } = await this.programsRepo.getDetails(trainerId, programId);
-    return {
-      id: program.id,
-      title: program.title,
-      description: program.description,
-      level: program.level,
-      exercises: exercises.map(x => ({
-        exerciseId: x.exerciseId, position: x.position, sets: x.sets, reps: x.reps, tempo: x.tempo, restSec: x.restSec, notes: x.notes, name: x.name || ''
-      }))
-    };
-  }
+  const [{ program, exercises }, assigned] = await Promise.all([
+    this.programsRepo.getDetails(trainerId, programId),
+    this.programsRepo.listAssignedClients(trainerId, programId),
+  ]);
+
+  return {
+    id: program.id,
+    title: program.title,
+    description: program.description,
+    level: program.level,
+    exercises: exercises.map(x => ({
+      exerciseId: x.exerciseId,
+      position: x.position,
+      sets: x.sets,
+      reps: x.reps,
+      tempo: x.tempo,
+      restSec: x.restSec,
+      notes: x.notes,
+      name: x.name || ''
+    })),
+    assignedClients: assigned.map(c => ({
+      id: c.id,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      email: c.email,
+      status: c.status,
+      assignedAt: c.assignedAt.toISOString(),
+    })),
+  };
+}
 
   async setProgramExercises(trainerId: number, programId: number, items: ProgramExerciseSet[]): Promise<void> {
     const ids = Array.from(new Set(items.map(x => x.exerciseId)));

@@ -8,6 +8,7 @@ import TermDetailsModal from "../../components/client/TermDetailsModal";
 import type { TermDetails } from "../../models/client/TermDetails";
 import { toDate } from "../../helpers/client/toDate";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
+import { Activity, Clock, Users, Star } from "lucide-react";
 
 interface TrainerDashboardPageProps { trainerApi: ITrainerAPIService; }
 
@@ -65,9 +66,9 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
   const cancelTerm = async (id: number) => {
     try {
       const res = await trainerApi.cancelTerm(id);
-      if (!res.success) { alert(res.message || "Failed to cancel"); return; }
+      if (!res.success) { alert(res.message || "Greška pri otkazivanju"); return; }
       await load();
-    } catch (e: any) { alert(e?.message || "Cancel failed"); }
+    } catch (e: any) { alert(e?.message || "Otkazivanje nije uspjelo"); }
   };
 
   const openDetails = (id: number) => {
@@ -79,74 +80,96 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
   };
 
   return (
-    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-      <div aria-hidden className="pointer-events-none absolute inset-0 [background:radial-gradient(600px_200px_at_10%_0%,rgba(253,224,71,0.06),transparent),radial-gradient(500px_200px_at_90%_10%,rgba(253,224,71,0.04),transparent)]" />
+    <div className="min-h-screen bg-[#0d0d0d] text-gray-100 pb-12 font-sans">
+      {/* Background Glow */}
+      <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-yellow-500/10 to-transparent pointer-events-none" />
 
-      <div className="relative flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Dashboard</h1>
-          <p className="text-gray-400">Overview of your scheduled sessions</p>
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-8">
+        
+        {/* Header Area */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#161616] p-6 rounded-3xl border border-white/5 shadow-2xl">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-white uppercase">
+              Trainer <span className="text-yellow-400">Dashboard</span>
+            </h1>
+            <p className="text-gray-400 text-sm mt-1 uppercase tracking-widest font-medium">Upravljajte svojim terminima</p>
+          </div>
+          <WeekSwitcher weekStart={weekStart} onChange={setWeekStart} />
         </div>
-        <WeekSwitcher weekStart={weekStart} onChange={setWeekStart} />
-      </div>
 
-      {loading ? (
-        <div className="relative text-gray-400">Loading...</div>
-      ) : (
-        <>
-          <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm p-5 text-black">
-              <div className="text-sm text-gray-600">This week</div>
-              <div className="text-3xl font-bold text-yellow-500 mt-1">{stats?.totalTerms ?? 0}</div>
-              <div className="text-xs text-gray-500">Scheduled sessions</div>
-            </div>
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm p-5 text-black">
-              <div className="text-sm text-gray-600">Scheduled hours</div>
-              <div className="text-3xl font-bold text-yellow-500 mt-1">{(stats?.scheduledHours ?? 0).toFixed(1)}</div>
-              <div className="text-xs text-gray-500">This week</div>
-            </div>
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm p-5 text-black">
-              <div className="text-sm text-gray-600">Participants</div>
-              <div className="text-3xl font-bold text-yellow-500 mt-1">{stats?.enrolledThisWeek ?? 0}</div>
-              <div className="text-xs text-gray-500">This week</div>
-            </div>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-64 space-y-4">
+            <div className="w-12 h-12 border-4 border-yellow-400/20 border-t-yellow-400 rounded-full animate-spin"></div>
+            <p className="text-gray-500 animate-pulse">Učitavanje podataka...</p>
           </div>
-
-          <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm p-5 text-black">
-              <div className="text-sm text-gray-700 mb-3">
-                This Week&apos;s Schedule · {format(weekStart, "MMM d")} – {format(new Date(weekStart.getTime()+6*86400000), "MMM d")}
-              </div>
-              <WeeklyCards weekStart={weekStart} items={events} onCancel={cancelTerm} onDetails={openDetails} />
-            </div>
-
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm p-5 text-black">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900">Pending ratings</h3>
-                <span className="text-sm text-gray-500">{pending.length} terms</span>
-              </div>
-              <div className="mt-3 divide-y divide-gray-100">
-                {pending.length === 0 ? (
-                  <div className="text-gray-500 text-sm py-4">No sessions to rate.</div>
-                ) : pending.map(p => (
-                  <div key={p.termId} className="py-3 flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-gray-900">{p.programTitle}</div>
-                      <div className="text-xs text-gray-500">{new Date(p.startAt).toLocaleString()} • {p.count} participant(s)</div>
+        ) : (
+          <>
+            {/* Stats Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { label: "Termini", value: stats?.totalTerms, icon: <Activity className="w-6 h-6 text-yellow-400" />, sub: "Ove sedmice" },
+                { label: "Sati rada", value: stats?.scheduledHours?.toFixed(1), icon: <Clock className="w-6 h-6 text-blue-400" />, sub: "Ukupno vrijeme" },
+                { label: "Klijenti", value: stats?.enrolledThisWeek, icon: <Users className="w-6 h-6 text-green-400" />, sub: "Aktivni polaznici" }
+              ].map((s, idx) => (
+                <div key={idx} className="bg-[#161616] border border-white/5 p-6 rounded-3xl hover:border-white/20 transition-all group">
+                  <div className="flex justify-between items-start">
+                    <div className="p-3 bg-white/5 rounded-2xl group-hover:scale-110 transition-transform">{s.icon}</div>
+                    <div className="text-right">
+                      <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">{s.label}</p>
+                      <h3 className="text-3xl font-black text-white mt-1">{s.value ?? 0}</h3>
                     </div>
-                    <button
-                      onClick={() => openRate(p.termId)}
-                      className="px-3 py-1.5 rounded-lg bg-yellow-400 hover:bg-yellow-400/90 text-black text-sm shadow-sm"
-                    >
-                      Rate
-                    </button>
                   </div>
-                ))}
+                  <div className="mt-4 pt-4 border-t border-white/5 text-[10px] text-gray-500 uppercase font-bold tracking-widest">{s.sub}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Main Schedule */}
+              <div className="lg:col-span-8 space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-6 bg-yellow-400 rounded-full"></div>
+                  <h2 className="text-xl font-bold uppercase tracking-tight">Sedmični raspored</h2>
+                </div>
+                <div className="bg-[#161616] rounded-3xl border border-white/5 p-2 shadow-xl">
+                  <WeeklyCards weekStart={weekStart} items={events} onCancel={cancelTerm} onDetails={openDetails} />
+                </div>
+              </div>
+
+              {/* Pending Ratings Sidebar */}
+              <div className="lg:col-span-4 space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-6 bg-blue-400 rounded-full"></div>
+                  <h2 className="text-xl font-bold uppercase tracking-tight">Za ocjenjivanje</h2>
+                </div>
+                <div className="bg-[#161616] rounded-3xl border border-white/5 p-6 shadow-xl">
+                  {pending.length === 0 ? (
+                    <div className="text-center py-10 opacity-30">
+                      <Star className="w-12 h-12 mx-auto mb-3" />
+                      <p className="text-sm">Nema sesija za ocjenjivanje.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {pending.map(p => (
+                        <div key={p.termId} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group">
+                          <div className="font-bold text-white leading-tight mb-1">{p.programTitle}</div>
+                          <div className="text-xs text-gray-500 mb-4">{format(new Date(p.startAt), "HH:mm")} • {p.count} polaznika</div>
+                          <button
+                            onClick={() => openRate(p.termId)}
+                            className="w-full py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-black font-black text-xs uppercase tracking-widest transition-transform active:scale-95 shadow-lg shadow-yellow-400/10"
+                          >
+                            Ocijeni polaznike
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
 
       <RateTermModal
         open={rateModal.open}

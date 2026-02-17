@@ -1,6 +1,6 @@
 import db from "../../connection/DbConnectionPool";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
-import { ITrainerProgramsRepository, ProgramRow, ProgramExerciseRow } from "../../../Domain/repositories/trainer_programs/ITrainerProgramsRepository";
+import { ITrainerProgramsRepository, ProgramRow, ProgramExerciseRow, ProgramAssignedClientRow } from "../../../Domain/repositories/trainer_programs/ITrainerProgramsRepository";
 
 export class TrainerProgramsRepository implements ITrainerProgramsRepository {
   async listByTrainer(trainerId: number): Promise<ProgramRow[]> {
@@ -140,5 +140,34 @@ export class TrainerProgramsRepository implements ITrainerProgramsRepository {
        ON DUPLICATE KEY UPDATE status='active', assigned_at=NOW()`,
       [programId, clientId]
     );
+  }
+
+  async listAssignedClients(trainerId: number, programId: number): Promise<ProgramAssignedClientRow[]> {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT u.id AS id,
+              u.ime AS firstName,
+              u.prezime AS lastName,
+              u.korisnickoIme AS email,
+              cp.status AS status,
+              cp.assigned_at AS assignedAt
+       FROM client_programs cp
+       JOIN users u ON u.id = cp.client_id
+       JOIN programs p ON p.id = cp.program_id
+       WHERE cp.program_id = ?
+         AND p.trainer_id = ?
+         AND u.uloga = 'klijent'
+         AND u.assigned_trener_id = ?
+       ORDER BY cp.assigned_at DESC`,
+      [programId, trainerId, trainerId]
+    );
+
+    return (rows as any[]).map(r => ({
+      id: Number(r.id),
+      firstName: r.firstName || '',
+      lastName: r.lastName || '',
+      email: r.email,
+      status: r.status,
+      assignedAt: new Date(r.assignedAt),
+    }));
   }
 }

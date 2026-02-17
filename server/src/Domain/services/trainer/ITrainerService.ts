@@ -92,12 +92,22 @@ export type ProgramExerciseSet = {
   notes: string | null;
 };
 
+export type AssignedClient = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  status: 'active' | 'paused' | 'completed' | 'canceled';
+  assignedAt: string; // ISO
+};
+
 export type ProgramDetails = {
   id: number;
   title: string;
   description: string | null;
   level: 'beginner'|'intermediate'|'advanced';
   exercises: (ProgramExerciseSet & { name: string })[];
+  assignedClients: AssignedClient[];
 };
 
 export type TrainerTermDetails = {

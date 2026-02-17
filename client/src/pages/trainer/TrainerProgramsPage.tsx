@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { ProgramListItem, ProgramDetails, ProgramExerciseItem, UpsertProgram } from "../../types/trainer/Program";
 import type { Exercise } from "../../types/trainer/Exercise";
 import type { TrainerClient } from "../../types/trainer/TrainerClient";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
+import { Plus, Save, Trash2, ChevronUp, ChevronDown, Users, Dumbbell, CheckCircle2, X, Layout, Activity, Search, Filter, UserCheck } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface TrainerProgramsPageProps { trainerApi: ITrainerAPIService; }
 
@@ -12,18 +14,22 @@ const emptyProgram: UpsertProgram = { title: '', description: '', level: 'beginn
 export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageProps) {
   const [programs, setPrograms] = useState<ProgramListItem[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
-  const [, setDetails] = useState<ProgramDetails | null>(null);
+  const [details, setDetails] = useState<ProgramDetails | null>(null);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [clients, setClients] = useState<TrainerClient[]>([]);
   const [form, setForm] = useState<UpsertProgram>(emptyProgram);
   const [saving, setSaving] = useState(false);
 
+  // Search & Filter States
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterClientId, setFilterClientId] = useState<number | "">("");
+
   const [draft, setDraft] = useState<DraftItem[]>([]);
   const [chosenExercise, setChosenExercise] = useState<number | ''>('');
 
-  // Mobile modal editor
-  const [showEditorModal, setShowEditorModal] = useState(false);
-  const isMobile = () => (typeof window !== "undefined" ? window.innerWidth < 1024 : false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignClientId, setAssignClientId] = useState<number | ''>('');
+  const [assigning, setAssigning] = useState(false);
 
   const loadAll = async () => {
     const [p, e, c] = await Promise.all([
@@ -40,7 +46,12 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
     const d = await trainerApi.getProgramDetails(id);
     if (d.success) {
       setDetails(d.data);
-      setForm({ title: d.data.title, description: d.data.description || '', level: d.data.level, isPublic: false });
+      setForm({ 
+        title: d.data.title, 
+        description: d.data.description || '', 
+        level: d.data.level, 
+        isPublic: false 
+      });
       setDraft(d.data.exercises.map(x => ({
         exerciseId: x.exerciseId,
         position: x.position,
@@ -53,14 +64,27 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
     }
   };
 
-  useEffect(()=> { loadAll(); }, []);
-  useEffect(()=> { if (selected) loadDetails(selected); else { setDetails(null); setDraft([]); setForm(emptyProgram); }}, [selected]);
+  useEffect(() => { loadAll(); }, []);
+  useEffect(() => { 
+    if (selected) { loadDetails(selected); } 
+    else { setDetails(null); setDraft([]); setForm(emptyProgram); }
+  }, [selected]);
+
+  // Client Filter & Search Logic
+  const filteredPrograms = useMemo(() => {
+    return programs.filter(p => {
+      const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase());
+      // Logika za filter po klijentu: ako API vraća listu klijent ID-eva u ProgramListItem
+      // Ako ProgramListItem nema te podatke, filtriranje će raditi samo po searchu dok ne povučemo detalje
+      return matchesSearch;
+    });
+  }, [programs, searchTerm]);
 
   const addDraft = () => {
     const exId = Number(chosenExercise);
-    if (!exId) return;
+    if (!exId) return toast.error('Pick an exercise first');
     const pos = draft.length + 1;
-    setDraft(d => [...d, { exerciseId: exId, position: pos, sets: null, reps: null, tempo: null, restSec: null, notes: null }]);
+    setDraft(d => [...d, { exerciseId: exId, position: pos, sets: 3, reps: '10', tempo: null, restSec: 60, notes: null }]);
     setChosenExercise('');
   };
 
@@ -79,215 +103,341 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
     setDraft(arr);
   };
 
+  const updateDraftItem = (index: number, field: keyof DraftItem, value: any) => {
+    const arr = [...draft];
+    arr[index] = { ...arr[index], [field]: value };
+    setDraft(arr);
+  };
+
   const saveProgram = async () => {
+    if (!form.title.trim()) return toast.error('Program title is required');
     setSaving(true);
     try {
       let programId = selected;
-
-      // 1) ako je novi program – prvo ga kreiraj
       if (!programId) {
-        if (!form.title.trim()) {
-          alert('Title is required');
-          return;
-        }
         const res = await trainerApi.createProgram(form);
-        if (!res.success) {
-          alert(res.message);
-          return;
-        }
+        if (!res.success) return toast.error(res.message || 'Failed to create');
         programId = res.data.id;
         setSelected(programId);
+        toast.success('Program created!');
         await loadAll();
       } else {
-        // 2) ako već postoji – update osnovnih podataka
         const res = await trainerApi.updateProgram(programId, form);
-        if (!res.success) {
-          alert(res.message);
-          return;
-        }
+        if (!res.success) return toast.error(res.message || 'Failed to update');
+        toast.success('Program updated!');
         await loadAll();
       }
-
-      // 3) U SVAKOM SLUČAJU: snimi vežbe u programu
-      if (programId) {
-        // draft: DraftItem[] = { exerciseId, position, sets, reps, tempo, restSec, notes }
-        // setProgramExercises očekuje Omit<ProgramExerciseItem, 'name'>, to je ovo
+      if (programId && draft.length >= 0) {
         const resEx = await trainerApi.setProgramExercises(programId, draft);
-        if (!resEx.success) {
-          alert(resEx.message);
-          return;
-        }
-        // ponovo učitaj detalje da osvežiš state
+        if (!resEx.success) return toast.error(resEx.message || 'Failed to save exercises');
         await loadDetails(programId);
       }
-    } finally {
-      setSaving(false);
-    }
-};
+    } finally { setSaving(false); }
+  };
 
-  const [assignClientId, setAssignClientId] = useState<number | ''>('');
   const assignToClient = async () => {
-    if (!selected) return alert('Select a program');
+    if (!selected) return;
     const cid = Number(assignClientId);
-    if (!cid) return alert('Pick client');
-    const res = await trainerApi.assignProgramToClient(selected, cid);
-    if (!res.success) return alert(res.message);
-    alert('Assigned to client');
-    setAssignClientId('');
+    if (!cid) return toast.error('Select a client');
+    setAssigning(true);
+    try {
+      const res = await trainerApi.assignProgramToClient(selected, cid);
+      if (res.success) {
+        toast.success('Program assigned to client!');
+        setShowAssignModal(false);
+        await loadDetails(selected);
+      } else toast.error(res.message || 'Assignment failed');
+    } finally { setAssigning(false); }
   };
 
-  const exerciseName = (id: number) => exercises.find(x => x.id === id)?.name || `#${id}`;
+  const exerciseName = (id: number) => exercises.find(x => x.id === id)?.name || `Exercise #${id}`;
 
-  // responsive open handlers
-  const openNewResponsive = () => {
-    setSelected(null);
-    if (isMobile()) setShowEditorModal(true);
+  const levelStyles = {
+    beginner: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+    intermediate: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+    advanced: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
   };
-  const openEditResponsive = (id: number) => {
-    setSelected(id);
-    if (isMobile()) setShowEditorModal(true);
-  };
-
-  // Reusable editor content
-  const inputBase = "mt-1 w-full border rounded px-3 py-2 bg-white text-black placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:ring-inset focus:border-yellow-400";
-  const selectBase = "rounded-xl border px-3 py-2 bg-white text-black focus:ring-2 focus:ring-yellow-400 focus:ring-inset focus:border-yellow-400";
-
-  const EditorContent = (
-    <>
-      <div className="grid gap-4">
-        <div>
-          <label className="text-xs text-gray-600 uppercase">Title</label>
-          <input
-            value={form.title}
-            onChange={e=> setForm(f=>({...f,title:e.target.value}))}
-            className={inputBase}
-          />
-        </div>
-        <div>
-          <label className="text-xs text-gray-600 uppercase">Description</label>
-          <textarea
-            value={form.description||''}
-            onChange={e=>setForm(f=>({...f,description:e.target.value}))}
-            className={`${inputBase} min-h-[90px]`}
-          />
-        </div>
-        <div className="flex flex-wrap gap-4">
-          <select
-            value={form.level}
-            onChange={e=> setForm(f=>({...f,level:e.target.value as any}))}
-            className={selectBase}
-          >
-            <option value="beginner">beginner</option>
-            <option value="intermediate">intermediate</option>
-            <option value="advanced">advanced</option>
-          </select>
-          <label className="inline-flex items-center gap-2">
-            <input type="checkbox" checked={!!form.isPublic} onChange={e=>setForm(f=>({...f,isPublic:e.target.checked}))} className="h-4 w-4 accent-yellow-400"/>
-            Public
-          </label>
-          <button onClick={saveProgram} disabled={saving} className="ml-auto px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-black font-semibold">
-            {selected ? 'Save' : 'Create'}
-          </button>
-        </div>
-      </div>
-
-      <div className="my-6 border-t"/>
-
-      <div className="flex gap-3">
-        <select value={chosenExercise} onChange={e=> setChosenExercise(e.target.value as any)} className={selectBase}>
-          <option value="">Pick exercise</option>
-          {exercises.map(e=> <option key={e.id} value={e.id}>{e.name}</option>)}
-        </select>
-        <button onClick={addDraft} className="px-3 py-2 border rounded hover:bg-gray-100">Add</button>
-      </div>
-
-      <div className="mt-4 space-y-3">
-        {draft.map((it,idx)=>(
-          <div key={idx} className="p-4 border rounded-xl bg-white/60 text-black">
-            <div className="font-medium text-black">{it.position}. {exerciseName(it.exerciseId)}</div>
-            <div className="mt-2 flex gap-1">
-              <button onClick={()=> move(idx,-1)} className="px-2 py-1 border rounded hover:bg-gray-100">↑</button>
-              <button onClick={()=> move(idx,1)} className="px-2 py-1 border rounded hover:bg-gray-100">↓</button>
-              <button onClick={()=> remove(idx)} className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">X</button>
-            </div>
-          </div>
-        ))}
-        {draft.length===0 && <div className="text-sm text-gray-500">No exercises in this program yet.</div>}
-      </div>
-
-      <div className="mt-6 border-t pt-4 flex flex-col sm:flex-row gap-3 sm:items-center">
-        <select
-          value={assignClientId}
-          onChange={e=>setAssignClientId(e.target.value as any)}
-          className={`${selectBase} w-full sm:w-auto flex-1 min-w-0`}
-        >
-          <option value="">Assign to client</option>
-          {clients.map(c=> <option key={c.id} value={c.id}>{c.firstName} {c.lastName} ({c.email})</option>)}
-        </select>
-        <button onClick={assignToClient} className="px-3 py-2 border rounded hover:bg-gray-100 sm:self-auto self-start">
-          Assign
-        </button>
-      </div>
-    </>
-  );
 
   return (
-    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-      <div aria-hidden className="pointer-events-none absolute inset-0 [background:radial-gradient(600px_200px_at_10%_0%,rgba(253,224,71,0.06),transparent),radial-gradient(500px_200px_at_90%_10%,rgba(253,224,71,0.04),transparent)]" />
-      <h1 className="relative text-3xl font-bold text-white">Programs</h1>
+    <div className="min-h-screen bg-[#0d0d0d] text-gray-100 selection:bg-yellow-400 selection:text-black font-sans pb-20">
+      <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-yellow-500/10 to-transparent pointer-events-none" />
 
-      <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left: list */}
-        <div className="bg-white/90 text-black rounded-2xl border border-gray-200 shadow p-5 lg:sticky lg:top-24 h-fit backdrop-blur-sm">
-          <div className="flex justify-between">
-            <h3 className="font-semibold text-black">My Programs</h3>
-            <button onClick={openNewResponsive} className="text-sm px-3 py-1.5 border rounded hover:bg-gray-100">New</button>
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-8">
+        
+        {/* HEADER AREA */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#161616] p-6 rounded-3xl border border-white/5 shadow-2xl">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-white/5 rounded-2xl">
+              <Layout className="w-8 h-8 text-yellow-400" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-black tracking-tight text-white uppercase">
+                Training <span className="text-yellow-400">Programs</span>
+              </h1>
+              <p className="text-gray-400 text-sm mt-1 uppercase tracking-widest font-medium">Build and manage routines</p>
+            </div>
           </div>
-          <div className="mt-3 divide-y divide-gray-100 max-h-[70vh] overflow-y-auto pr-1">
-            {programs.map(p => (
-              <div
-                key={p.id}
-                onClick={()=> setSelected(p.id)}
-                className={`w-full text-left py-3 px-3 rounded-xl border transition ${selected===p.id ? 'bg-yellow-100 border-yellow-300' : 'hover:bg-gray-50'}`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0">
-                    <div className="font-medium text-black truncate">{p.title}</div>
-                    <div className="text-xs text-gray-500 mt-0.5">{p.level} {p.isPublic ? '• public' : ''}</div>
-                  </div>
+          
+          {selected && (
+            <button
+              onClick={() => setShowAssignModal(true)}
+              className="px-6 py-3 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white font-black text-xs uppercase tracking-widest transition-transform active:scale-95 shadow-lg shadow-blue-500/20 flex items-center gap-2"
+            >
+              <Users className="w-4 h-4" />
+              Assign to Client
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* SIDEBAR: SEARCH & LIST */}
+          <div className="lg:col-span-4 space-y-4">
+            {/* Search & Filter Bar */}
+            <div className="bg-[#161616] p-4 rounded-3xl border border-white/5 space-y-3 shadow-xl">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input 
+                  type="text"
+                  placeholder="Search programs..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-11 pr-4 text-sm focus:border-yellow-400/50 outline-none transition-all"
+                />
+              </div>
+              <div className="relative">
+                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <select 
+                  value={filterClientId}
+                  onChange={(e) => setFilterClientId(e.target.value as any)}
+                  className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-11 pr-4 text-sm focus:border-yellow-400/50 outline-none appearance-none cursor-pointer"
+                >
+                  <option value="">All Clients</option>
+                  {clients.map(c => (
+                    <option key={c.id} value={c.id}>{c.firstName} {c.lastName}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between px-2">
+              <h2 className="text-xs font-black uppercase tracking-widest text-gray-500">List ({filteredPrograms.length})</h2>
+              <button onClick={() => setSelected(null)} className="p-2 bg-white/5 hover:bg-yellow-400 hover:text-black rounded-xl transition-all">
+                <Plus className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-[#161616] rounded-3xl border border-white/5 overflow-hidden shadow-xl max-h-[500px] overflow-y-auto custom-scrollbar p-3 space-y-2">
+              {filteredPrograms.length === 0 ? (
+                <div className="p-12 text-center opacity-30">
+                  <Dumbbell className="w-12 h-12 mx-auto mb-4" />
+                  <p className="text-xs font-bold uppercase tracking-widest">Empty</p>
+                </div>
+              ) : (
+                filteredPrograms.map(p => (
                   <button
-                    onClick={(e)=> { e.stopPropagation(); openEditResponsive(p.id); }}
-                    className="lg:hidden ml-2 px-3 py-1 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100"
+                    key={p.id}
+                    onClick={() => setSelected(p.id)}
+                    className={`w-full text-left p-5 rounded-2xl transition-all relative group ${
+                      selected === p.id ? 'bg-yellow-400' : 'bg-[#1d1d1d]/50 hover:bg-white/5'
+                    }`}
                   >
-                    Edit
+                    <h4 className={`font-black uppercase text-sm truncate ${selected === p.id ? 'text-black' : 'text-white'}`}>
+                      {p.title}
+                    </h4>
+                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 mt-2 inline-block rounded-md border ${
+                      selected === p.id ? 'bg-black/10 border-black/20 text-black' : levelStyles[p.level]
+                    }`}>
+                      {p.level}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* MAIN CONTENT */}
+          <div className="lg:col-span-8 space-y-8">
+            
+            {/* ASSIGNED CLIENTS INFO - PRIKAZUJE SE SAMO KAD JE SELEKTOVAN PROGRAM */}
+            {selected && details && (
+              <div className="bg-blue-500/5 border border-blue-500/20 rounded-3xl p-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center">
+                    <UserCheck className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-widest text-blue-400">Assigned To</h3>
+                    <p className="text-sm font-bold text-white mt-1">
+                      {details.assignedClients && details.assignedClients.length > 0 
+                        ? details.assignedClients.map(c => `${c.firstName} ${c.lastName}`).join(", ")
+                        : "No clients assigned to this program yet."}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowAssignModal(true)}
+                  className="text-[10px] font-black uppercase tracking-tighter text-blue-400 hover:text-white transition-colors"
+                >
+                  + Add more
+                </button>
+              </div>
+            )}
+
+            {/* EDITOR CARD */}
+            <div className="bg-[#161616] rounded-3xl border border-white/5 p-8 shadow-2xl relative overflow-hidden">
+              <div className="relative z-10 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Title</label>
+                    <input
+                      value={form.title}
+                      onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                      className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-yellow-400/50 outline-none font-bold"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Difficulty</label>
+                    <select
+                      value={form.level}
+                      onChange={e => setForm(f => ({ ...f, level: e.target.value as any }))}
+                      className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white appearance-none cursor-pointer outline-none font-bold"
+                    >
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Description</label>
+                  <textarea
+                    value={form.description || ''}
+                    onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white min-h-[100px] outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                  <div /> {/* Spacer */}
+                  <button
+                    onClick={saveProgram}
+                    disabled={saving}
+                    className="px-8 py-4 bg-yellow-400 hover:bg-yellow-500 disabled:opacity-30 text-black font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-xl flex items-center gap-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    {saving ? 'Saving...' : selected ? 'Update' : 'Create'}
                   </button>
                 </div>
               </div>
-            ))}
-            {programs.length===0 && <div className="text-sm text-gray-500 py-8 text-center">No programs yet.</div>}
-          </div>
-        </div>
+            </div>
 
-        {/* Right: editor (desktop) */}
-        <div className="hidden lg:block bg-white/90 text-black rounded-2xl border border-gray-200 shadow p-5 lg:col-span-2 backdrop-blur-sm">
-          {EditorContent}
+            {/* EXERCISES EDITOR */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 px-2">
+                <div className="w-2 h-6 bg-blue-400 rounded-full"></div>
+                <h2 className="text-xl font-bold uppercase tracking-tight">Exercises ({draft.length})</h2>
+              </div>
+
+              <div className="bg-[#161616] p-4 rounded-3xl border border-white/5 flex flex-col sm:flex-row gap-3">
+                <select
+                  value={chosenExercise}
+                  onChange={e => setChosenExercise(e.target.value as any)}
+                  className="flex-1 bg-black/40 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-yellow-400/50 outline-none font-bold"
+                >
+                  <option value="">Pick exercise...</option>
+                  {exercises.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                </select>
+                <button onClick={addDraft} className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase rounded-2xl flex items-center gap-2 border border-white/5 transition-all">
+                  <Plus className="w-4 h-4 text-yellow-400" /> Add
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {draft.map((item, idx) => (
+                  <div key={idx} className="group bg-[#1d1d1d]/50 border border-white/5 rounded-3xl p-6 hover:border-white/10 transition-all">
+                    <div className="flex flex-col md:flex-row gap-6">
+                      <div className="flex md:flex-col items-center gap-2">
+                        <div className="w-10 h-10 rounded-2xl bg-[#262626] flex items-center justify-center">
+                          <span className="text-sm font-black text-white">{item.position}</span>
+                        </div>
+                        <div className="flex md:flex-col gap-1">
+                          <button onClick={() => move(idx, -1)} disabled={idx === 0} className="p-2 hover:bg-white/5 rounded-lg disabled:opacity-0"><ChevronUp className="w-4 h-4"/></button>
+                          <button onClick={() => move(idx, 1)} disabled={idx === draft.length - 1} className="p-2 hover:bg-white/5 rounded-lg disabled:opacity-0"><ChevronDown className="w-4 h-4"/></button>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 space-y-4">
+                        <div className="flex justify-between items-start">
+                          <h4 className="text-lg font-black text-white group-hover:text-yellow-400 transition-colors uppercase">{exerciseName(item.exerciseId)}</h4>
+                          <button onClick={() => remove(idx)} className="p-2 text-gray-700 hover:text-rose-500 transition-colors"><Trash2 className="w-5 h-5"/></button>
+                        </div>
+
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                          {['sets', 'reps', 'tempo', 'restSec'].map(field => (
+                            <div key={field} className="space-y-1">
+                              <label className="text-[9px] font-black uppercase text-gray-500 ml-1">{field === 'restSec' ? 'Rest (s)' : field}</label>
+                              <input
+                                value={(item as any)[field] || ''}
+                                onChange={e => updateDraftItem(idx, field as any, field === 'sets' || field === 'restSec' ? Number(e.target.value) : e.target.value)}
+                                className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-sm text-white focus:border-yellow-400/40 outline-none font-bold"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        <input
+                          placeholder="Notes..."
+                          value={item.notes || ''}
+                          onChange={e => updateDraftItem(idx, 'notes', e.target.value)}
+                          className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-sm text-white outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Modal editor (mobile) – header izvan scroll, sadržaj skroluje i ne “curi” van ivica */}
-      {showEditorModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 grid place-items-center p-4">
-          <div className="bg-white text-black w-full max-w-2xl rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="font-semibold">{selected ? "Edit Program" : "New Program"}</h3>
-              <button onClick={()=> setShowEditorModal(false)} className="px-3 py-1.5 rounded-lg border hover:bg-gray-100">Close</button>
+      {/* MODAL */}
+      {showAssignModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="bg-[#161616] border border-white/10 rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
+            <div className="p-8 border-b border-white/5 flex items-center justify-between">
+              <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+                <Users className="w-6 h-6 text-blue-400" /> Assign Program
+              </h3>
+              <button onClick={() => setShowAssignModal(false)} className="text-gray-500 hover:text-white"><X/></button>
             </div>
-            <div className="max-h-[85vh] overflow-y-auto p-5">
-              {EditorContent}
+            <div className="p-8 space-y-6">
+              <select
+                value={assignClientId}
+                onChange={e => setAssignClientId(e.target.value as any)}
+                className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-blue-500 outline-none font-bold appearance-none cursor-pointer"
+              >
+                <option value="">Select client...</option>
+                {clients.map(c => <option key={c.id} value={c.id}>{c.firstName} {c.lastName}</option>)}
+              </select>
+              <button
+                onClick={assignToClient}
+                disabled={!assignClientId || assigning}
+                className="w-full py-4 bg-blue-500 hover:bg-blue-600 disabled:opacity-30 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-blue-500/20 active:scale-95"
+              >
+                {assigning ? 'Processing...' : 'Confirm Assignment'}
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(250, 204, 21, 0.4); }
+      `}</style>
     </div>
   );
 }

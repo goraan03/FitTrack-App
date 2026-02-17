@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import type { WeeklyCardItem } from "../../models/client/WeeklyCardItem";
 import { toDate } from "../../helpers/client/toDate";
+import { Calendar, Info, XCircle } from "lucide-react";
 
 type Props = { weekStart: Date; items: WeeklyCardItem[]; onCancel?: (id: number) => void; onDetails?: (id: number) => void; };
 
@@ -9,45 +10,61 @@ export default function WeeklyCards({ weekStart, items, onCancel, onDetails }: P
 
   if (sorted.length === 0) {
     return (
-      <div className="bg-white text-black rounded-2xl border border-gray-200 shadow p-6 text-center">
-        <div className="text-5xl mb-3">📅</div>
-        <div className="text-gray-600">There are no sessions scheduled for this week.</div>
+      <div className="p-12 text-center">
+        <div className="inline-flex p-5 rounded-full bg-white/5 mb-4 text-gray-600">
+          <Calendar className="w-10 h-10" />
+        </div>
+        <div className="text-gray-400 font-medium">Nema zakazanih termina za ovu sedmicu.</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="p-2 space-y-2">
       {sorted.map((it) => {
         const s = toDate(weekStart, it.day, it.start);
         const e = toDate(weekStart, it.day, it.end);
-        const dateLabel = format(s, "EEE, MMM d");
-        const timeLabel = `${format(s, "HH:mm")}–${format(e, "HH:mm")}`;
-
-        const badge = it.type === "group"
-          ? "bg-yellow-100 text-yellow-800 ring-1 ring-yellow-200"
-          : "bg-gray-100 text-gray-800 ring-1 ring-gray-200";
+        const dayLabel = format(s, "EEE");
+        const dateNum = format(s, "d");
+        const timeRange = `${format(s, "HH:mm")} – ${format(e, "HH:mm")}`;
 
         return (
-          <div key={it.id} className="bg-white text-black rounded-2xl border border-gray-200 shadow p-4 sm:p-5 flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${badge}`}>{it.type === "group" ? "Group" : "Individual"}</span>
-                <span className="text-xs text-gray-500">{dateLabel}</span>
+          <div key={it.id} className="group relative flex items-center justify-between gap-4 p-4 rounded-2xl bg-[#1d1d1d]/50 hover:bg-white/5 border border-transparent hover:border-white/10 transition-all">
+            <div className="flex items-center gap-5">
+              {/* Date Badge */}
+              <div className="flex flex-col items-center justify-center min-w-[56px] h-[56px] rounded-2xl bg-[#262626] group-hover:bg-yellow-400 transition-colors duration-300">
+                <span className="text-[10px] font-black uppercase text-gray-500 group-hover:text-black/60 tracking-tighter leading-none mb-1">{dayLabel}</span>
+                <span className="text-xl font-black text-white group-hover:text-black leading-none">{dateNum}</span>
               </div>
-              <div className="mt-1 font-semibold text-gray-900 truncate">{it.title}</div>
-              <div className="text-sm text-gray-600">{timeLabel}{it.trainerName ? ` • ${it.trainerName}` : ""}</div>
+
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest shadow-sm ${
+                    it.type === "group" ? "bg-yellow-400/20 text-yellow-400" : "bg-blue-400/20 text-blue-400"
+                  }`}>
+                    {it.type}
+                  </span>
+                  <span className="text-[11px] text-gray-500 font-bold uppercase tracking-tight">{timeRange}</span>
+                </div>
+                <div className="text-base font-bold text-white truncate group-hover:text-yellow-400 transition-colors">{it.title}</div>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <button onClick={() => onDetails?.(it.id)} className="px-3 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100">Details</button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => onDetails?.(it.id)} 
+                className="p-2.5 rounded-xl bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                title="Detalji"
+              >
+                <Info className="w-5 h-5" />
+              </button>
               <button
                 onClick={() => it.cancellable && onCancel?.(it.id)}
                 disabled={!it.cancellable}
-                className="px-3 py-2 rounded-xl border border-yellow-400 text-yellow-700 hover:bg-yellow-400/10 disabled:opacity-40"
-                title={it.cancellable ? "Cancel session" : "Cannot cancel within 60 minutes"}
+                className="p-2.5 rounded-xl border border-red-500/20 text-red-500/50 hover:bg-red-500 hover:text-white disabled:opacity-10 transition-all"
+                title="Otkaži termin"
               >
-                Cancel
+                <XCircle className="w-5 h-5" />
               </button>
             </div>
           </div>
