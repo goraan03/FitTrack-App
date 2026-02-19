@@ -107,4 +107,38 @@ export const trainerApi: ITrainerAPIService = {
     const res = await axios.post<{ success: boolean; message: string; data: { id: number } }>(`${baseURL}/terms`, dto, { headers: authHeaders() });
     return res.data;
   },
+
+  async finishWorkout(payload: {
+    termId: number;
+    clientId: number;
+    startTime: string;
+    endTime: string;
+    notes?: string;
+    logs: {
+      exerciseId: number;
+      setNumber: number;
+      plannedReps?: string;
+      actualReps: number;
+      plannedWeight?: number;
+      actualWeight: number;
+    }[];
+  }) {
+    const res = await axios.post<BasicResponse>(`${baseURL}/workout/finish`, payload, { 
+      headers: authHeaders() 
+    });
+    return res.data;
+  },
+
+  deleteTerm(termId: number) {
+    return axios.delete<BasicResponse>(`${baseURL}/terms/${termId}`, { headers: authHeaders() })
+      .then(res => res.data);
+  },
+
+  async getTermParticipants(termId: number) {
+    const res = await axios.get<{ success: boolean; data: Array<{userId: number; userName: string}> }>(
+      `${baseURL}/terms/${termId}/participants`,
+      { headers: authHeaders() }
+    );
+    return res.data;
+  },
 };

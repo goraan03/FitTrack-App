@@ -7,6 +7,7 @@ export type TrainerWeeklyTermRow = {
   enrolledCount: number;
   capacity: number;
   programId: number;
+  completed?: number;
 };
 
 export type PendingParticipant = { userId: number; userName: string };
@@ -148,4 +149,6 @@ export interface ITrainerService {
   // Terms
   listTerms(trainerId: number, from?: Date, to?: Date): Promise<TrainerTermDetails[]>;
   createTerm(trainerId: number, dto: { programId: number; type: 'individual'|'group'; startAt: Date; durationMin: number; capacity: number }): Promise<number>;
+  getTermParticipants(termId: number): Promise<Array<{userId: number; userName: string}>>;
+  finishWorkout(trainerId: number, payload: any): Promise<number>;
 }

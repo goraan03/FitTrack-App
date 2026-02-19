@@ -1,6 +1,7 @@
 import type { TrainingType } from "../client/TrainingType";
 
 export type TrainerWeeklyEvent = {
+  completed: any;
   id: number;
   title: string;
   day: number;

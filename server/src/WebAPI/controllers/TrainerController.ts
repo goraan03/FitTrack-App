@@ -34,6 +34,9 @@ export class TrainerController {
 
     this.router.get("/trainer/terms", authenticate, authorize("trener"), this.listTerms.bind(this));
     this.router.post("/trainer/terms", authenticate, authorize("trener"), this.createTerm.bind(this));
+    this.router.get("/trainer/terms/:termId/participants", authenticate, authorize("trener"), this.getTermParticipants.bind(this));
+
+    this.router.post("/trainer/workout/finish", authenticate, authorize("trener"), this.finishWorkout.bind(this));
   }
 
   private async dashboard(req: Request, res: Response) {
@@ -277,6 +280,31 @@ export class TrainerController {
       res.json({ success: true, message: 'Created', data: { id } });
     } catch (err) {
       res.status(400).json({ success: false, message: (err as Error)?.message || 'Bad request' });
+    }
+  }
+
+  private async finishWorkout(req: Request, res: Response) {
+    try {
+        const trainerId = req.user!.id;
+        const result = await this.trainer.finishWorkout(trainerId, req.body);
+        res.json({ success: true, message: "Trening uspešno sačuvan", sessionId: result });
+    } catch (err) {
+        res.status(500).json({ success: false, message: (err as Error).message });
+    }
+  }
+
+  private async getTermParticipants(req: Request, res: Response): Promise<void> {
+    try {
+      const termId = Number(req.params.termId);
+      if (!Number.isFinite(termId) || termId <= 0) {
+        res.status(400).json({ success: false, message: 'Neispravan ID' });
+        return;
+      }
+      
+      const data = await this.trainer.getTermParticipants(termId);
+      res.status(200).json({ success: true, data });
+    } catch {
+      res.status(500).json({ success: false, message: 'Greška na serveru' });
     }
   }
 

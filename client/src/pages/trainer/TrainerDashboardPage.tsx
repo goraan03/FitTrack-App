@@ -9,6 +9,7 @@ import type { TermDetails } from "../../models/client/TermDetails";
 import { toDate } from "../../helpers/client/toDate";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
 import { Activity, Clock, Users, Star } from "lucide-react";
+import { toast } from "react-hot-toast/headless";
 
 interface TrainerDashboardPageProps { trainerApi: ITrainerAPIService; }
 
@@ -44,6 +45,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
           trainerName: "",
           cancellable: e.cancellable,
           programId: e.programId,
+          completed: e.completed,
         }));
         setEvents(items);
       }
@@ -78,6 +80,15 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
     const end = toDate(weekStart, ev.day, ev.end);
     setDetails({ open: true, data: { id: ev.id, title: ev.title, startAt: start.toISOString(), endAt: end.toISOString(), type: ev.type } });
   };
+
+  const handleDeleteTerm = async (id: number) => {
+  const res = await trainerApi.deleteTerm(id);
+  if (res.success) {
+    setDetails({ open: false });
+    load(); // Refresh liste
+    toast.success("Termin obrisan");
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-gray-100 pb-12 font-sans">
@@ -132,7 +143,13 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
                   <h2 className="text-xl font-bold uppercase tracking-tight">Sedmični raspored</h2>
                 </div>
                 <div className="bg-[#161616] rounded-3xl border border-white/5 p-2 shadow-xl">
-                  <WeeklyCards weekStart={weekStart} items={events} onCancel={cancelTerm} onDetails={openDetails} />
+                  <WeeklyCards 
+                    weekStart={weekStart} 
+                    items={events} 
+                    onCancel={cancelTerm} 
+                    onDetails={openDetails}
+                    isTrainer={true}
+                  />
                 </div>
               </div>
 
@@ -179,7 +196,13 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
         onSubmit={submitRatings}
       />
 
-      <TermDetailsModal open={details.open} onClose={() => setDetails({ open: false })} data={details.data} />
+      <TermDetailsModal 
+        open={details.open} 
+        onClose={() => setDetails({ open: false })} 
+        data={details.data}
+        isTrainer={true}
+        onDelete={handleDeleteTerm}
+      />
     </div>
   );
 }

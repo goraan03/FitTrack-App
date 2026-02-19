@@ -9,4 +9,5 @@ export type WeeklyCardItem = {
   programTitle?: string;
   trainerName?: string;
   programId?: number;
+  completed?: boolean;
 };

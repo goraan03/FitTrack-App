@@ -47,4 +47,7 @@ export interface ITrainingEnrollmentsRepository {
   getRatingsTrend(userId: number): Promise<RatingsTrendPointRow[]>;
 
   setRating(termId: number, userId: number, rating: number): Promise<void>;
+
+  getEnrolledUsers(termId: number): Promise<Array<{user_id: number; ime: string; prezime: string}>>;
+  markSessionCompleted(termId: number, userId: number): Promise<void>;
 }

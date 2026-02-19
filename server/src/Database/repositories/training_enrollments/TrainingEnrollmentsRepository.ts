@@ -199,4 +199,24 @@ export class TrainingEnrollmentRepository implements ITrainingEnrollmentsReposit
       [rating, termId, userId]
     );
   }
+
+  async getEnrolledUsers(termId: number): Promise<Array<{user_id: number; ime: string; prezime: string}>> {
+    const [rows] = await db.query<any[]>(
+      `SELECT u.id as user_id, u.ime, u.prezime
+       FROM training_enrollments te
+       INNER JOIN users u ON te.user_id = u.id
+       WHERE te.term_id = ? AND te.status IN ('enrolled', 'attended')`,
+      [termId]
+    );
+    return rows;
+  }
+
+  async markSessionCompleted(termId: number, userId: number): Promise<void> {
+    await db.execute(
+      `UPDATE training_enrollments 
+       SET session_completed = 1, status = 'attended', attended_at = NOW()
+       WHERE term_id = ? AND user_id = ?`,
+      [termId, userId]
+    );
+  }
 }

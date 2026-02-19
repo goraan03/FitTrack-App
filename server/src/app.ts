@@ -31,6 +31,7 @@ import { TrainerController } from './WebAPI/controllers/TrainerController';
 import { ExercisesRepository } from './Database/repositories/exercises/ExercisesRepository';
 import { TrainerProgramsRepository } from './Database/repositories/trainer_programs/TrainerProgramsRepository';
 import { InvoicesRepository } from './Database/repositories/invoice/InvoicesRepository';
+import { WorkoutRepository } from './Database/repositories/workout/WorkoutRepository';
 
 const app = express();
 
@@ -59,7 +60,8 @@ const invoicesRepo = new InvoicesRepository();
 const emailService = new EmailService();
 const auditService = new AuditService(auditLogRepo);
 const trainerQueriesRepo = new TrainerQueriesRepository();
-const trainerService = new TrainerService(trainerQueriesRepo, trainingTermsRepo, trainingEnrollmentsRepo, auditService, userRepo, exercisesRepo, trainerProgramsRepo);
+const workoutRepo = new WorkoutRepository();
+const trainerService = new TrainerService(trainerQueriesRepo, trainingTermsRepo, trainingEnrollmentsRepo, auditService, userRepo, exercisesRepo, trainerProgramsRepo, workoutRepo);
 const trainerController = new TrainerController(trainerService);
 const publicContactController = new PublicContactController(emailService);
 

@@ -8,20 +8,25 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
 
   async getWeeklyTerms(trainerId: number, weekStart: Date, weekEnd: Date): Promise<TrainerWeeklyTermRow[]> {
     const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT t.id AS termId,
-              t.start_at AS startAt,
-              t.duration_min AS dur,
-              t.type AS type,
-              t.program_id AS programId,
-              p.title AS title,
-              t.enrolled_count AS enrolledCount,
-              t.capacity AS capacity
-       FROM training_terms t
-       JOIN programs p ON p.id=t.program_id
-       WHERE t.trainer_id=?
-         AND t.canceled=0
-         AND t.start_at BETWEEN ? AND ?
-       ORDER BY t.start_at ASC`,
+      `SELECT 
+        tt.id as termId,
+        tt.start_at as startAt,
+        tt.duration_min as dur,
+        tt.type,
+        p.title,
+        tt.enrolled_count as enrolledCount,
+        tt.capacity,
+        tt.program_id as programId,
+        COALESCE(MAX(te.session_completed), 0) as completed
+      FROM training_terms tt
+      LEFT JOIN programs p ON tt.program_id = p.id
+      LEFT JOIN training_enrollments te ON tt.id = te.term_id
+      WHERE tt.trainer_id = ?
+        AND tt.start_at >= ?
+        AND tt.start_at < ?
+        AND tt.canceled = 0
+      GROUP BY tt.id
+      ORDER BY tt.start_at`,
       [trainerId, weekStart, weekEnd]
     );
     return (rows as any[]).map(r => ({

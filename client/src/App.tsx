@@ -45,6 +45,7 @@ import PublicLayout from "./layouts/PublicLayout";
 import AboutPage from "./pages/landing/AboutPage";
 import GuidePage from "./pages/landing/GuidePage";
 import ContactPage from "./pages/landing/ContactPage";
+import LiveWorkoutPage from "./pages/trainer/LiveWorkoutPage";
 
 export default function App() {
   return (
@@ -119,6 +120,7 @@ export default function App() {
           <Route path="programs" element={<TrainerProgramsPage trainerApi={trainerApi} />} />
           <Route path="terms" element={<TrainerTermsPage trainerApi={trainerApi} />} />
           <Route path="clients" element={<TrainerClientsPage trainerApi={trainerApi} />} />
+          <Route path="/trainer/live-workout/:termId" element={<LiveWorkoutPage trainerApi={trainerApi} />} />
         </Route>
 
         {/* Fallback */}

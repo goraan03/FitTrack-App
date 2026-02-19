@@ -10,6 +10,7 @@ import { calcAge } from "../../helpers/ClientService/calcAge";
 import { IExercisesRepository } from "../../Domain/repositories/exercises/IExercisesRepository";
 import { ITrainerProgramsRepository } from "../../Domain/repositories/trainer_programs/ITrainerProgramsRepository";
 import { parseISO } from "../../helpers/TrainerService/parseISO";
+import { WorkoutRepository } from "../../Database/repositories/workout/WorkoutRepository";
 
 
 
@@ -21,7 +22,8 @@ export class TrainerService implements ITrainerService {
     private audit: IAuditService,
     private userRepo: IUserRepository,
     private exercisesRepo: IExercisesRepository,
-    private programsRepo: ITrainerProgramsRepository
+    private programsRepo: ITrainerProgramsRepository,
+    private workoutRepo: WorkoutRepository
   ) {}
 
   async getDashboard(trainerId: number, weekStartISO?: string): Promise<TrainerDashboard> {
@@ -58,6 +60,7 @@ export class TrainerService implements ITrainerService {
         type: t.type,
         cancellable,
         programId: t.programId,
+        completed: !!t.completed,
       };
     });
 
@@ -327,5 +330,34 @@ export class TrainerService implements ITrainerService {
     });
     try { await this.audit.log('Informacija', 'TRAINER_CREATE_TERM', trainerId, null, { id }); } catch {}
     return id;
+  }
+
+  async getTermParticipants(termId: number): Promise<Array<{userId: number; userName: string}>> {
+    const rows = await this.enrollRepo.getEnrolledUsers(termId);
+    return rows.map(r => ({
+      userId: r.user_id,
+      userName: `${r.ime} ${r.prezime}`
+    }));
+  }
+
+  // Live workout session
+  async finishWorkout(trainerId: number, payload: any) {
+    // 1. Sačuvaj sesiju
+    const sessionId = await this.workoutRepo.saveSession({
+      ...payload,
+      trainerId
+    });
+    
+    // 2. Označi enrollment kao completed
+    await this.enrollRepo.markSessionCompleted(payload.termId, payload.clientId);
+    
+    // 3. Audit log
+    await this.audit.log('Informacija', 'WORKOUT_COMPLETED', trainerId, null, {
+      termId: payload.termId,
+      clientId: payload.clientId,
+      sessionId
+    });
+    
+    return sessionId;
   }
 }

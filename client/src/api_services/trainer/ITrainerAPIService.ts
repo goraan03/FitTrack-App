@@ -24,4 +24,21 @@ export interface ITrainerAPIService {
   listMyClients(): Promise<{ success: boolean; message: string; data: TrainerClient[] }>;
   listTerms(fromISO?: string, toISO?: string): Promise<{ success: boolean; message: string; data: TrainerTerm[] }>;
   createTerm(dto: CreateTermDto): Promise<{ success: boolean; message: string; data: { id: number } }>;
+  finishWorkout(payload: {
+    termId: number;
+    clientId: number;
+    startTime: string;
+    endTime: string;
+    notes?: string;
+    logs: {
+      exerciseId: number;
+      setNumber: number;
+      plannedReps?: string;
+      actualReps: number;
+      plannedWeight?: number;
+      actualWeight: number;
+    }[];
+  }): Promise<BasicResponse>;
+  deleteTerm(termId: number): Promise<BasicResponse>;
+  getTermParticipants(termId: number): Promise<{ success: boolean; data: Array<{userId: number; userName: string}> }>;
 }
