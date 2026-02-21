@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Exercise, UpsertExercise, MuscleGroup, Equipment, Level } from "../../types/trainer/Exercise";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
-import { Plus, Dumbbell, Edit3, Trash2, Video, Activity, Layout, X, Save, Search } from "lucide-react";
+import { Plus, Dumbbell, Edit3, Trash2, Video, Activity, X, Save, Search } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface TrainerExercisesPageProps { trainerApi: ITrainerAPIService; }

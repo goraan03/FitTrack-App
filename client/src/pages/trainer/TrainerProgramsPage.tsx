@@ -3,7 +3,7 @@ import type { ProgramListItem, ProgramDetails, ProgramExerciseItem, UpsertProgra
 import type { Exercise } from "../../types/trainer/Exercise";
 import type { TrainerClient } from "../../types/trainer/TrainerClient";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
-import { Plus, Save, Trash2, ChevronUp, ChevronDown, Users, Dumbbell, CheckCircle2, X, Layout, Activity, Search, Filter, UserCheck } from "lucide-react";
+import { Plus, Save, Trash2, ChevronUp, ChevronDown, Users, Dumbbell, X, Layout, Search, Filter, UserCheck } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface TrainerProgramsPageProps { trainerApi: ITrainerAPIService; }

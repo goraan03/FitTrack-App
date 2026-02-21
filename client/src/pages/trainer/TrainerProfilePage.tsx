@@ -2,12 +2,12 @@ import { useEffect, useState, useMemo } from "react";
 import { Avatar } from "../../components/client/Avatar";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
 import type { TrainerProfile } from "../../types/trainer/TrainerProfile";
-import { User, Mail, MapPin, Calendar, Award, ShieldAlert, Activity, TrendingUp, Clock, Edit3 } from "lucide-react";
+import { User, Mail, MapPin, Calendar, Award, Activity, TrendingUp, Clock, Edit3 } from "lucide-react";
 
 export default function TrainerProfilePage({ trainerApi }: { trainerApi: ITrainerAPIService }) {
   const [data, setData] = useState<TrainerProfile|null>(null);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string|null>(null);
+  const [, setErr] = useState<string|null>(null);
 
   useEffect(() => {
     (async () => {

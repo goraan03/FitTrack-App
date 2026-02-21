@@ -1,8 +1,7 @@
 import { format } from "date-fns";
-import { useNavigate } from "react-router-dom";
 import type { WeeklyCardItem } from "../../models/client/WeeklyCardItem";
 import { toDate } from "../../helpers/client/toDate";
-import { Calendar, Info, XCircle, CheckCircle2, Play } from "lucide-react";
+import { Calendar, Info, XCircle, CheckCircle2 } from "lucide-react";
 
 type Props = { 
   weekStart: Date; 
@@ -13,7 +12,6 @@ type Props = {
 };
 
 export default function WeeklyCards({ weekStart, items, onCancel, onDetails, isTrainer }: Props) {
-  const navigate = useNavigate();
   const sorted = [...items].sort((a, b) => toDate(weekStart, a.day, a.start).getTime() - toDate(weekStart, b.day, b.start).getTime());
 
   if (sorted.length === 0) {
@@ -35,14 +33,6 @@ export default function WeeklyCards({ weekStart, items, onCancel, onDetails, isT
         const dayLabel = format(s, "EEE");
         const dateNum = format(s, "d");
         const timeRange = `${format(s, "HH:mm")} – ${format(e, "HH:mm")}`;
-        
-        // ✅ Check da li je termin startable (počinje u narednih 15 min ili je već počeo ali nije završen)
-        const now = new Date();
-        const startTime = s.getTime();
-        const endTime = e.getTime();
-        const nowTime = now.getTime();
-        const completed = !!it.completed;
-        const isStartable = !!it.startable || (!completed && nowTime >= (startTime - 15 * 60 * 1000) && nowTime < endTime);
 
         return (
           <div 

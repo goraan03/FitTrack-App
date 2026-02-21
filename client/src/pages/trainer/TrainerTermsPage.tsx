@@ -3,7 +3,7 @@ import type { ProgramListItem } from "../../types/trainer/Program";
 import type { TrainerTerm } from "../../types/trainer/Term";
 import { format } from "date-fns";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
-import { Calendar, Clock, Users, Plus, Trash2, Layout, Activity, ChevronRight, AlertCircle } from "lucide-react";
+import { Calendar, Clock, Users, Plus, Trash2, Activity, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerAPIService }) {

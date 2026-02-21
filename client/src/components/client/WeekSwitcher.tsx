@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { addDays, format, getISOWeek, startOfWeek } from "date-fns";
+import { addDays, format, startOfWeek } from "date-fns";
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 
 type Props = { weekStart: Date; onChange: (newWeekStart: Date) => void; };

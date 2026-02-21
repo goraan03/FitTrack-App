@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import type { TrainerClient } from "../../types/trainer/TrainerClient";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
-import { Users, Mail, User, Search, Activity, ChevronRight, X } from "lucide-react";
+import { Users, User, Search, ChevronRight, X } from "lucide-react";
 
 export default function TrainerClientsPage({ trainerApi }: { trainerApi: ITrainerAPIService }) {
   const [items, setItems] = useState<TrainerClient[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState<TrainerClient | null>(null);
 
