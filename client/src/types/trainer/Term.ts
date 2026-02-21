@@ -6,6 +6,8 @@ export type TrainerTerm = {
   capacity: number;
   enrolledCount: number;
   canceled: boolean;
+  programId: number;
+  completed?: boolean;
   programTitle: string;
 };
 

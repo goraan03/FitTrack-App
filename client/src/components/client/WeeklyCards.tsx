@@ -41,7 +41,8 @@ export default function WeeklyCards({ weekStart, items, onCancel, onDetails, isT
         const startTime = s.getTime();
         const endTime = e.getTime();
         const nowTime = now.getTime();
-        const isStartable = !it.completed && nowTime >= (startTime - 15 * 60 * 1000) && nowTime < endTime;
+        const completed = !!it.completed;
+        const isStartable = !!it.startable || (!completed && nowTime >= (startTime - 15 * 60 * 1000) && nowTime < endTime);
 
         return (
           <div 
@@ -103,18 +104,6 @@ export default function WeeklyCards({ weekStart, items, onCancel, onDetails, isT
             </div>
 
             <div className="flex items-center gap-2">
-              {/* ✅ START WORKOUT BUTTON (samo za trenera i samo ako nije completed) */}
-              {isTrainer && !it.completed && isStartable && (
-                <button
-                  onClick={() => navigate(`/trainer/workout/${it.id}`)}
-                  className="px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-black font-black text-xs uppercase tracking-wider transition-all shadow-lg hover:shadow-yellow-400/50 flex items-center gap-2"
-                  title="Započni trening"
-                >
-                  <Play className="w-4 h-4 fill-current" />
-                  Započni
-                </button>
-              )}
-
               {/* ✅ COMPLETED STATE (za trenera) */}
               {isTrainer && it.completed && (
                 <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-green-500/20 border border-green-500/30">

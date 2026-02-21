@@ -9,6 +9,7 @@ export type TrainerWeeklyEvent = {
   end: string;
   type: TrainingType;
   cancellable: boolean;
+  startable?: boolean;
   programId: number;
 };
 

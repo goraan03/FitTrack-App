@@ -6,6 +6,7 @@ export type ProgramRow = {
   level: 'beginner'|'intermediate'|'advanced';
   isPublic: boolean;
   createdAt: Date;
+  assignedClientIds?: number[];
 };
 
 export type ProgramExerciseRow = {

@@ -11,13 +11,27 @@ import {
 export class TrainingEnrollmentRepository implements ITrainingEnrollmentsRepository {
   async getWeeklySchedule(userId: number, weekStart: Date, weekEnd: Date): Promise<RawWeeklyEventRow[]> {
     const query = `
-      SELECT e.term_id as termId, t.start_at as startAt, t.duration_min as dur, t.type, t.program_id as programId,
-             p.title as programTitle, CONCAT(u.ime,' ',u.prezime) as trainerName
+      SELECT e.term_id as termId,
+             t.start_at as startAt,
+             t.duration_min as dur,
+             t.type,
+             t.program_id as programId,
+             p.title as programTitle,
+             CONCAT(u.ime,' ',u.prezime) as trainerName,
+             CASE 
+               WHEN COUNT(ws.id) > 0 THEN 1
+               ELSE COALESCE(MAX(e.session_completed), 0)
+             END AS completed
       FROM training_enrollments e
       JOIN training_terms t ON t.id=e.term_id
       JOIN programs p ON p.id=t.program_id
       JOIN users u ON u.id=t.trainer_id
-      WHERE e.user_id=? AND t.start_at>=? AND t.start_at<? AND e.status='enrolled' AND t.canceled=0
+      LEFT JOIN workout_sessions ws ON ws.term_id = t.id AND ws.client_id = e.user_id
+      WHERE e.user_id=?
+        AND t.start_at>=? AND t.start_at<?
+        AND e.status IN ('enrolled','attended')
+        AND t.canceled=0
+      GROUP BY e.term_id
       ORDER BY t.start_at
     `;
     const [rows] = await db.execute<RowDataPacket[]>(query, [userId, weekStart, weekEnd]);

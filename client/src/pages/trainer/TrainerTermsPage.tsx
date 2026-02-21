@@ -25,7 +25,11 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
     try {
       const [p, t] = await Promise.all([trainerApi.listPrograms(), trainerApi.listTerms()]);
       if (p.success) setPrograms(p.data);
-      if (t.success) setTerms(t.data);
+      if (t.success) {
+        const activeProgramIds = new Set((p.success ? p.data : []).map(pr => pr.id));
+        const filtered = t.data.filter(term => activeProgramIds.has(term.programId));
+        setTerms(filtered);
+      }
     } finally { setLoading(false); }
   };
 

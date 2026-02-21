@@ -6,4 +6,5 @@ export interface RawWeeklyEventRow {
   programTitle: string;
   trainerName: string;
   programId: number;
+  completed: number;
 }

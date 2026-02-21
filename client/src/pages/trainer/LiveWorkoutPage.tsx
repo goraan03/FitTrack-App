@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { ITrainerAPIService } from '../../api_services/trainer/ITrainerAPIService';
 import toast from 'react-hot-toast';
@@ -62,6 +62,13 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
           return;
         }
 
+        // Ako je termin već završen, vrati na dashboard
+        if (currentTerm.completed) {
+          toast.success('Trening je već završen');
+          navigate('/trainer/dashboard');
+          return;
+        }
+
         setSecondsRemaining((currentTerm.durationMin || 60) * 60);
 
         let pId = currentTerm.programId || currentTerm.program_id;
@@ -82,6 +89,7 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
               exerciseId: ex.exerciseId,
               name: ex.name || "Vježba",
               setNumber: i,
+              plannedReps: ex.reps || null,
               actualReps: parseInt(ex.reps) || 0,
               actualWeight: 0,
             });
@@ -133,7 +141,7 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
     if (!confirmed) return;
     
     try {
-      await trainerApi.finishWorkout({
+      const res = await trainerApi.finishWorkout({
         termId: Number(termId),
         clientId: selectedClientId, // ✅ Pravi clientId!
         startTime,
@@ -141,13 +149,18 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
         logs: logs.map(l => ({
           exerciseId: l.exerciseId,
           setNumber: l.setNumber,
+          plannedReps: l.plannedReps ?? null,
           actualReps: Number(l.actualReps) || 0,
           actualWeight: Number(l.actualWeight) || 0
         }))
       });
       
-      toast.success("Trening uspešno sačuvan!");
-      navigate('/trainer/dashboard');
+      if (res.success) {
+        toast.success("Trening uspešno sačuvan!");
+        navigate('/trainer/dashboard');
+      } else {
+        toast.error(res.message || "Greška pri čuvanju");
+      }
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Greška pri čuvanju");
     }

@@ -7,4 +7,5 @@ export type TermDetails = {
   trainerName?: string;
   programTitle?: string;
   exercises?: string[];
+  completed?: boolean;
 };

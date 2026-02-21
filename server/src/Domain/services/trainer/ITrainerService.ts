@@ -27,6 +27,9 @@ export type TrainerDashboard = {
     end: string;
     type: 'individual'|'group';
     cancellable: boolean;
+    startable?: boolean;
+    completed?: boolean | number;
+    programId: number;
   }[];
   pendingRatings: {
     termId: number;
@@ -81,6 +84,7 @@ export type ProgramLite = {
   title: string;
   level: 'beginner'|'intermediate'|'advanced';
   isPublic: boolean;
+  assignedClientIds?: number[];
 };
 
 export type ProgramExerciseSet = {
@@ -119,6 +123,8 @@ export type TrainerTermDetails = {
   capacity: number;
   enrolledCount: number;
   canceled: boolean;
+  programId: number;
+  completed?: boolean;
   programTitle: string;
 };
 

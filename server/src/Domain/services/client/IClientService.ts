@@ -6,10 +6,13 @@ export interface WeeklyEvent {
   day: number; 
   start: string;
   end: string;
+  startAt?: string;
+  durationMin?: number;
   type: TrainingType;
   programTitle: string;
   trainerName: string;
   cancellable: boolean;
+   completed?: boolean;
 }
 
 export interface AvailableTermProgram {

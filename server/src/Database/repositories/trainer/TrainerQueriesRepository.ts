@@ -17,10 +17,14 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
         tt.enrolled_count as enrolledCount,
         tt.capacity,
         tt.program_id as programId,
-        COALESCE(MAX(te.session_completed), 0) as completed
+        CASE 
+          WHEN COUNT(ws.id) > 0 THEN 1
+          ELSE COALESCE(MAX(te.session_completed), 0)
+        END as completed
       FROM training_terms tt
       LEFT JOIN programs p ON tt.program_id = p.id
       LEFT JOIN training_enrollments te ON tt.id = te.term_id
+      LEFT JOIN workout_sessions ws ON ws.term_id = tt.id
       WHERE tt.trainer_id = ?
         AND tt.start_at >= ?
         AND tt.start_at < ?
@@ -38,6 +42,7 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
       programId: r.programId,
       enrolledCount: Number(r.enrolledCount || 0),
       capacity: Number(r.capacity || 0),
+      completed: Number(r.completed || 0),
     }));
   }
 
@@ -190,11 +195,20 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
               t.capacity,
               t.enrolled_count AS enrolledCount,
               t.canceled,
-              p.title AS programTitle
+              t.program_id AS programId,
+              p.title AS programTitle,
+              CASE 
+                WHEN COUNT(ws.id) > 0 THEN 1
+                ELSE COALESCE(MAX(te.session_completed), 0)
+              END AS completed
        FROM training_terms t
        JOIN programs p ON p.id=t.program_id
+       LEFT JOIN training_enrollments te ON te.term_id = t.id
+       LEFT JOIN workout_sessions ws ON ws.term_id = t.id
        WHERE t.trainer_id=?
          AND t.start_at BETWEEN ? AND ?
+         AND t.canceled = 0
+       GROUP BY t.id
        ORDER BY t.start_at ASC`,
       [trainerId, from, to]
     );
@@ -206,6 +220,8 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
       capacity: Number(r.capacity || 0),
       enrolledCount: Number(r.enrolledCount || 0),
       canceled: !!r.canceled,
+      programId: r.programId,
+      completed: Number(r.completed || 0) === 1,
       programTitle: r.programTitle,
     }));
   }

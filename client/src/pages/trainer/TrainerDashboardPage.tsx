@@ -32,25 +32,26 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
     setLoading(true);
     try {
       const res = await trainerApi.getDashboard(weekStartISO);
-      if (res.success) {
-        setStats(res.data.stats);
-        setPending(res.data.pendingRatings);
-        const items: WeeklyCardItem[] = res.data.events.map(e => ({
-          id: e.id,
-          title: e.title,
-          day: e.day,
-          start: e.start,
-          end: e.end,
-          type: String(e.type).toLowerCase() === "individual" ? "individual" : "group",
-          trainerName: "",
-          cancellable: e.cancellable,
-          programId: e.programId,
-          completed: e.completed,
-        }));
-        setEvents(items);
-      }
-    } finally { setLoading(false); }
-  };
+        if (res.success) {
+          setStats(res.data.stats);
+          setPending(res.data.pendingRatings);
+          const items: WeeklyCardItem[] = res.data.events.map(e => ({
+            id: e.id,
+            title: e.title,
+            day: e.day,
+            start: e.start,
+            end: e.end,
+            type: String(e.type).toLowerCase() === "individual" ? "individual" : "group",
+            trainerName: "",
+            cancellable: e.cancellable,
+            programId: e.programId,
+            completed: !!e.completed,
+            startable: e.startable,
+          }));
+          setEvents(items);
+        }
+      } finally { setLoading(false); }
+    };
 
   useEffect(() => { load(); }, [weekStartISO]);
 
@@ -78,7 +79,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
     if (!ev) return;
     const start = toDate(weekStart, ev.day, ev.start);
     const end = toDate(weekStart, ev.day, ev.end);
-    setDetails({ open: true, data: { id: ev.id, title: ev.title, startAt: start.toISOString(), endAt: end.toISOString(), type: ev.type } });
+    setDetails({ open: true, data: { id: ev.id, title: ev.title, startAt: start.toISOString(), endAt: end.toISOString(), type: ev.type, completed: !!ev.completed } });
   };
 
   const handleDeleteTerm = async (id: number) => {

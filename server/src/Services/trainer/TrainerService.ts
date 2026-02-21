@@ -45,12 +45,21 @@ export class TrainerService implements ITrainerService {
 
     const filteredTerms = weekTerms.filter(t => t.enrolledCount > 0);
 
+
     const events = filteredTerms.map(t => {
       const s = new Date(t.startAt);
       const e = new Date(s.getTime() + t.dur * 60000);
+      const graceEnd = new Date(e.getTime() + 60 * 60 * 1000);
+      if (now > graceEnd) {
+        return null;
+      }
       const jsDay = s.getDay();
       const day = (jsDay + 6) % 7;
-      const cancellable = (s.getTime() - Date.now()) >= (60 * 60000);
+      const startMs = s.getTime();
+      const endMs = startMs + t.dur * 60000;
+      const nowMs = now.getTime();
+      const cancellable = (startMs - nowMs) >= (60 * 60000);
+      const startable = !t.completed && nowMs >= (startMs - 15 * 60 * 1000) && nowMs < endMs;
       return {
         id: t.termId,
         title: t.title,
@@ -61,8 +70,9 @@ export class TrainerService implements ITrainerService {
         cancellable,
         programId: t.programId,
         completed: !!t.completed,
+        startable,
       };
-    });
+    }).filter((e): e is Exclude<typeof e, null> => e !== null);
 
     const totalTerms = filteredTerms.length;
     const totalMinutes = filteredTerms.reduce((sum, t) => sum + t.dur, 0);
@@ -213,7 +223,11 @@ export class TrainerService implements ITrainerService {
   async listPrograms(trainerId: number): Promise<ProgramLite[]> {
     const rows = await this.programsRepo.listByTrainer(trainerId);
     return rows.map(r => ({
-      id: r.id, title: r.title, level: r.level, isPublic: r.isPublic
+      id: r.id,
+      title: r.title,
+      level: r.level,
+      isPublic: r.isPublic,
+      assignedClientIds: r.assignedClientIds
     }));
   }
 
@@ -342,14 +356,35 @@ export class TrainerService implements ITrainerService {
 
   // Live workout session
   async finishWorkout(trainerId: number, payload: any) {
+    const termId = Number(payload.termId);
+    const clientId = Number(payload.clientId);
+    if (!Number.isFinite(termId) || !Number.isFinite(clientId)) {
+      throw new Error('BAD_IDS');
+    }
+
+    // Prevent double completion
+    const already = await this.workoutRepo.hasSessionForTerm(termId);
+    if (already) throw new Error('SESSION_ALREADY_COMPLETED');
+
+    // Normalize & validate dates to avoid MySQL invalid datetime (ISO with T/Z)
+    const start = new Date(payload.startTime);
+    const end = new Date(payload.endTime);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new Error('BAD_TIME_RANGE');
+    }
+
     // 1. Sačuvaj sesiju
     const sessionId = await this.workoutRepo.saveSession({
       ...payload,
-      trainerId
+      trainerId,
+      termId,
+      clientId,
+      startTime: start,
+      endTime: end,
     });
     
     // 2. Označi enrollment kao completed
-    await this.enrollRepo.markSessionCompleted(payload.termId, payload.clientId);
+    await this.enrollRepo.markSessionCompleted(termId, clientId);
     
     // 3. Audit log
     await this.audit.log('Informacija', 'WORKOUT_COMPLETED', trainerId, null, {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { format, startOfWeek, addDays, setHours, setMinutes } from "date-fns";
+import { format, startOfWeek, addDays, setHours, setMinutes, addMinutes } from "date-fns";
 import TermDetailsModal from "../../components/client/TermDetailsModal";
 import WeekSwitcher from "../../components/client/WeekSwitcher";
 import { Line } from "react-chartjs-2";
@@ -65,18 +65,41 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
   const loadWeekly = async () => {
     const resp = await clientApi.getWeeklySchedule(weekStart.toISOString());
     if (resp.success && resp.data) {
-      const mapped: WeeklyCardItem[] = resp.data.events.map((e) => ({
-        id: e.termId,
-        title: e.programTitle || e.title || "Training",
-        day: e.day,
-        start: e.start,
-        end: e.end,
-        type: normalizeType(e.type),
-        cancellable: e.cancellable,
-        programTitle: e.programTitle,
-        trainerName: e.trainerName,
-        programId: e.programId,
-      }));
+      const weekStartMidnight = new Date(weekStart);
+      weekStartMidnight.setHours(0, 0, 0, 0);
+
+      const mapped: WeeklyCardItem[] = resp.data.events.map((e) => {
+        const startDate = e.startAt ? new Date(e.startAt) : (() => {
+          const d = addDays(weekStart, e.day ?? 0);
+          const [hh, mm] = (e.start || "00:00").split(":").map(Number);
+          return setMinutes(setHours(d, hh || 0), mm || 0);
+        })();
+        const endDate = e.durationMin
+          ? addMinutes(startDate, e.durationMin)
+          : (() => {
+              const d = addDays(weekStart, e.day);
+              const [hh, mm] = (e.end || "00:00").split(":").map(Number);
+              return setMinutes(setHours(d, hh || 0), mm || 0);
+            })();
+        const startMidnight = new Date(startDate);
+        startMidnight.setHours(0, 0, 0, 0);
+        const dayIdx = Math.round(
+          (startMidnight.getTime() - weekStartMidnight.getTime()) / (24 * 60 * 60 * 1000)
+        );
+        return {
+          id: e.termId,
+          title: e.programTitle || e.title || "Training",
+          day: dayIdx,
+          start: format(startDate, "HH:mm"),
+          end: format(endDate, "HH:mm"),
+          type: normalizeType(e.type),
+          cancellable: e.cancellable,
+          completed: e.completed,
+          programTitle: e.programTitle,
+          trainerName: e.trainerName,
+          programId: e.programId,
+        };
+      });
       setEvents(mapped);
     } else {
       setEvents([]);

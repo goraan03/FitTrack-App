@@ -289,7 +289,7 @@ export class TrainerController {
         const result = await this.trainer.finishWorkout(trainerId, req.body);
         res.json({ success: true, message: "Trening uspešno sačuvan", sessionId: result });
     } catch (err) {
-        res.status(500).json({ success: false, message: (err as Error).message });
+        res.status(400).json({ success: false, message: (err as Error).message || 'Bad request' });
     }
   }
 

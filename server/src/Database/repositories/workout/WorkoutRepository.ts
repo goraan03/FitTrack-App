@@ -1,5 +1,5 @@
 import db from "../../connection/DbConnectionPool";
-import { ResultSetHeader, Connection } from "mysql2/promise";
+import { ResultSetHeader, Connection, RowDataPacket } from "mysql2/promise";
 
 export interface WorkoutLogItem {
   exerciseId: number;
@@ -11,6 +11,14 @@ export interface WorkoutLogItem {
 }
 
 export class WorkoutRepository {
+  async hasSessionForTerm(termId: number): Promise<boolean> {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT 1 AS ok FROM workout_sessions WHERE term_id = ? LIMIT 1`,
+      [termId]
+    );
+    return (rows as any[]).length > 0;
+  }
+
   async saveSession(data: {
     termId: number;
     trainerId: number;

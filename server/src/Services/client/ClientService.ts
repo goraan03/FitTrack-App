@@ -51,24 +51,37 @@ export class ClientService implements IClientService {
 
     const rows = await this.trainingEnrollmentsRepo.getWeeklySchedule(userId, weekStart, weekEnd);
 
-    const events: WeeklyEvent[] = rows.map(r => {
-      const s = new Date(r.startAt);
-      const e = new Date(s.getTime() + r.dur * 60000);
-      const day = (s.getDay() + 7) % 7;
-      const cancellable = (s.getTime() - Date.now()) >= (60 * 60000);
+    const now = Date.now();
 
-      return {
-        termId: r.termId,
-        title: r.programTitle,
-        day,
-        start: toHHMM(s),
-        end: toHHMM(e),
-        type: r.type as TrainingType,
-        programTitle: r.programTitle,
-        trainerName: r.trainerName,
-        cancellable
-      };
-    });
+    const events: WeeklyEvent[] = rows
+      .map(r => {
+        const s = new Date(r.startAt);
+        const e = new Date(s.getTime() + r.dur * 60000);
+        const graceEnd = e.getTime() + 60 * 60 * 1000; // 1h posle završetka
+        const day = (s.getDay() + 7) % 7;
+        const cancellable = (s.getTime() - now) >= (60 * 60 * 1000);
+        const completed = !!r.completed;
+
+        return {
+          termId: r.termId,
+          title: r.programTitle,
+          day,
+          start: toHHMM(s),
+          end: toHHMM(e),
+          startAt: s.toISOString(),
+          durationMin: r.dur,
+          type: r.type as TrainingType,
+          programTitle: r.programTitle,
+          trainerName: r.trainerName,
+          cancellable,
+          completed,
+          graceEnd,
+        } as any;
+      })
+      // filtriraj: ostavi samo događaje koji su još u toku ili u grace periodu (1h posle kraja)
+      .filter(ev => now <= ev.graceEnd)
+      // ukloni pomoćno polje
+      .map(({ graceEnd, ...rest }) => rest);
 
     return { events };
   }

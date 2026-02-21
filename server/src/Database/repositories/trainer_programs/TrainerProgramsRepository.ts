@@ -11,7 +11,7 @@ export class TrainerProgramsRepository implements ITrainerProgramsRepository {
        ORDER BY created_at DESC`,
       [trainerId]
     );
-    return (rows as any[]).map(r => ({
+    const programs = (rows as any[]).map(r => ({
       id: r.id,
       trainerId: r.trainerId,
       title: r.title,
@@ -19,7 +19,30 @@ export class TrainerProgramsRepository implements ITrainerProgramsRepository {
       level: r.level,
       isPublic: !!r.isPublic,
       createdAt: new Date(r.createdAt),
+      assignedClientIds: [] as number[],
     }));
+
+    if (!programs.length) return programs;
+
+    const ids = programs.map(p => p.id);
+    const [assignRows] = await db.execute<RowDataPacket[]>(
+      `SELECT program_id AS programId, client_id AS clientId
+       FROM client_programs
+       WHERE program_id IN (${ids.map(() => '?').join(',')})`,
+      ids
+    );
+    const map = new Map<number, number[]>();
+    for (const r of assignRows as any[]) {
+      const arr = map.get(r.programId) || [];
+      arr.push(Number(r.clientId));
+      map.set(Number(r.programId), arr);
+    }
+    programs.forEach(p => {
+      const assigned = map.get(p.id);
+      if (assigned) p.assignedClientIds = assigned;
+    });
+
+    return programs;
   }
 
   async create(trainerId: number, data: Omit<ProgramRow,'id'|'trainerId'|'createdAt'>): Promise<number> {

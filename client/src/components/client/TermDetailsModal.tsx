@@ -79,9 +79,14 @@ export default function TermDetailsModal({ open, onClose, data, isTrainer, onDel
             <div className="pt-6 mt-4 border-t border-gray-100 flex flex-col gap-3">
               <button
                 onClick={handleStartWorkout}
-                className="w-full bg-yellow-400 hover:bg-yellow-500 text-black py-3 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg"
+                disabled={data.completed}
+                className={`w-full py-3 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg ${
+                  data.completed
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed shadow-none'
+                    : 'bg-yellow-400 hover:bg-yellow-500 text-black'
+                }`}
               >
-                🚀 Započni trening
+                {data.completed ? 'Trening je završen' : '🚀 Započni trening'}
               </button>
               
               <button

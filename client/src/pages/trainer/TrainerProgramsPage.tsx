@@ -74,11 +74,13 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
   const filteredPrograms = useMemo(() => {
     return programs.filter(p => {
       const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase());
-      // Logika za filter po klijentu: ako API vraća listu klijent ID-eva u ProgramListItem
-      // Ako ProgramListItem nema te podatke, filtriranje će raditi samo po searchu dok ne povučemo detalje
-      return matchesSearch;
+      const matchesClient = !filterClientId || (
+      p.assignedClientIds && p.assignedClientIds.includes(Number(filterClientId))
+    );
+    
+    return matchesSearch && matchesClient;
     });
-  }, [programs, searchTerm]);
+  }, [programs, searchTerm, filterClientId]);
 
   const addDraft = () => {
     const exId = Number(chosenExercise);
