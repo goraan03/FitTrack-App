@@ -155,17 +155,27 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
     }
   };
 
+  const labelCls =
+    "block mb-2 text-[11px] font-semibold uppercase tracking-widest text-slate-300";
+  const inputCls =
+    "w-full rounded-xl border border-[#27273a] bg-[#0a0a0f] px-4 py-3 text-white placeholder:text-slate-500 text-sm font-medium " +
+    "focus:outline-none focus:ring-2 focus:ring-white/15 focus:border-white/15 transition";
+  const errorCls =
+    "rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-200 px-4 py-3 text-sm";
+  const primaryBtn =
+    "w-full inline-flex justify-center items-center rounded-xl px-5 py-3 " +
+    "bg-white text-black font-semibold text-sm uppercase tracking-wider " +
+    "hover:bg-gray-200 transition disabled:opacity-60 disabled:cursor-not-allowed";
+  const softBtn =
+    "inline-flex justify-center items-center rounded-xl px-4 py-3 " +
+    "border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-wider " +
+    "hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed";
+
   if (phase === "credentials") {
     return (
-      <form
-        onSubmit={podnesiKredencijale}
-        className="space-y-5"
-        autoComplete="off"
-      >
+      <form onSubmit={podnesiKredencijale} className="space-y-5" autoComplete="off">
         <div>
-          <label className="block text-sm font-medium text-gray-800 mb-1">
-            Email
-          </label>
+          <label className={labelCls}>Email</label>
           <input
             type="text"
             name={`u_${seed}`}
@@ -176,14 +186,12 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
             onChange={(e) => setKorisnickoIme(e.target.value.trim())}
             placeholder="Enter email"
             required
-            className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 text-black placeholder:text-gray-500 shadow-sm focus:outline-none focus:ring-4 focus:ring-yellow-300 focus:border-yellow-400 transition"
+            className={inputCls}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-800 mb-1">
-            Password
-          </label>
+          <label className={labelCls}>Password</label>
           <div className="relative">
             <input
               type={prikazi ? "text" : "password"}
@@ -192,46 +200,22 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
               onChange={(e) => setLozinka(e.target.value)}
               placeholder="Enter password"
               required
-              className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 pr-11 text-black placeholder:text-gray-500 shadow-sm focus:outline-none focus:ring-4 focus:ring-yellow-300 focus:border-yellow-400 transition"
+              className={`${inputCls} pr-12`}
             />
             <button
               type="button"
               onClick={() => setPrikazi((p) => !p)}
-              className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+              className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-white transition"
               aria-label={prikazi ? "Hide password" : "Show password"}
               tabIndex={-1}
             >
               {prikazi ? (
-                // Eye-slash
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.8}
-                    d="M3 3l18 18M10.58 10.58A2 2 0 0012 14a2 2 0 001.42-.58M9.88 4.64A9.77 9.77 0 0112 4c5 0 9 3.5 10 8a10.86 10.86 0 01-3.1 5.24M6.1 6.1A10.86 10.86 0 002 12a10.82 10.82 0 004.58 6.9M14.12 19.36A9.77 9.77 0 0112 20"
-                  />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3l18 18M10.58 10.58A2 2 0 0012 14a2 2 0 001.42-.58M9.88 4.64A9.77 9.77 0 0112 4c5 0 9 3.5 10 8a10.86 10.86 0 01-3.1 5.24M6.1 6.1A10.86 10.86 0 002 12a10.82 10.82 0 004.58 6.9M14.12 19.36A9.77 9.77 0 0112 20" />
                 </svg>
               ) : (
-                // Eye open
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.8}
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   <circle cx="12" cy="12" r="3" strokeWidth={1.8} />
                 </svg>
               )}
@@ -239,17 +223,9 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
           </div>
         </div>
 
-        {greska && (
-          <div className="rounded-lg border border-red-300 bg-red-50 text-red-700 px-4 py-2 text-sm">
-            {greska}
-          </div>
-        )}
+        {greska && <div className={errorCls}>{greska}</div>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full inline-flex justify-center items-center rounded-xl bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2.5 shadow-sm focus:outline-none focus:ring-4 focus:ring-yellow-300 transition disabled:opacity-60"
-        >
+        <button type="submit" disabled={loading} className={primaryBtn}>
           {loading ? "Logging in..." : "Log in"}
         </button>
       </form>
@@ -258,54 +234,34 @@ export function PrijavaForma({ authApi }: AuthFormProps) {
 
   return (
     <form onSubmit={podnesiKod} className="space-y-5" autoComplete="off">
-      <div className="text-sm text-gray-800">
-        Enter the 6-digit code sent to:{" "}
-        <span className="font-semibold">{maskedEmail}</span>
+      <div className="text-sm text-slate-300">
+        Enter the 6-digit code sent to{" "}
+        <span className="font-semibold text-white">{maskedEmail}</span>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-800 mb-2">
-          Verification Code
-        </label>
-        <OtpInput
-          value={otp}
-          onChange={(v) => setOtp(v.replace(/\D/g, "").slice(0, 6))}
-        />
-        <div className="mt-2 text-sm text-gray-600">
-          {secondsLeft > 0
-            ? `Code expires in ${secondsLeft}s`
-            : "Code has expired."}
+        <label className={labelCls}>Verification Code</label>
+        <OtpInput value={otp} onChange={(v) => setOtp(v.replace(/\D/g, "").slice(0, 6))} />
+        <div className="mt-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          {secondsLeft > 0 ? `Code expires in ${secondsLeft}s` : "Code has expired."}
         </div>
       </div>
 
-      {greska && (
-        <div className="rounded-lg border border-red-300 bg-red-50 text-red-700 px-4 py-2 text-sm">
-          {greska}
-        </div>
-      )}
+      {greska && <div className={errorCls}>{greska}</div>}
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={loading}
-          className="flex-1 inline-flex justify-center items-center rounded-xl bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2.5 shadow-sm focus:outline-none focus:ring-4 focus:ring-yellow-300 transition disabled:opacity-60"
-        >
+        <button type="submit" disabled={loading} className="flex-1 w-full rounded-xl px-5 py-3 bg-white text-black font-semibold text-sm uppercase tracking-wider hover:bg-gray-200 transition disabled:opacity-60 disabled:cursor-not-allowed">
           {loading ? "Verifying..." : "Confirm Code"}
         </button>
 
-        <button
-          type="button"
-          disabled={loading || secondsLeft > 0}
-          onClick={resend}
-          className="px-4 py-2 rounded-xl border border-gray-400 text-gray-800 hover:bg-gray-100 disabled:opacity-50"
-        >
-          Resend Code
+        <button type="button" disabled={loading || secondsLeft > 0} onClick={resend} className={softBtn}>
+          Resend
         </button>
       </div>
 
       <button
         type="button"
-        className="text-sm text-gray-600 hover:text-gray-900 underline"
+        className="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white underline underline-offset-4"
         onClick={() => {
           setPhase("credentials");
           setOtp("");

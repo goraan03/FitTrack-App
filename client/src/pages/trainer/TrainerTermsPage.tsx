@@ -66,209 +66,315 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-gray-100 selection:bg-yellow-400 selection:text-black font-sans pb-20">
-      {/* Background Glow */}
-      <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-yellow-500/10 to-transparent pointer-events-none" />
+  <div className="min-h-screen bg-[#0a0a0f] text-white selection:bg-amber-400 selection:text-black">
+    <div className="fixed top-0 left-0 right-0 h-[420px] bg-gradient-to-b from-amber-400/5 via-amber-400/0 to-transparent pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-8">
-        
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#161616] p-6 rounded-3xl border border-white/5 shadow-2xl">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-white/5 rounded-2xl">
-              <Calendar className="w-8 h-8 text-yellow-400" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-black tracking-tight text-white uppercase">
-                Training <span className="text-yellow-400">Schedule</span>
-              </h1>
-              <p className="text-gray-400 text-sm mt-1 uppercase tracking-widest font-medium">Manage your terms and bookings</p>
-            </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-24 sm:pb-12">
+      {/* HEADER */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8 sm:mb-10 opacity-0 animate-fade-in-up">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-[#111118] border border-[#27273a] flex items-center justify-center">
+            <Calendar className="w-6 h-6 text-amber-400" />
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* LEFT: CREATE TERM FORM */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className="flex items-center gap-3 px-2">
-              <div className="w-2 h-6 bg-yellow-400 rounded-full"></div>
-              <h2 className="text-xl font-bold uppercase tracking-tight">Create New Term</h2>
-            </div>
-
-            <div className="bg-[#161616] rounded-3xl border border-white/5 p-8 shadow-2xl space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Select Program</label>
-                <select 
-                  value={form.programId} 
-                  onChange={e => setForm(f => ({ ...f, programId: Number(e.target.value) }))}
-                  className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-yellow-400/50 outline-none font-bold appearance-none cursor-pointer"
-                >
-                  <option value={0}>Choose a program...</option>
-                  {programs.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Type</label>
-                  <div className="flex bg-black/40 p-1 rounded-2xl border border-white/5">
-                    <button 
-                      onClick={() => setForm(f => ({ ...f, type: 'individual' }))}
-                      className={`flex-1 py-2.5 px-1 text-[9px] md:text-[10px] font-black uppercase rounded-xl transition-all ${
-                        form.type === 'individual' ? 'bg-yellow-400 text-black shadow-lg' : 'text-gray-500 hover:text-white'
-                      }`}
-                    >
-                      Individual
-                    </button>
-                    <button 
-                      onClick={() => setForm(f => ({ ...f, type: 'group' }))}
-                      className={`flex-1 py-2.5 px-1 text-[9px] md:text-[10px] font-black uppercase rounded-xl transition-all ${
-                        form.type === 'group' ? 'bg-yellow-400 text-black shadow-lg' : 'text-gray-500 hover:text-white'
-                      }`}
-                    >
-                      Group
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Capacity</label>
-                  <div className="relative">
-                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                    <input 
-                      type="number" 
-                      disabled={form.type === 'individual'} 
-                      value={form.capacity} 
-                      onChange={e => setForm(f => ({ ...f, capacity: Number(e.target.value) }))}
-                      className="w-full bg-black/40 border border-white/10 rounded-2xl py-3.5 pl-11 pr-4 text-white outline-none disabled:opacity-20 font-bold"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Date</label>
-                  <input 
-                    type="date" 
-                    value={form.startDate} 
-                    onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))}
-                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-yellow-400/50 outline-none font-bold"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Time</label>
-                  <input 
-                    type="time" 
-                    value={form.startTime} 
-                    onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))}
-                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-yellow-400/50 outline-none font-bold"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-2">
-                  <Clock className="w-3 h-3" /> Duration (Minutes)
-                </label>
-                <input 
-                  type="number" 
-                  value={form.durationMin} 
-                  onChange={e => setForm(f => ({ ...f, durationMin: Number(e.target.value) }))}
-                  className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-yellow-400/50 outline-none font-bold"
-                />
-              </div>
-
-              <button 
-                onClick={save} 
-                className="w-full py-4 bg-yellow-400 hover:bg-yellow-500 text-black font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-yellow-400/20 active:scale-95 flex items-center justify-center gap-2"
-              >
-                <Plus className="w-4 h-4" /> Create Term
-              </button>
-            </div>
+          <div>
+            <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
+              TRAINING <span className="text-amber-400">SCHEDULE</span>
+            </h1>
+            <p className="text-slate-400 text-sm tracking-wide uppercase">
+              Manage your sessions and bookings
+            </p>
           </div>
-
-          {/* RIGHT: UPCOMING TERMS LIST */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="flex items-center justify-between px-2">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-6 bg-blue-400 rounded-full"></div>
-                <h2 className="text-xl font-bold uppercase tracking-tight">Upcoming Terms</h2>
-              </div>
-              <Activity className="w-5 h-5 text-gray-500" />
-            </div>
-
-            <div className="bg-[#161616] rounded-3xl border border-white/5 overflow-hidden shadow-2xl">
-              {loading ? (
-                <div className="p-20 flex justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
-                </div>
-              ) : (
-                <div className="divide-y divide-white/5">
-                  {terms.length === 0 ? (
-                    <div className="p-20 text-center opacity-30">
-                      <Calendar className="w-12 h-12 mx-auto mb-4" />
-                      <p className="text-xs font-black uppercase tracking-widest">No terms scheduled</p>
-                    </div>
-                  ) : (
-                    terms.map(t => (
-                      <div key={t.id} className={`p-6 flex items-center justify-between group hover:bg-white/[0.02] transition-colors ${t.canceled ? 'opacity-40' : ''}`}>
-                        <div className="flex items-center gap-5">
-                          <div className={`w-12 h-12 rounded-2xl flex flex-col items-center justify-center border ${t.canceled ? 'border-gray-500 bg-gray-500/10' : 'border-yellow-400/20 bg-yellow-400/5 text-yellow-400'}`}>
-                            <span className="text-[10px] font-black uppercase">{format(new Date(t.startAt), 'MMM')}</span>
-                            <span className="text-lg font-black leading-none">{format(new Date(t.startAt), 'dd')}</span>
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-black uppercase text-sm tracking-tight text-white group-hover:text-yellow-400 transition-colors">
-                                {t.programTitle}
-                              </h4>
-                              {t.canceled && (
-                                <span className="flex items-center gap-1 text-[8px] font-black uppercase px-1.5 py-0.5 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded">
-                                  <AlertCircle className="w-2 h-2" /> Canceled
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-3 mt-1 text-gray-500">
-                              <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-tighter">
-                                <Clock className="w-3 h-3" /> {format(new Date(t.startAt), 'HH:mm')} ({t.durationMin} min)
-                              </span>
-                              <span className="w-1 h-1 bg-gray-700 rounded-full"></span>
-                              <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-tighter">
-                                <Users className="w-3 h-3" /> {t.type}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {!t.canceled && (
-                          <button 
-                            onClick={() => cancel(t.id)}
-                            className="p-3 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
         </div>
       </div>
 
-      <style>{`
-        /* Sakriva default ikone kalendara i sata radi čistijeg dizajna */
-        input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="time"]::-webkit-calendar-picker-indicator {
-          filter: invert(1);
-          opacity: 0.5;
-          cursor: pointer;
-        }
-      `}</style>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* LEFT: CREATE FORM */}
+        <div
+          className="lg:col-span-5 space-y-5 opacity-0 animate-fade-in-up stagger-1"
+          style={{ animationFillMode: "forwards" }}
+        >
+          <div className="flex items-center gap-3 px-1">
+            <div className="w-1 h-6 bg-gradient-to-b from-amber-400 to-amber-500 rounded-full" />
+            <h2 className="text-xl font-bold text-white">CREATE NEW SESSION</h2>
+          </div>
+
+          <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-5 sm:p-6 shadow-[0_18px_60px_rgba(0,0,0,0.35)] space-y-5">
+            {/* Program */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
+                Select program
+              </label>
+              <select
+                value={form.programId}
+                onChange={(e) => setForm((f) => ({ ...f, programId: Number(e.target.value) }))}
+                className="
+                  w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl
+                  px-4 py-3 text-sm text-white
+                  focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                  appearance-none cursor-pointer
+                "
+              >
+                <option value={0}>Choose a program...</option>
+                {programs.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Type + Capacity */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
+                  Type
+                </label>
+
+                <div className="flex bg-[#0a0a0f] p-1 rounded-xl border border-[#27273a]">
+                  <button
+                    onClick={() => setForm((f) => ({ ...f, type: "individual" }))}
+                    className={`
+                      flex-1 py-2.5 px-2 text-[11px] font-semibold uppercase rounded-lg transition-all
+                      ${form.type === "individual"
+                        ? "bg-amber-400/15 text-amber-300 border border-amber-400/25"
+                        : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"}
+                    `}
+                  >
+                    Individual
+                  </button>
+
+                  <button
+                    onClick={() => setForm((f) => ({ ...f, type: "group" }))}
+                    className={`
+                      flex-1 py-2.5 px-2 text-[11px] font-semibold uppercase rounded-lg transition-all
+                      ${form.type === "group"
+                        ? "bg-amber-400/15 text-amber-300 border border-amber-400/25"
+                        : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"}
+                    `}
+                  >
+                    Group
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
+                  Capacity
+                </label>
+                <div className="relative">
+                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="number"
+                    disabled={form.type === "individual"}
+                    value={form.capacity}
+                    onChange={(e) => setForm((f) => ({ ...f, capacity: Number(e.target.value) }))}
+                    className="
+                      w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl
+                      py-3 pl-11 pr-4 text-sm text-white
+                      focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                      disabled:opacity-30
+                    "
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Date + Time */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={form.startDate}
+                  onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
+                  className="
+                    w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl
+                    px-4 py-3 text-sm text-white
+                    focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                  "
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
+                  Time
+                </label>
+                <input
+                  type="time"
+                  value={form.startTime}
+                  onChange={(e) => setForm((f) => ({ ...f, startTime: e.target.value }))}
+                  className="
+                    w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl
+                    px-4 py-3 text-sm text-white
+                    focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                  "
+                />
+              </div>
+            </div>
+
+            {/* Duration */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                <Clock className="w-3 h-3" /> Duration (minutes)
+              </label>
+              <input
+                type="number"
+                value={form.durationMin}
+                onChange={(e) => setForm((f) => ({ ...f, durationMin: Number(e.target.value) }))}
+                className="
+                  w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl
+                  px-4 py-3 text-sm text-white
+                  focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                "
+              />
+            </div>
+
+            {/* CTA */}
+            <button
+              onClick={save}
+              className="
+                w-full py-3.5 rounded-xl
+                btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600
+                text-[#0a0a0f] font-semibold
+                transition-all active:scale-[0.99]
+                flex items-center justify-center gap-2
+              "
+            >
+              <Plus className="w-4 h-4" /> CREATE SESSION
+            </button>
+
+            {/* Tip */}
+            <div className="flex items-start gap-3 p-4 rounded-xl border border-white/5 bg-white/5">
+              <AlertCircle className="w-4 h-4 text-slate-400 mt-0.5" />
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Individual sessions automatically have capacity set to 1.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT: UPCOMING LIST */}
+        <div
+          className="lg:col-span-7 space-y-5 opacity-0 animate-fade-in-up stagger-2"
+          style={{ animationFillMode: "forwards" }}
+        >
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-6 bg-gradient-to-b from-cyan-400 to-cyan-500 rounded-full" />
+              <h2 className="text-xl font-bold text-white">UPCOMING SESSIONS</h2>
+            </div>
+            <Activity className="w-5 h-5 text-slate-500" />
+          </div>
+
+          <div className="bg-[#111118] border border-[#27273a] rounded-2xl shadow-[0_18px_60px_rgba(0,0,0,0.35)] overflow-hidden">
+            {loading ? (
+              <div className="p-16 flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-400/20 border-t-amber-400" />
+              </div>
+            ) : (
+              <div className="divide-y divide-white/5">
+                {terms.length === 0 ? (
+                  <div className="p-16 text-center opacity-80">
+                    <Calendar className="w-12 h-12 mx-auto mb-4 text-slate-600" />
+                    <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">
+                      No sessions scheduled
+                    </p>
+                  </div>
+                ) : (
+                  terms.map((t) => (
+                    <div
+                      key={t.id}
+                      className={`
+                        p-5 sm:p-6 flex items-center justify-between gap-4 group transition-colors
+                        hover:bg-white/[0.03]
+                        ${t.canceled ? "opacity-50" : ""}
+                      `}
+                    >
+                      <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+                        {/* Date badge */}
+                        <div
+                          className={`
+                            w-14 h-14 rounded-2xl flex flex-col items-center justify-center border
+                            ${t.canceled
+                              ? "border-slate-600/40 bg-slate-600/10 text-slate-400"
+                              : "border-amber-400/20 bg-amber-400/5 text-amber-300"}
+                          `}
+                        >
+                          <span className="text-[10px] font-semibold uppercase">
+                            {format(new Date(t.startAt), "MMM")}
+                          </span>
+                          <span className="text-xl font-bold leading-none">
+                            {format(new Date(t.startAt), "dd")}
+                          </span>
+                        </div>
+
+                        {/* Info */}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-semibold text-sm sm:text-base text-white truncate group-hover:text-amber-300 transition-colors">
+                              {t.programTitle}
+                            </h4>
+
+                            {t.canceled && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase px-2 py-1 bg-rose-500/10 text-rose-300 border border-rose-500/20 rounded-lg">
+                                <AlertCircle className="w-3 h-3" />
+                                Canceled
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="mt-1 flex items-center gap-3 text-slate-400 flex-wrap">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-tight">
+                              <Clock className="w-3.5 h-3.5" />
+                              {format(new Date(t.startAt), "HH:mm")} ({t.durationMin} min)
+                            </span>
+
+                            <span className="w-1 h-1 bg-slate-700 rounded-full" />
+
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-tight">
+                              <Users className="w-3.5 h-3.5" />
+                              {t.type}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Cancel button */}
+                      {!t.canceled && (
+                        <button
+                          onClick={() => cancel(t.id)}
+                          className="
+                            w-11 h-11 rounded-xl
+                            bg-rose-500/10 border border-rose-500/20
+                            text-rose-300 hover:bg-rose-500 hover:text-white
+                            transition-all
+                            opacity-100 sm:opacity-0 sm:group-hover:opacity-100
+                            flex items-center justify-center
+                          "
+                          title="Cancel session"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
-  );
-}
+
+    <style>{`
+      input[type="date"]::-webkit-calendar-picker-indicator,
+      input[type="time"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        opacity: 0.55;
+        cursor: pointer;
+      }
+    `}</style>
+  </div>
+);}

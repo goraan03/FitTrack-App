@@ -3,12 +3,12 @@ import { format, differenceInMinutes } from "date-fns";
 import type { TermDetails } from "../../models/client/TermDetails";
 import { useLockBodyScroll } from "../../hooks/other/useLockBodyScroll";
 
-type Props = { 
-  open: boolean; 
-  onClose: () => void; 
-  data?: TermDetails; 
-  isTrainer?: boolean; 
-  onDelete?: (id: number) => void; 
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  data?: TermDetails;
+  isTrainer?: boolean;
+  onDelete?: (id: number) => void;
 };
 
 export default function TermDetailsModal({ open, onClose, data, isTrainer, onDelete }: Props) {
@@ -21,83 +21,88 @@ export default function TermDetailsModal({ open, onClose, data, isTrainer, onDel
   const end = new Date(data.endAt);
 
   const handleStartWorkout = () => {
+    if (data.completed) return;
     const now = new Date();
     const diff = differenceInMinutes(start, now);
 
-    // Ako je trening više od 15 min u budućnosti, traži potvrdu
     if (diff > 15) {
-      const confirm = window.confirm(`Termin počinje tek za ${diff} minuta. Da li ste sigurni da želite da počnete ranije?`);
+      const confirm = window.confirm(`This session starts in ${diff} minutes. Start early anyway?`);
       if (!confirm) return;
     }
-    
+
     onClose();
-    // OVA RUTA MORA POSTOJATI U App.tsx (vidi korak 2)
     navigate(`/trainer/live-workout/${data.id}`);
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="bg-white text-black w-full max-w-lg max-h-[90vh] rounded-2xl shadow-xl border border-gray-200 overflow-hidden flex flex-col">
-        {/* Header - Ostaje isti */}
-        <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10">
-          <h3 className="text-lg font-semibold text-gray-900">Detalji sesije</h3>
-          <button onClick={onClose} className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
-            Zatvori
+    <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="w-full max-w-lg max-h-[90vh] rounded-2xl border border-[#27273a] bg-[#111118] shadow-2xl overflow-hidden flex flex-col">
+        <div className="px-5 py-4 border-b border-[#27273a] flex items-center justify-between sticky top-0 bg-[#111118] z-10">
+          <h3 className="text-lg font-semibold text-white">Session details</h3>
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 rounded-lg border border-[#27273a] text-slate-300 hover:bg-white/5 transition-colors"
+          >
+            Close
           </button>
         </div>
 
-        {/* Content - VRAĆAMO SVE TVOJE INFORMACIJE */}
         <div className="p-5 space-y-4 overflow-y-auto overscroll-contain">
           <div>
-            <div className="text-sm text-gray-600">Naziv programa</div>
-            <div className="font-semibold text-gray-900">{data.title}</div>
+            <div className="text-sm text-slate-400">Program name</div>
+            <div className="font-semibold text-white">{data.title}</div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <div className="text-sm text-gray-600">Datum</div>
-              <div className="font-medium text-gray-900">{format(start, "EEE, MMM d")}</div>
+              <div className="text-sm text-slate-400">Date</div>
+              <div className="font-medium text-white">{format(start, "EEE, MMM d")}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-600">Vrijeme</div>
-              <div className="font-medium text-gray-900">{format(start, "HH:mm")}–{format(end, "HH:mm")}</div>
+              <div className="text-sm text-slate-400">Time</div>
+              <div className="font-medium text-white">
+                {format(start, "HH:mm")}–{format(end, "HH:mm")}
+              </div>
             </div>
             <div>
-              <div className="text-sm text-gray-600">Tip</div>
-              <div className="font-medium text-gray-900 capitalize">{data.type}</div>
+              <div className="text-sm text-slate-400">Type</div>
+              <div className="font-medium text-white capitalize">{data.type}</div>
             </div>
             {data.trainerName && (
               <div>
-                <div className="text-sm text-gray-600">Trener</div>
-                <div className="font-medium text-gray-900">{data.trainerName}</div>
+                <div className="text-sm text-slate-400">Trainer</div>
+                <div className="font-medium text-white">{data.trainerName}</div>
               </div>
             )}
           </div>
 
-          {/* DODATNA DUGMAD ZA TRENERA */}
           {isTrainer && (
-            <div className="pt-6 mt-4 border-t border-gray-100 flex flex-col gap-3">
+            <div className="pt-6 mt-4 border-t border-[#27273a] flex flex-col gap-3">
               <button
                 onClick={handleStartWorkout}
-                disabled={data.completed}
-                className={`w-full py-3 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg ${
+                disabled={!!data.completed}
+                className={`w-full py-3 rounded-xl font-semibold transition-all ${
                   data.completed
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed shadow-none'
-                    : 'bg-yellow-400 hover:bg-yellow-500 text-black'
+                    ? "bg-white/5 text-slate-500 cursor-not-allowed border border-white/5"
+                    : "btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-[#0a0a0f]"
                 }`}
               >
-                {data.completed ? 'Trening je završen' : '🚀 Započni trening'}
+                {data.completed ? "Session completed" : "Start workout"}
               </button>
-              
+
               <button
                 onClick={() => {
-                  if(window.confirm("PAŽNJA: Ovo će trajno obrisati termin i sve prijave klijenta. Nastaviti?")) {
+                  if (
+                    window.confirm(
+                      "WARNING: This will permanently delete the session and all client enrollments. Continue?"
+                    )
+                  ) {
                     onDelete?.(data.id);
                   }
                 }}
-                className="w-full bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-xl font-bold transition-all text-sm"
+                className="w-full border border-red-500/20 text-red-400 hover:bg-red-500/10 py-3 rounded-xl font-semibold transition-all text-sm"
               >
-                Obriši termin
+                Delete session
               </button>
             </div>
           )}

@@ -196,132 +196,214 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-      <header className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-yellow-500">Dashboard</h1>
-          <p className="text-gray-400">Here&apos;s your fitness journey overview</p>
-        </div>
-        <WeekSwitcher weekStart={weekStart} onChange={(d) => setWeekStart(d)} />
-      </header>
+    <div className="min-h-screen bg-[#0a0a0f] text-white">
+      <div className="absolute top-0 left-0 w-full h-[420px] bg-gradient-to-b from-white/5 via-white/0 to-transparent pointer-events-none" />
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white text-black rounded-2xl border border-gray-200 shadow p-5">
-          <div className="text-sm text-gray-600">Total Sessions</div>
-          <div className="text-3xl font-bold mt-2 text-yellow-500">
-            {profile?.stats.sessionsCompleted ?? 0}
-          </div>
-          <div className="text-xs text-gray-500">Sessions completed</div>
-        </div>
-        <div className="bg-white text-black rounded-2xl border border-gray-200 shadow p-5">
-          <div className="text-sm text-gray-600">Average Rating</div>
-          <div className="text-3xl font-bold mt-2 text-yellow-500">
-            {profile?.stats.avgRating != null ? profile.stats.avgRating.toFixed(1) : "N/A"}
-          </div>
-          <div className="text-xs text-gray-500">Out of 10</div>
-        </div>
-        <div className="bg-white text-black rounded-2xl border border-gray-200 shadow p-5">
-          <div className="text-sm text-gray-600">Scheduled</div>
-          <div className="text-3xl font-bold mt-2 text-yellow-500">{events.length}</div>
-          <div className="text-xs text-gray-500">This week • {weekHours}h</div>
-        </div>
-      </div>
+      <div className="pt-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 space-y-6">
+          {/* Header */}
+          <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 opacity-0 animate-fade-in-up">
+            <div>
+              <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
+                CLIENT <span className="text-amber-400">DASHBOARD</span>
+              </h1>
+              <p className="text-slate-400 text-sm tracking-wide uppercase">
+                Your weekly overview & progress
+              </p>
+            </div>
 
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        {/* Left: Week cards */}
-        <div className="space-y-3">
-          <div className="bg-white text-black rounded-2xl border border-gray-200 shadow px-4 py-3">
-            <h3 className="text-lg font-semibold text-gray-900">This Week&apos;s Schedule</h3>
-            <p className="text-gray-600 text-sm">{weekLabel}</p>
-          </div>
-          <WeeklyCards
-            weekStart={weekStart}
-            items={events}
-            onCancel={handleCancel}
-            onDetails={handleDetails}
-          />
-        </div>
+            <WeekSwitcher weekStart={weekStart} onChange={(d) => setWeekStart(d)} />
+          </header>
 
-        {/* Right: Progress & Recent */}
-        <div className="bg-white text-black rounded-2xl border border-gray-200 shadow p-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
-              {tab === 'progress' ? 'Progress' : 'Recent Activity'}
-            </h3>
-            <div className="inline-flex rounded-lg bg-gray-100 p-1">
-              <button
-                onClick={() => setTab('progress')}
-                className={`px-3 py-1.5 text-sm rounded-md ${tab === 'progress' ? 'bg-white shadow ring-1 ring-gray-200' : 'text-gray-600'}`}
-              >
-                Progress
-              </button>
-              <button
-                onClick={() => setTab('recent')}
-                className={`px-3 py-1.5 text-sm rounded-md ${tab === 'recent' ? 'bg-white shadow ring-1 ring-gray-200' : 'text-gray-600'}`}
-              >
-                Recent
-              </button>
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div
+              className="stat-card-1 rounded-2xl p-6 card-hover opacity-0 animate-fade-in-up stagger-1"
+              style={{ animationFillMode: "forwards" }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl bg-[#0a0a0f]/50 flex items-center justify-center text-amber-400">
+                  <span className="text-xs font-black uppercase tracking-widest">#</span>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">SESSIONS</p>
+                  <p className="text-4xl font-bold text-white">
+                    {profile?.stats.sessionsCompleted ?? 0}
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 uppercase tracking-wide">Completed total</p>
+            </div>
+
+            <div
+              className="stat-card-2 rounded-2xl p-6 card-hover opacity-0 animate-fade-in-up stagger-2"
+              style={{ animationFillMode: "forwards" }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl bg-[#0a0a0f]/50 flex items-center justify-center text-cyan-400">
+                  <span className="text-xs font-black uppercase tracking-widest">★</span>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">AVG RATING</p>
+                  <p className="text-4xl font-bold text-white">
+                    {profile?.stats.avgRating != null ? profile.stats.avgRating.toFixed(1) : "—"}
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 uppercase tracking-wide">Out of 10</p>
+            </div>
+
+            <div
+              className="stat-card-3 rounded-2xl p-6 card-hover opacity-0 animate-fade-in-up stagger-3"
+              style={{ animationFillMode: "forwards" }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl bg-[#0a0a0f]/50 flex items-center justify-center text-violet-400">
+                  <span className="text-xs font-black uppercase tracking-widest">⏱</span>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">SCHEDULED</p>
+                  <p className="text-4xl font-bold text-white">{events.length}</p>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 uppercase tracking-wide">This week • {weekHours}h</p>
             </div>
           </div>
 
-          <div className="mt-4">
-            {loadingMeta ? (
-              <div className="h-64 rounded-2xl border border-gray-200 bg-white shadow animate-pulse" />
-            ) : tab === 'progress' ? (
-              <div className="h-64">
-                {profile?.ratingsTrend?.length ? (
-                  <Line data={{
-                    labels: profile.ratingsTrend.map((p) => new Date(p.date).toLocaleDateString()),
-                    datasets: [
-                      {
-                        label: "Prosek ocena",
-                        data: profile.ratingsTrend.map((p) => p.avg ?? 0),
-                        fill: true,
-                        backgroundColor: "rgba(250, 204, 21, 0.20)", // yellow-400 @ 20%
-                        borderColor: "#EAB308", // yellow-500
-                        tension: 0.35,
-                        pointRadius: 3,
-                      },
-                    ],
-                  }} options={chartOptions} />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-gray-400">No data yet</div>
-                )}
+          {/* Content grid */}
+          <div className="grid gap-8 grid-cols-1 lg:grid-cols-5">
+            {/* Left: Week schedule */}
+            <div
+              className="lg:col-span-3 opacity-0 animate-fade-in-up stagger-4"
+              style={{ animationFillMode: "forwards" }}
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-1 h-6 bg-gradient-to-b from-amber-400 to-amber-500 rounded-full" />
+                <div>
+                  <h2 className="text-xl font-bold text-white">WEEKLY SCHEDULE</h2>
+                  <p className="text-slate-500 text-xs uppercase tracking-widest">{weekLabel}</p>
+                </div>
               </div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {history.length ? (
-                  history.map((h) => {
-                    const d = new Date(h.date);
-                    return (
-                      <div key={h.id} className="py-3 flex items-center justify-between">
-                        <div>
-                          <div className="font-medium text-gray-900">{h.programTitle}</div>
-                          <div className="text-sm text-gray-500">
-                            {h.trainerName} • {d.toLocaleDateString()} {d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {h.rating != null ? `Rating: ${h.rating}/10` : '—'}
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="py-12 text-center text-gray-400">No recent sessions</div>
-                )}
+
+              <div className="bg-[#0a0a0f]">
+                <WeeklyCards
+                  weekStart={weekStart}
+                  items={events}
+                  onCancel={handleCancel}
+                  onDetails={handleDetails}
+                />
               </div>
-            )}
+            </div>
+
+            {/* Right: Progress / Recent */}
+            <div
+              className="lg:col-span-2 opacity-0 animate-fade-in-up stagger-5"
+              style={{ animationFillMode: "forwards" }}
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-1 h-6 bg-gradient-to-b from-cyan-400 to-cyan-500 rounded-full" />
+                <h2 className="text-xl font-bold text-white">
+                  {tab === "progress" ? "PROGRESS" : "RECENT"}
+                </h2>
+              </div>
+
+              <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-5 shadow-[0_30px_90px_rgba(0,0,0,0.55)]">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-semibold text-white">
+                    {tab === "progress" ? "Ratings trend" : "Recent sessions"}
+                  </div>
+
+                  <div className="inline-flex rounded-xl bg-black/40 border border-white/5 p-1">
+                    <button
+                      onClick={() => setTab("progress")}
+                      className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
+                        tab === "progress"
+                          ? "bg-white/5 text-amber-400 border border-amber-400/20"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      Progress
+                    </button>
+                    <button
+                      onClick={() => setTab("recent")}
+                      className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
+                        tab === "recent"
+                          ? "bg-white/5 text-amber-400 border border-amber-400/20"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      Recent
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  {loadingMeta ? (
+                    <div className="h-64 rounded-2xl border border-white/5 bg-black/30 animate-pulse" />
+                  ) : tab === "progress" ? (
+                    <div className="h-64">
+                      {profile?.ratingsTrend?.length ? (
+                        <Line
+                          data={{
+                            labels: profile.ratingsTrend.map((p) =>
+                              new Date(p.date).toLocaleDateString()
+                            ),
+                            datasets: [
+                              {
+                                label: "Avg rating",
+                                data: profile.ratingsTrend.map((p) => p.avg ?? 0),
+                                fill: true,
+                                backgroundColor: "rgba(251, 191, 36, 0.16)",
+                                borderColor: "rgba(251, 191, 36, 0.95)",
+                                tension: 0.35,
+                                pointRadius: 3,
+                              },
+                            ],
+                          }}
+                          options={chartOptions}
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-slate-500">
+                          No data yet
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-white/5">
+                      {history.length ? (
+                        history.map((h) => {
+                          const d = new Date(h.date);
+                          return (
+                            <div key={h.id} className="py-3 flex items-start justify-between gap-4">
+                              <div className="min-w-0">
+                                <div className="font-semibold text-white truncate">
+                                  {h.programTitle}
+                                </div>
+                                <div className="text-xs text-slate-500 mt-1">
+                                  {h.trainerName} •{" "}
+                                  {d.toLocaleDateString()}{" "}
+                                  {d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                </div>
+                              </div>
+                              <div className="text-xs text-slate-400 whitespace-nowrap">
+                                {h.rating != null ? `Rating: ${h.rating}/10` : "—"}
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="py-12 text-center text-slate-500">No recent sessions</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
+
+          <TermDetailsModal open={detailsOpen} onClose={() => setDetailsOpen(false)} data={details} />
         </div>
       </div>
-
-      <TermDetailsModal
-        open={detailsOpen}
-        onClose={() => setDetailsOpen(false)}
-        data={details}
-      />
     </div>
   );
 }

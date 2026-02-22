@@ -1,66 +1,143 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import Brand from "../components/common/Brand";
 import { useAuth } from "../hooks/auth/useAuthHook";
-import { LayoutDashboard, CalendarDays, ListChecks, UserRound } from "lucide-react";
+import { 
+  LayoutDashboard, 
+  CalendarDays, 
+  ListChecks, 
+  UserRound, 
+  LogOut, 
+  Menu, 
+  X, 
+  ChevronRight 
+} from "lucide-react";
+import { useState, useEffect } from "react";
 
-const linkBase = "inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition";
-const linkActive = "text-yellow-300 ring-1 ring-yellow-400/60 bg-yellow-400/10";
-const linkIdle = "text-gray-300 hover:text-yellow-300 hover:bg-yellow-400/5";
+const linkBase =
+  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200";
+const linkActive = "bg-amber-400/10 text-amber-400";
+const linkIdle = "text-slate-400 hover:text-white hover:bg-white/5";
 
 export default function ClientLayout() {
-  const links = [
-    { to: "/app/dashboard", label: "Dashboard" },
-    { to: "/app/sessions", label: "Sessions" },
-    { to: "/app/programs", label: "Programs" },
-    { to: "/app/profile", label: "My Profile" },
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const closeMenu = () => setIsMenuOpen(false);
+
+  const doLogout = () => {
+    closeMenu();
+    logout();
+    navigate("/login", { replace: true });
+  };
+
+  useEffect(() => {
+    if (isMenuOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "unset";
+  }, [isMenuOpen]);
+
+  const nav = [
+    { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/app/sessions", label: "Sessions", icon: CalendarDays },
+    { to: "/app/programs", label: "Programs", icon: ListChecks },
+    { to: "/app/profile", label: "Profile", icon: UserRound },
   ];
 
-  const { logout, user } = useAuth();
-  const navigate = useNavigate();
-  const doLogout = () => { logout(); navigate("/login", { replace: true }); };
-
   return (
-    <div className="bg-black min-h-screen text-white">
-      <header className="sticky top-0 z-40 bg-black border-b border-yellow-400/70">
-        <div className="max-w-7xl mx-auto h-16 px-4 flex items-center justify-between">
-          <Brand text="FitTrack • Client" />
-          <nav className="hidden sm:flex items-center gap-2">
-            {links.map(l => (
-              <NavLink key={l.to} to={l.to} className={({isActive})=> `${linkBase} ${isActive?linkActive:linkIdle}`}>
-                {l.label}
-              </NavLink>
-            ))}
-          </nav>
-          <div className="flex items-center gap-3">
-            <span className="hidden md:block text-sm text-gray-300">{user?.korisnickoIme}</span>
-            <button onClick={doLogout} className="px-3 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-500/90 text-black font-semibold">Logout</button>
+    <div className="min-h-screen bg-[#0a0a0f] text-white selection:bg-amber-400 selection:text-black">
+      {/* TOP NAV */}
+      <header className="fixed top-0 left-0 right-0 z-[100] glass">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-3">
+              <Brand text="FitTrack" />
+            </div>
+
+            <nav className="hidden md:flex items-center gap-1">
+              {nav.map((l) => (
+                <NavLink
+                  key={l.to}
+                  to={l.to}
+                  className={({ isActive }) =>
+                    `${linkBase} ${isActive ? linkActive : linkIdle}`
+                  }
+                >
+                  <l.icon className="w-4 h-4" />
+                  {l.label.toUpperCase()}
+                </NavLink>
+              ))}
+            </nav>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={doLogout}
+                className="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                LOGOUT
+              </button>
+
+              {/* HAMBURGER DUGME */}
+              <button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="md:hidden p-2 rounded-lg bg-white/5 border border-[#27273a] text-slate-400"
+              >
+                {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20">
-        <Outlet />
-      </main>
+      {/* MOBILE MENU OVERLAY */}
+      <div className={`
+        fixed inset-0 z-[90] md:hidden bg-[#0a0a0f] transition-all duration-500 ease-in-out
+        ${isMenuOpen ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}
+      `}>
+        <div className="flex flex-col h-full pt-24 pb-10 px-6">
+          <div className="flex flex-col gap-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 ml-4 mb-2">Member Menu</p>
+            {nav.map((l) => (
+              <NavLink
+                key={l.to}
+                to={l.to}
+                onClick={closeMenu}
+                className={({ isActive }) => `
+                  flex items-center justify-between px-6 py-4 rounded-2xl transition-all
+                  ${isActive ? "bg-amber-400/10 text-amber-400 border border-amber-400/20" : "text-slate-400 border border-transparent"}
+                `}
+              >
+                {({ isActive }) => (
+                  <>
+                    <div className="flex items-center gap-4 text-lg font-bold">
+                      <l.icon size={20} />
+                      {l.label.toUpperCase()}
+                    </div>
+                    <ChevronRight size={18} className={isActive ? "opacity-100" : "opacity-20"} />
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </div>
 
-      {/* Bottom nav (mobile) */}
-      <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-black/90 border-t border-yellow-400/50">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid grid-cols-4">
-            <NavLink to="/app/dashboard" className={({isActive}) => `flex flex-col items-center justify-center py-2 ${isActive ? "text-yellow-300" : "text-gray-300"}`}>
-              <LayoutDashboard className="h-5 w-5" /><span className="text-[11px]">Home</span>
-            </NavLink>
-            <NavLink to="/app/sessions" className={({isActive}) => `flex flex-col items-center justify-center py-2 ${isActive ? "text-yellow-300" : "text-gray-300"}`}>
-              <CalendarDays className="h-5 w-5" /><span className="text-[11px]">Sessions</span>
-            </NavLink>
-            <NavLink to="/app/programs" className={({isActive}) => `flex flex-col items-center justify-center py-2 ${isActive ? "text-yellow-300" : "text-gray-300"}`}>
-              <ListChecks className="h-5 w-5" /><span className="text-[11px]">Programs</span>
-            </NavLink>
-            <NavLink to="/app/profile" className={({isActive}) => `flex flex-col items-center justify-center py-2 ${isActive ? "text-yellow-300" : "text-gray-300"}`}>
-              <UserRound className="h-5 w-5" /><span className="text-[11px]">Profile</span>
-            </NavLink>
+          <div className="mt-auto">
+            <button
+              onClick={doLogout}
+              className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-500 font-bold uppercase tracking-widest"
+            >
+              <LogOut size={18} />
+              Sign Out
+            </button>
           </div>
         </div>
-      </nav>
+      </div>
+
+      {/* PAGE CONTENT */}
+      <main className="pt-20 pb-32 sm:pb-12 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 }

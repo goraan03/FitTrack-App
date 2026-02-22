@@ -40,12 +40,15 @@ import TrainerTermsPage from "./pages/trainer/TrainerTermsPage";
 import TrainerClientsPage from "./pages/trainer/TrainerClientsPage";
 import AdminInvoicesPage from "./pages/admin/AdminInvoicesPage";
 
-// NOVO
 import PublicLayout from "./layouts/PublicLayout";
 import AboutPage from "./pages/landing/AboutPage";
 import GuidePage from "./pages/landing/GuidePage";
 import ContactPage from "./pages/landing/ContactPage";
 import LiveWorkoutPage from "./pages/trainer/LiveWorkoutPage";
+
+import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
+import TermsOfServicePage from "./pages/legal/TermsOfServicePage";
+import CookiePolicyPage from "./pages/legal/CookiePolicyPage";
 
 export default function App() {
   return (
@@ -57,6 +60,9 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/guide" element={<GuidePage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsOfServicePage />} />
+          <Route path="/cookies" element={<CookiePolicyPage />} />
         </Route>
 
         {/* Legacy redirects */}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Exercise, UpsertExercise, MuscleGroup, Equipment, Level } from "../../types/trainer/Exercise";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
 import { Plus, Dumbbell, Edit3, Trash2, Video, Activity, X, Save, Search } from "lucide-react";
@@ -29,13 +29,19 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
 
   useEffect(()=> { load(); }, []);
 
-  const filteredItems = items.filter(ex => 
-    ex.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ex.muscleGroup.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter(ex =>
+      ex.name.toLowerCase().includes(q) ||
+      ex.muscleGroup.toLowerCase().includes(q) ||
+      (ex.equipment || "").toLowerCase().includes(q) ||
+      (ex.level || "").toLowerCase().includes(q)
+    );
+  }, [items, searchTerm]);
 
   const openNew = () => setModal({ open: true, data: { name: '', description: '', muscleGroup: 'full_body', equipment: 'none', level: 'beginner', videoUrl: '' } });
-  
+
   const openEdit = (ex: Exercise) => setModal({
     open: true,
     editId: ex.id,
@@ -53,16 +59,16 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
     const { editId, data } = modal;
     if (!data.name?.trim()) return toast.error('Name is required');
     try {
-      const r = editId 
+      const r = editId
         ? await trainerApi.updateExercise(editId, data)
         : await trainerApi.createExercise(data);
-      
+
       if (!r.success) return toast.error(r.message);
-      
+
       toast.success(editId ? 'Exercise updated' : 'Exercise created');
       setModal({ open: false, data: modal.data });
       await load();
-    } catch (e: any) {
+    } catch {
       toast.error('Operation failed');
     }
   };
@@ -74,208 +80,309 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
       if (!r.success) return toast.error(r.message);
       toast.success('Deleted successfully');
       await load();
-    } catch (e: any) {
+    } catch {
       toast.error('Delete failed');
     }
   };
 
   const LevelBadge = ({ level }: { level: Level }) => {
     const styles: Record<Level, string> = {
-      beginner: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-      intermediate: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-      advanced: "bg-rose-500/10 text-rose-500 border-rose-500/20",
+      beginner: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20",
+      intermediate: "bg-amber-400/10 text-amber-400 border-amber-400/20",
+      advanced: "bg-rose-400/10 text-rose-400 border-rose-400/20",
     };
     return (
-      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border ${styles[level]}`}>
+      <span className={`text-[10px] font-semibold uppercase px-2.5 py-1 rounded-md border ${styles[level]}`}>
         {level}
       </span>
     );
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-gray-100 selection:bg-yellow-400 selection:text-black font-sans pb-20">
-      {/* Background Glow */}
-      <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-yellow-500/10 to-transparent pointer-events-none" />
+    <div className="text-white">
+      <div className="fixed top-0 left-0 right-0 h-[420px] bg-gradient-to-b from-amber-400/5 via-amber-400/0 to-transparent pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-8">
-        
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#161616] p-6 rounded-3xl border border-white/5 shadow-2xl">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-white/5 rounded-2xl">
-              <Dumbbell className="w-8 h-8 text-yellow-400" />
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10 opacity-0 animate-fade-in-up">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-[#111118] border border-[#27273a] flex items-center justify-center">
+              <Dumbbell className="w-6 h-6 text-amber-400" />
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-white uppercase">
-                Exercise <span className="text-yellow-400">Library</span>
+              <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
+                EXERCISE <span className="text-amber-400">LIBRARY</span>
               </h1>
-              <p className="text-gray-400 text-sm mt-1 uppercase tracking-widest font-medium">Manage your workout movements</p>
+              <p className="text-slate-400 text-sm tracking-wide uppercase">
+                Manage your workout movements
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="relative hidden sm:block">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-              <input 
+          {/* Search + CTA */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto">
+            <div className="relative w-full sm:w-[320px]">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search exercises..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-black/40 border border-white/5 rounded-2xl py-2.5 pl-11 pr-4 text-sm focus:border-yellow-400/50 outline-none transition-all w-64 font-bold"
+                className="
+                  w-full bg-[#111118] border border-[#27273a] rounded-xl
+                  py-3 pl-11 pr-4 text-sm text-white
+                  placeholder:text-slate-500
+                  focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                "
               />
             </div>
-            <button 
-              onClick={openNew} 
-              className="px-6 py-3 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-black font-black text-xs uppercase tracking-widest transition-transform active:scale-95 shadow-xl shadow-yellow-400/10 flex items-center gap-2"
+
+            <button
+              onClick={openNew}
+              className="
+                w-full sm:w-auto
+                px-5 py-3 rounded-xl
+                btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600
+                text-[#0a0a0f] font-semibold
+                transition-all active:scale-[0.99]
+                flex items-center justify-center gap-2
+              "
             >
-              <Plus className="w-4 h-4" /> New Exercise
+              <Plus className="w-4 h-4" />
+              NEW EXERCISE
             </button>
           </div>
         </div>
 
-        {/* CONTENT GRID */}
+        {/* Content */}
         {loading ? (
-          <div className="flex justify-center pt-20">
-             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
+          <div className="flex flex-col items-center justify-center h-64 space-y-4">
+            <div className="w-10 h-10 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
+            <p className="text-slate-500 uppercase tracking-wide text-sm font-semibold">Loading...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredItems.map(ex => (
-              <div key={ex.id} className="group bg-[#161616] border border-white/5 rounded-3xl p-6 hover:border-white/10 transition-all shadow-xl relative overflow-hidden">
-                <div className="relative z-10 space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="p-2 bg-white/5 rounded-xl group-hover:scale-110 transition-transform">
-                      <Activity className="w-5 h-5 text-yellow-400" />
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredItems.map((ex) => (
+                <div
+                  key={ex.id}
+                  className="
+                    bg-[#111118] border border-[#27273a] rounded-2xl p-6
+                    shadow-[0_18px_60px_rgba(0,0,0,0.35)]
+                    card-hover
+                    opacity-0 animate-fade-in-up
+                  "
+                  style={{ animationFillMode: "forwards" }}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-11 h-11 rounded-xl bg-[#0a0a0f] border border-[#27273a] flex items-center justify-center">
+                      <Activity className="w-5 h-5 text-amber-400" />
                     </div>
+
                     <LevelBadge level={ex.level} />
                   </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-black text-white uppercase tracking-tight truncate">{ex.name}</h3>
-                    <p className="text-[10px] font-black uppercase text-gray-500 mt-1 tracking-widest">
-                      {ex.muscleGroup.replace('_', ' ')} • {ex.equipment}
+
+                  <div className="mb-3">
+                    <h3 className="text-lg font-semibold text-white truncate">
+                      {ex.name}
+                    </h3>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide mt-1">
+                      {ex.muscleGroup.replace("_", " ")} • {ex.equipment}
                     </p>
                   </div>
 
-                  {ex.description && (
-                    <p className="text-sm text-gray-400 line-clamp-2 min-h-[40px] leading-relaxed">
+                  {ex.description ? (
+                    <p className="text-sm text-slate-300/80 leading-relaxed line-clamp-3 min-h-[60px]">
                       {ex.description}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-slate-500 italic min-h-[60px]">
+                      No description
                     </p>
                   )}
 
-                  <div className="pt-4 flex items-center gap-2 border-t border-white/5">
-                    <button 
-                      onClick={()=> openEdit(ex)} 
-                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-black uppercase tracking-widest transition-all"
+                  <div className="mt-5 pt-5 border-t border-white/5 flex items-center gap-2">
+                    <button
+                      onClick={() => openEdit(ex)}
+                      className="
+                        flex-1 flex items-center justify-center gap-2
+                        py-3 rounded-xl bg-white/5 hover:bg-white/10
+                        text-white text-xs font-semibold uppercase tracking-wider
+                        transition-all
+                      "
                     >
-                      <Edit3 className="w-3.5 h-3.5" /> Edit
+                      <Edit3 className="w-4 h-4" />
+                      Edit
                     </button>
-                    <button 
-                      onClick={()=> del(ex.id)} 
-                      className="px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white text-xs font-black transition-all"
+
+                    <button
+                      onClick={() => del(ex.id)}
+                      className="
+                        w-12 h-12 rounded-xl
+                        border border-rose-500/20
+                        bg-rose-500/10 hover:bg-rose-500 hover:text-white
+                        text-rose-400
+                        flex items-center justify-center
+                        transition-all
+                      "
+                      title="Delete"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
-              </div>
-            ))}
-            
-            {filteredItems.length === 0 && (
-              <div className="col-span-full py-20 text-center bg-[#161616] rounded-3xl border border-dashed border-white/10 opacity-30">
-                <Dumbbell className="w-12 h-12 mx-auto mb-4" />
-                <p className="font-black uppercase tracking-widest text-sm">No exercises found</p>
-              </div>
-            )}
-          </div>
+              ))}
+
+              {filteredItems.length === 0 && (
+                <div className="col-span-full">
+                  <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-10 text-center opacity-80">
+                    <Dumbbell className="w-12 h-12 mx-auto mb-4 text-slate-500" />
+                    <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">
+                      No exercises found
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* bottom spacing for mobile dock */}
+            <div className="h-10 md:h-0" />
+          </>
         )}
       </div>
 
       {/* MODAL */}
       {modal.open && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-[#161616] border border-white/10 rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in duration-200">
-            <div className="p-8 border-b border-white/5 flex items-center justify-between">
-              <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-                <Activity className="w-6 h-6 text-yellow-400" />
-                {modal.editId ? 'Edit' : 'New'} <span className="text-yellow-400">Exercise</span>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl border border-[#27273a] bg-[#111118] shadow-[0_30px_100px_rgba(0,0,0,0.85)] overflow-hidden">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-3">
+                <span className="w-10 h-10 rounded-xl bg-[#0a0a0f] border border-[#27273a] flex items-center justify-center">
+                  <Activity className="w-5 h-5 text-amber-400" />
+                </span>
+                {modal.editId ? "Edit" : "New"} <span className="text-amber-400">exercise</span>
               </h3>
-              <button onClick={()=> setModal(m=> ({...m, open:false}))} className="text-gray-500 hover:text-white transition-colors">
-                <X className="w-6 h-6" />
+
+              <button
+                onClick={() => setModal((m) => ({ ...m, open: false }))}
+                className="w-10 h-10 rounded-xl border border-[#27273a] text-slate-400 hover:text-white hover:bg-white/5 transition"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5 mx-auto" />
               </button>
             </div>
-            
-            <div className="p-8 space-y-6">
+
+            <div className="p-6 space-y-5">
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Exercise Name</label>
-                <input 
-                  value={modal.data.name} 
-                  onChange={(e)=> setModal(m=> ({...m, data:{...m.data, name: e.target.value}}))} 
-                  className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-yellow-400/50 outline-none font-bold"
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
+                  Exercise name
+                </label>
+                <input
+                  value={modal.data.name}
+                  onChange={(e) => setModal((m) => ({ ...m, data: { ...m.data, name: e.target.value } }))}
+                  className="
+                    w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-white
+                    focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                  "
                   placeholder="e.g. Bench Press"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Description</label>
-                <textarea 
-                  value={modal.data.description || ''} 
-                  onChange={(e)=> setModal(m=> ({...m, data:{...m.data, description: e.target.value}}))} 
-                  className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white min-h-[100px] outline-none transition-all"
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
+                  Description
+                </label>
+                <textarea
+                  value={modal.data.description || ""}
+                  onChange={(e) => setModal((m) => ({ ...m, data: { ...m.data, description: e.target.value } }))}
+                  className="
+                    w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-white min-h-[110px]
+                    focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                  "
                   placeholder="Technique cues..."
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black uppercase text-gray-500 ml-1">Muscle</label>
-                  <select 
-                    value={modal.data.muscleGroup} 
-                    onChange={(e)=> setModal(m=> ({...m, data:{...m.data, muscleGroup: e.target.value as any}}))} 
-                    className="w-full bg-black border border-white/10 rounded-xl p-3 text-xs text-white outline-none font-bold appearance-none cursor-pointer"
+                  <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
+                    Muscle
+                  </label>
+                  <select
+                    value={modal.data.muscleGroup}
+                    onChange={(e) => setModal((m) => ({ ...m, data: { ...m.data, muscleGroup: e.target.value as any } }))}
+                    className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl p-3 text-sm text-white outline-none"
                   >
-                    {groups.map(g=> <option key={g} value={g}>{g.replace('_', ' ')}</option>)}
+                    {groups.map((g) => (
+                      <option key={g} value={g}>
+                        {g.replace("_", " ")}
+                      </option>
+                    ))}
                   </select>
                 </div>
+
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black uppercase text-gray-500 ml-1">Equipment</label>
-                  <select 
-                    value={modal.data.equipment || 'none'} 
-                    onChange={(e)=> setModal(m=> ({...m, data:{...m.data, equipment: e.target.value as any}}))} 
-                    className="w-full bg-black border border-white/10 rounded-xl p-3 text-xs text-white outline-none font-bold appearance-none cursor-pointer"
+                  <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
+                    Equipment
+                  </label>
+                  <select
+                    value={modal.data.equipment || "none"}
+                    onChange={(e) => setModal((m) => ({ ...m, data: { ...m.data, equipment: e.target.value as any } }))}
+                    className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl p-3 text-sm text-white outline-none"
                   >
-                    {equipments.map(g=> <option key={g} value={g}>{g}</option>)}
+                    {equipments.map((g) => (
+                      <option key={g} value={g}>
+                        {g}
+                      </option>
+                    ))}
                   </select>
                 </div>
+
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black uppercase text-gray-500 ml-1">Level</label>
-                  <select 
-                    value={modal.data.level || 'beginner'} 
-                    onChange={(e)=> setModal(m=> ({...m, data:{...m.data, level: e.target.value as any}}))} 
-                    className="w-full bg-black border border-white/10 rounded-xl p-3 text-xs text-white outline-none font-bold appearance-none cursor-pointer"
+                  <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
+                    Level
+                  </label>
+                  <select
+                    value={modal.data.level || "beginner"}
+                    onChange={(e) => setModal((m) => ({ ...m, data: { ...m.data, level: e.target.value as any } }))}
+                    className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl p-3 text-sm text-white outline-none"
                   >
-                    {levels.map(l=> <option key={l} value={l}>{l}</option>)}
+                    {levels.map((l) => (
+                      <option key={l} value={l}>
+                        {l}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-2">
-                  <Video className="w-3 h-3" /> Video URL
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                  <Video className="w-3.5 h-3.5" /> Video URL
                 </label>
-                <input 
-                  value={modal.data.videoUrl || ''} 
-                  onChange={(e)=> setModal(m=> ({...m, data:{...m.data, videoUrl: e.target.value}}))} 
-                  className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-yellow-400/50 outline-none font-bold"
+                <input
+                  value={modal.data.videoUrl || ""}
+                  onChange={(e) => setModal((m) => ({ ...m, data: { ...m.data, videoUrl: e.target.value } }))}
+                  className="
+                    w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-white
+                    focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                  "
                   placeholder="https://youtube.com/..."
                 />
               </div>
 
-              <button 
-                onClick={save} 
-                className="w-full py-4 bg-yellow-400 hover:bg-yellow-500 text-black font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-yellow-400/20 active:scale-95 flex items-center justify-center gap-2"
+              <button
+                onClick={save}
+                className="
+                  w-full py-3 rounded-xl
+                  btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600
+                  text-[#0a0a0f] font-semibold
+                  transition-all active:scale-[0.99]
+                  flex items-center justify-center gap-2
+                "
               >
-                <Save className="w-4 h-4" /> Save Exercise
+                <Save className="w-4 h-4" />
+                SAVE EXERCISE
               </button>
             </div>
           </div>

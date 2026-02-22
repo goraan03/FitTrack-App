@@ -1,127 +1,106 @@
 import { format } from "date-fns";
 import type { WeeklyCardItem } from "../../models/client/WeeklyCardItem";
 import { toDate } from "../../helpers/client/toDate";
-import { Calendar, Info, XCircle, CheckCircle2 } from "lucide-react";
+import { Calendar, XCircle, CheckCircle2, MoreVertical } from "lucide-react";
 
-type Props = { 
-  weekStart: Date; 
-  items: WeeklyCardItem[]; 
-  onCancel?: (id: number) => void; 
+type Props = {
+  weekStart: Date;
+  items: WeeklyCardItem[];
+  onCancel?: (id: number) => void;
   onDetails?: (id: number) => void;
   isTrainer?: boolean;
 };
 
-export default function WeeklyCards({ weekStart, items, onCancel, onDetails, isTrainer }: Props) {
-  const sorted = [...items].sort((a, b) => toDate(weekStart, a.day, a.start).getTime() - toDate(weekStart, b.day, b.start).getTime());
+export default function WeeklyCards({ weekStart, items, onCancel, onDetails }: Props) {
+  const sorted = [...items].sort(
+    (a, b) => toDate(weekStart, a.day, a.start).getTime() - toDate(weekStart, b.day, b.start).getTime()
+  );
 
   if (sorted.length === 0) {
     return (
-      <div className="p-12 text-center">
-        <div className="inline-flex p-5 rounded-full bg-white/5 mb-4 text-gray-600">
-          <Calendar className="w-10 h-10" />
+      <div className="bg-[#111118] rounded-2xl p-10 border border-[#27273a] text-center shadow-xl">
+        <div className="inline-flex p-4 rounded-full bg-[#0a0a0f] border border-[#27273a] mb-4 text-slate-500">
+          <Calendar className="w-8 h-8" />
         </div>
-        <div className="text-gray-400 font-medium">Nema zakazanih termina za ovu sedmicu.</div>
+        <div className="text-slate-400 font-medium">No scheduled sessions for this week.</div>
       </div>
     );
   }
 
   return (
-    <div className="p-2 space-y-2">
+    <div className="space-y-4">
       {sorted.map((it) => {
         const s = toDate(weekStart, it.day, it.start);
         const e = toDate(weekStart, it.day, it.end);
-        const dayLabel = format(s, "EEE");
+        const dayLabel = format(s, "EEE").toUpperCase();
         const dateNum = format(s, "d");
         const timeRange = `${format(s, "HH:mm")} – ${format(e, "HH:mm")}`;
+        const isGroup = it.type === "group";
 
         return (
-          <div 
-            key={it.id} 
-            className={`group relative flex items-center justify-between gap-4 p-4 rounded-2xl border transition-all ${
-              it.completed 
-                ? 'bg-green-500/10 border-green-500/30' 
-                : 'bg-[#1d1d1d]/50 hover:bg-white/5 border-transparent hover:border-white/10'
-            }`}
+          <div
+            key={it.id}
+            className={`
+              relative flex items-center gap-3 sm:gap-5 p-4 sm:p-5 
+              bg-[#111118] rounded-2xl border border-[#27273a] 
+              transition-all duration-300 hover:border-white/10
+              ${it.completed ? "opacity-90" : ""}
+            `}
           >
-            <div className="flex items-center gap-5">
-              {/* Date Badge */}
-              <div className={`flex flex-col items-center justify-center min-w-[56px] h-[56px] rounded-2xl transition-colors duration-300 ${
-                it.completed
-                  ? 'bg-green-500/20'
-                  : 'bg-[#262626] group-hover:bg-yellow-400'
-              }`}>
-                <span className={`text-[10px] font-black uppercase tracking-tighter leading-none mb-1 ${
-                  it.completed 
-                    ? 'text-green-400'
-                    : 'text-gray-500 group-hover:text-black/60'
-                }`}>
-                  {dayLabel}
-                </span>
-                <span className={`text-xl font-black leading-none ${
-                  it.completed
-                    ? 'text-green-400'
-                    : 'text-white group-hover:text-black'
-                }`}>
-                  {dateNum}
-                </span>
-              </div>
+            <div className={`absolute left-0 top-4 bottom-4 w-1 rounded-r-full ${
+              it.completed ? "bg-emerald-500" : isGroup ? "bg-cyan-400" : "bg-amber-400"
+            }`} />
 
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                  <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest shadow-sm ${
-                    it.type === "group" ? "bg-yellow-400/20 text-yellow-400" : "bg-blue-400/20 text-blue-400"
-                  }`}>
-                    {it.type}
-                  </span>
-                  <span className="text-[11px] text-gray-500 font-bold uppercase tracking-tight">{timeRange}</span>
-                  
-                  {/* ✅ COMPLETED BADGE */}
-                  {it.completed && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-500/20 text-green-400 rounded-md text-[9px] font-black uppercase tracking-widest">
-                      <CheckCircle2 className="h-3 w-3" />
-                      Završeno
-                    </span>
-                  )}
-                </div>
-                <div className={`text-base font-bold truncate transition-colors ${
-                  it.completed 
-                    ? 'text-green-400'
-                    : 'text-white group-hover:text-yellow-400'
-                }`}>
-                  {it.title}
-                </div>
-              </div>
+            {/* DATE BOX */}
+            <div className="flex flex-col items-center justify-center min-w-[50px] sm:min-w-[56px] h-14 bg-[#0a0a0f] rounded-xl border border-[#27273a] shrink-0">
+              <span className="text-[10px] text-slate-500 font-black uppercase tracking-tighter">{dayLabel}</span>
+              <span className="text-lg font-black text-white leading-none">{dateNum}</span>
             </div>
 
-            <div className="flex items-center gap-2">
-              {/* ✅ COMPLETED STATE (za trenera) */}
-              {isTrainer && it.completed && (
-                <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-green-500/20 border border-green-500/30">
-                  <CheckCircle2 className="h-5 w-5 text-green-400" />
-                  <span className="text-sm font-bold text-green-400">Završeno</span>
+            {/* CONTENT */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`
+                  text-[9px] font-black uppercase px-2 py-0.5 rounded-md border
+                  ${isGroup ? "bg-cyan-400/10 text-cyan-400 border-cyan-400/20" : "bg-amber-400/10 text-amber-400 border-amber-400/20"}
+                `}>
+                  {isGroup ? "GROUP" : "INDIVIDUAL"}
+                </span>
+                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-tight">
+                  {timeRange}
+                </span>
+              </div>
+              <h3 className="text-sm sm:text-base font-bold text-white truncate uppercase tracking-tight">
+                {it.title}
+              </h3>
+            </div>
+
+            {/* ACTIONS & STATUS */}
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              {it.completed && (
+                <div className="p-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-lg">
+                  <CheckCircle2 className="w-4 h-4" />
                 </div>
               )}
 
-              {/* Details button */}
-              <button 
-                onClick={() => onDetails?.(it.id)} 
-                className="p-2.5 rounded-xl bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
-                title="Detalji"
-              >
-                <Info className="w-5 h-5" />
-              </button>
-
-              {/* Cancel button (samo ako nije completed) */}
-              {!it.completed && (
+              {/* CANCEL BUTTON */}
+              {!it.completed && it.cancellable && (
                 <button
-                  onClick={() => it.cancellable && onCancel?.(it.id)}
-                  disabled={!it.cancellable}
-                  className="p-2.5 rounded-xl border border-red-500/20 text-red-500/50 hover:bg-red-500 hover:text-white disabled:opacity-10 transition-all"
-                  title="Otkaži termin"
+                  onClick={() => onCancel?.(it.id)}
+                  className="p-2 rounded-lg border border-red-500/20 text-red-500/60 hover:bg-red-500 hover:text-white transition-all"
+                  title="Cancel"
                 >
-                  <XCircle className="w-5 h-5" />
+                  <XCircle className="w-4 h-4" />
                 </button>
               )}
+
+              {/* MORE/DETAILS */}
+              <button
+                onClick={() => onDetails?.(it.id)}
+                className="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+              >
+                <MoreVertical className="w-5 h-5" />
+              </button>
             </div>
           </div>
         );

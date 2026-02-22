@@ -68,10 +68,10 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
   const cancelTerm = async (id: number) => {
     try {
       const res = await trainerApi.cancelTerm(id);
-      if (!res.success) { toast.error(res.message || "Error canceling"); return; }
+      if (!res.success) { toast.error(res.message || "Error canceling session"); return; }
       await load();
       toast.success("Session canceled");
-    } catch (e: any) { toast.error(e?.message || "Cancelation failed"); }
+    } catch (e: any) { toast.error(e?.message || "Cancellation failed"); }
   };
 
   const openDetails = (id: number) => {
@@ -79,7 +79,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
     if (!ev) return;
     const start = toDate(weekStart, ev.day, ev.start);
     const end = toDate(weekStart, ev.day, ev.end);
-    setDetails({ open: true, data: { id: ev.id, title: ev.title, startAt: start.toISOString(), endAt: end.toISOString(), type: ev.type } });
+    setDetails({ open: true, data: { id: ev.id, title: ev.title, startAt: start.toISOString(), endAt: end.toISOString(), type: ev.type, completed: ev.completed, } });
   };
 
   const handleDeleteTerm = async (id: number) => {
@@ -92,142 +92,158 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
-      {/* Background Gradient */}
-      <div className="fixed top-0 left-0 w-full h-[500px] bg-gradient-to-b from-yellow-500/5 via-yellow-500/0 to-transparent pointer-events-none" />
+    <div className="min-h-screen bg-[#0a0a0f] text-white">
+      <div className="fixed top-0 left-0 right-0 h-[420px] bg-gradient-to-b from-amber-400/5 via-amber-400/0 to-transparent pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-gradient-to-br from-[#1a1a1a] to-[#161616] p-6 rounded-2xl border border-white/5 shadow-2xl">
-          <div>
-            <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-white uppercase">
-              TRAINER <span className="text-yellow-400">DASHBOARD</span>
-            </h1>
-            <p className="text-gray-400 text-sm mt-1.5 uppercase tracking-wider font-medium">
-              Manage your sessions
-            </p>
-          </div>
-          <WeekSwitcher weekStart={weekStart} onChange={setWeekStart} />
-        </div>
-
-        {loading ? (
-          <div className="flex flex-col items-center justify-center h-64 space-y-4">
-            <div className="w-12 h-12 border-4 border-yellow-400/20 border-t-yellow-400 rounded-full animate-spin" />
-            <p className="text-gray-500 animate-pulse uppercase tracking-wide text-sm font-semibold">Loading...</p>
-          </div>
-        ) : (
-          <>
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { 
-                  label: "SESSIONS", 
-                  value: stats?.totalTerms, 
-                  icon: <Activity className="w-7 h-7 text-yellow-400" />, 
-                  sub: "This week",
-                  gradient: "from-yellow-500/10 to-yellow-600/5"
-                },
-                { 
-                  label: "HOURS", 
-                  value: stats?.scheduledHours?.toFixed(1), 
-                  icon: <Clock className="w-7 h-7 text-blue-400" />, 
-                  sub: "Total scheduled",
-                  gradient: "from-blue-500/10 to-blue-600/5"
-                },
-                { 
-                  label: "CLIENTS", 
-                  value: stats?.enrolledThisWeek, 
-                  icon: <Users className="w-7 h-7 text-green-400" />, 
-                  sub: "Active participants",
-                  gradient: "from-green-500/10 to-green-600/5"
-                }
-              ].map((s, idx) => (
-                <div 
-                  key={idx} 
-                  className="group relative bg-gradient-to-br from-[#1d1d1d] to-[#161616] border border-white/5 p-6 rounded-2xl hover:border-white/20 transition-all overflow-hidden"
-                >
-                  {/* Background Gradient */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${s.gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
-                  
-                  <div className="relative flex items-start justify-between">
-                    <div className="p-3 bg-white/5 rounded-xl group-hover:scale-110 transition-transform">
-                      {s.icon}
-                    </div>
-                    <div className="text-right">
-                      <p className="text-gray-500 text-xs font-black uppercase tracking-wider">{s.label}</p>
-                      <h3 className="text-4xl font-black text-white mt-1">{s.value ?? 0}</h3>
-                    </div>
-                  </div>
-                  
-                  <div className="relative mt-4 pt-4 border-t border-white/5 text-xs text-gray-500 uppercase font-bold tracking-widest">
-                    {s.sub}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              {/* Main Schedule */}
-              <div className="lg:col-span-8 space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-1 h-8 bg-yellow-400 rounded-full" />
-                  <h2 className="text-xl font-black uppercase tracking-tight">WEEKLY SCHEDULE</h2>
-                </div>
-                
-                <div className="bg-gradient-to-br from-[#1a1a1a] to-[#161616] rounded-2xl border border-white/5 overflow-hidden shadow-2xl">
-                  <WeeklyCards 
-                    weekStart={weekStart} 
-                    items={events} 
-                    onCancel={cancelTerm} 
-                    onDetails={openDetails}
-                    isTrainer={true}
-                  />
-                </div>
+      <div className="pb-12">
+            {/* Header */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10 opacity-0 animate-fade-in-up">
+              <div>
+                <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
+                  TRAINER <span className="text-amber-400">DASHBOARD</span>
+                </h1>
+                <p className="text-slate-400 text-sm tracking-wide uppercase">
+                  Manage your sessions
+                </p>
               </div>
 
-              {/* Pending Ratings Sidebar */}
-              <div className="lg:col-span-4 space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-1 h-8 bg-blue-400 rounded-full" />
-                  <h2 className="text-xl font-black uppercase tracking-tight">TO RATE</h2>
-                </div>
-                
-                <div className="bg-gradient-to-br from-[#1a1a1a] to-[#161616] rounded-2xl border border-white/5 p-6 shadow-2xl">
-                  {pending.length === 0 ? (
-                    <div className="text-center py-12 opacity-30">
-                      <Star className="w-14 h-14 mx-auto mb-4 text-gray-600" />
-                      <p className="text-sm text-gray-500 uppercase tracking-wide font-semibold">No sessions to rate</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {pending.map(p => (
-                        <div 
-                          key={p.termId} 
-                          className="group p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-yellow-400/30 transition-all"
-                        >
-                          <div className="font-bold text-white leading-tight mb-1 group-hover:text-yellow-400 transition-colors">
-                            {p.programTitle}
+              <WeekSwitcher weekStart={weekStart} onChange={setWeekStart} />
+            </div>
+
+            {loading ? (
+              <div className="flex flex-col items-center justify-center h-64 space-y-4">
+                <div className="w-10 h-10 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
+                <p className="text-slate-500 uppercase tracking-wide text-sm font-semibold">Loading...</p>
+              </div>
+            ) : (
+              <>
+                {/* Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+                  {[
+                    {
+                      label: "SESSIONS",
+                      value: stats?.totalTerms ?? 0,
+                      sub: "This week",
+                      icon: Activity,
+                      iconColor: "text-amber-400",
+                      card: "stat-card-1",
+                      stagger: "stagger-1",
+                    },
+                    {
+                      label: "WORK HOURS",
+                      value: Number(stats?.scheduledHours ?? 0).toFixed(1),
+                      sub: "Total scheduled",
+                      icon: Clock,
+                      iconColor: "text-cyan-400",
+                      card: "stat-card-2",
+                      stagger: "stagger-2",
+                    },
+                    {
+                      label: "CLIENTS",
+                      value: stats?.enrolledThisWeek ?? 0,
+                      sub: "Active participants",
+                      icon: Users,
+                      iconColor: "text-violet-400",
+                      card: "stat-card-3",
+                      stagger: "stagger-3",
+                    },
+                  ].map((s, idx) => {
+                    const Icon = s.icon;
+                    return (
+                      <div
+                        key={idx}
+                        className={`${s.card} rounded-2xl p-6 card-hover opacity-0 animate-fade-in-up ${s.stagger}`}
+                        style={{ animationFillMode: "forwards" }}
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className={`w-12 h-12 rounded-xl bg-[#0a0a0f]/50 flex items-center justify-center ${s.iconColor}`}>
+                            <Icon className="w-6 h-6" />
                           </div>
-                          <div className="text-xs text-gray-500 mb-4 uppercase tracking-wide">
-                            {format(new Date(p.startAt), "HH:mm")} • {p.count} participant{p.count > 1 ? 's' : ''}
+                          <div className="text-right">
+                            <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">{s.label}</p>
+                            <p className="text-4xl font-bold text-white">{s.value}</p>
                           </div>
-                          <button
-                            onClick={() => openRate(p.termId)}
-                            className="w-full py-3 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-black font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-yellow-400/20"
-                          >
-                            Rate Participants
-                          </button>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                        <p className="text-xs text-slate-500 uppercase tracking-wide">{s.sub}</p>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+
+                {/* Two columns */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                  {/* Schedule */}
+                  <div
+                    className="lg:col-span-3 opacity-0 animate-fade-in-up stagger-4"
+                    style={{ animationFillMode: "forwards" }}
+                  >
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-1 h-6 bg-gradient-to-b from-amber-400 to-amber-500 rounded-full" />
+                      <h2 className="text-xl font-bold text-white">WEEKLY SCHEDULE</h2>
+                    </div>
+
+                    <div className="bg-[#0a0a0f]">
+                      <WeeklyCards
+                        weekStart={weekStart}
+                        items={events}
+                        onCancel={cancelTerm}
+                        onDetails={openDetails}
+                        isTrainer={true}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Pending ratings */}
+                  <div
+                    className="lg:col-span-2 opacity-0 animate-fade-in-up stagger-5"
+                    style={{ animationFillMode: "forwards" }}
+                  >
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-1 h-6 bg-gradient-to-b from-cyan-400 to-cyan-500 rounded-full" />
+                      <h2 className="text-xl font-bold text-white">TO RATE</h2>
+                    </div>
+
+                    <div className="space-y-4">
+                      {pending.length === 0 ? (
+                        <div className="bg-[#111118] rounded-xl p-8 border border-[#27273a] text-center">
+                          <Star className="w-12 h-12 mx-auto mb-4 text-slate-600" />
+                          <p className="text-sm text-slate-400 uppercase tracking-wide font-semibold">
+                            Nothing to rate
+                          </p>
+                        </div>
+                      ) : (
+                        pending.map((p) => (
+                          <div
+                            key={p.termId}
+                            className="bg-[#111118] rounded-xl p-5 border border-[#27273a] card-hover"
+                          >
+                            <div className="flex items-start justify-between mb-4">
+                              <div>
+                                <h3 className="text-lg font-semibold text-white mb-1">{p.programTitle}</h3>
+                                <p className="text-sm text-slate-400">
+                                  {format(new Date(p.startAt), "HH:mm")} • {p.count} participant{p.count !== 1 ? "s" : ""}
+                                </p>
+                              </div>
+                              <div className="w-10 h-10 rounded-xl bg-amber-400/10 flex items-center justify-center">
+                                <Star className="w-5 h-5 text-amber-400" />
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => openRate(p.termId)}
+                              className="w-full btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-[#0a0a0f] font-semibold rounded-xl py-4 transition-all active:scale-[0.99]"
+                            >
+                              RATE PARTICIPANTS
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
       <RateTermModal
         open={rateModal.open}
@@ -237,9 +253,9 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
         onSubmit={submitRatings}
       />
 
-      <TermDetailsModal 
-        open={details.open} 
-        onClose={() => setDetails({ open: false })} 
+      <TermDetailsModal
+        open={details.open}
+        onClose={() => setDetails({ open: false })}
         data={details.data}
         isTrainer={true}
         onDelete={handleDeleteTerm}

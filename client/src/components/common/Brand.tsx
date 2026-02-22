@@ -1,4 +1,3 @@
-import { ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
 type Props = {
@@ -17,24 +16,22 @@ export default function Brand({
   className = "",
 }: Props) {
   const sizes = {
-    sm: { box: "h-8 w-8", icon: "h-4 w-4", text: "text-lg" },
-    md: { box: "h-9 w-9", icon: "h-5 w-5", text: "text-xl" },
-    lg: { box: "h-12 w-12", icon: "h-6 w-6", text: "text-2xl" },
+    sm: { img: "/images/fittrack-brand-32.png", box: "h-8 w-8", text: "text-lg" },
+    md: { img: "/images/fittrack-brand-36.png", box: "h-9 w-9", text: "text-xl" },
+    lg: { img: "/images/fittrack-brand-48.png", box: "h-12 w-12", text: "text-2xl" },
   }[size];
 
   const content = (
     <div className={`inline-flex items-center gap-2 ${className}`}>
-      {/* Možeš zameniti ikonicu svojim logom iz /public/images/fittrack-logo.png */}
-      <div
-        className={`${sizes.box} rounded-xl bg-yellow-500 text-black grid place-items-center shadow`}
-      >
-        <ShieldCheck className={sizes.icon} />
-      </div>
+      <img
+        src={sizes.img}
+        alt="FitTrack"
+        className={`${sizes.box} rounded-xl`}
+        draggable={false}
+      />
       {showText && (
-        <span
-          className={`${sizes.text} font-extrabold tracking-wider uppercase text-yellow-500`}
-        >
-          {text || "FitTrack App"}
+        <span className={`${sizes.text} font-extrabold tracking-wider uppercase text-amber-400`}>
+          {text || "FitTrack"}
         </span>
       )}
     </div>

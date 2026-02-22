@@ -71,14 +71,29 @@ export default function RegistracijaForma({ authApi }: Props) {
     }
   };
 
+  const labelCls =
+    "block mb-2 text-[11px] font-semibold uppercase tracking-widest text-slate-300";
+  const inputCls =
+    "w-full rounded-xl border border-[#27273a] bg-[#0a0a0f] px-4 py-3 text-white placeholder:text-slate-500 text-sm font-medium " +
+    "focus:outline-none focus:ring-2 focus:ring-white/15 focus:border-white/15 transition";
+  const errorCls =
+    "rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-200 px-4 py-3 text-sm";
+  const primaryBtn =
+    "w-full inline-flex justify-center items-center rounded-xl px-5 py-3 " +
+    "bg-white text-black font-semibold text-sm uppercase tracking-wider " +
+    "hover:bg-gray-200 transition disabled:opacity-60 disabled:cursor-not-allowed";
+  const selectCls =
+    "w-full rounded-xl border border-[#27273a] bg-[#0a0a0f] px-4 py-3 text-white text-sm font-medium " +
+    "focus:outline-none focus:ring-2 focus:ring-white/15 focus:border-white/15 transition appearance-none cursor-pointer";
+
   return (
     <form onSubmit={submit} className="space-y-5" autoComplete="off">
       <input className="hidden" type="text" name="username" autoComplete="email" />
-      <input className="hidden" type="password" name="password" autoComplete="nova-lozinka" />
+      <input className="hidden" type="password" name="password" autoComplete="new-password" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-800 mb-1">First Name</label>
+          <label className={labelCls}>First Name</label>
           <input
             type="text"
             name={`fn_${seed}`}
@@ -86,11 +101,12 @@ export default function RegistracijaForma({ authApi }: Props) {
             onChange={(e) => setIme(e.target.value)}
             placeholder="Name"
             required
-            className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-yellow-300 focus:border-yellow-400"
+            className={inputCls}
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-gray-800 mb-1">Last Name</label>
+          <label className={labelCls}>Last Name</label>
           <input
             type="text"
             name={`ln_${seed}`}
@@ -98,13 +114,13 @@ export default function RegistracijaForma({ authApi }: Props) {
             onChange={(e) => setPrezime(e.target.value)}
             placeholder="Last Name"
             required
-            className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-yellow-300 focus:border-yellow-400"
+            className={inputCls}
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-800 mb-1">Email</label>
+        <label className={labelCls}>Email</label>
         <input
           type="text"
           name={`e_${seed}`}
@@ -113,12 +129,12 @@ export default function RegistracijaForma({ authApi }: Props) {
           onChange={(e) => setEmail(e.target.value.trim())}
           placeholder="Your email"
           required
-          className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-yellow-300 focus:border-yellow-400"
+          className={inputCls}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-800 mb-1">Password</label>
+        <label className={labelCls}>Password</label>
         <input
           type="password"
           name={`p_${seed}`}
@@ -126,13 +142,13 @@ export default function RegistracijaForma({ authApi }: Props) {
           onChange={(e) => setLozinka(e.target.value)}
           placeholder="Create password"
           required
-          className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-yellow-300 focus:border-yellow-400"
+          className={inputCls}
         />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-800 mb-1">Age</label>
+          <label className={labelCls}>Age</label>
           <input
             type="number"
             min={1}
@@ -141,16 +157,17 @@ export default function RegistracijaForma({ authApi }: Props) {
             value={age}
             onChange={(e) => setAge(e.target.value)}
             placeholder="Age"
-            className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-yellow-300 focus:border-yellow-400"
+            className={inputCls}
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-gray-800 mb-1">Gender</label>
+          <label className={labelCls}>Gender</label>
           <select
             name={`g_${seed}`}
             value={pol}
             onChange={(e) => setPol(e.target.value as "musko" | "zensko")}
-            className="w-full rounded-xl border border-gray-400 bg-white px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-yellow-300 focus:border-yellow-400"
+            className={selectCls}
           >
             <option value="musko">Male</option>
             <option value="zensko">Female</option>
@@ -158,17 +175,9 @@ export default function RegistracijaForma({ authApi }: Props) {
         </div>
       </div>
 
-      {greska && (
-        <div className="rounded-lg border border-red-300 bg-red-50 text-red-700 px-4 py-2 text-sm">
-          {greska}
-        </div>
-      )}
+      {greska && <div className={errorCls}>{greska}</div>}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full inline-flex justify-center items-center rounded-xl bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-3 shadow-md focus:outline-none focus:ring-4 focus:ring-yellow-300 transition disabled:opacity-60"
-      >
+      <button type="submit" disabled={loading} className={primaryBtn}>
         {loading ? "Creating..." : "Create account"}
       </button>
     </form>

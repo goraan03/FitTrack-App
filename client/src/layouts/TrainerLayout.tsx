@@ -1,105 +1,144 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import Brand from "../components/common/Brand";
 import { useAuth } from "../hooks/auth/useAuthHook";
-import { 
-  LayoutDashboard, 
-  Dumbbell, 
-  ListChecks, 
-  CalendarDays, 
-  Users, 
-  User, 
-  LogOut 
+import {
+  LayoutDashboard,
+  Dumbbell,
+  ListChecks,
+  CalendarDays,
+  Users,
+  User,
+  LogOut,
+  Menu,
+  X,
+  ChevronRight,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 
-const linkBase = "relative inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold uppercase tracking-wider transition-all duration-300";
-const linkActive = "text-yellow-400 bg-white/5 shadow-[0_0_15px_rgba(250,204,21,0.1)] border border-yellow-400/20";
-const linkIdle = "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent";
+const linkBase = "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200";
+const linkActive = "bg-amber-400/10 text-amber-400";
+const linkIdle = "text-slate-400 hover:text-white hover:bg-white/5";
 
 export default function TrainerLayout() {
   const { logout } = useAuth();
   const navigate = useNavigate();
-  
-  const doLogout = () => { 
-    logout(); 
-    navigate("/login", { replace: true }); 
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const closeMenu = () => setIsMenuOpen(false);
+
+  const doLogout = () => {
+    closeMenu();
+    logout();
+    navigate("/login", { replace: true });
   };
+
+  // Spreči skrolovanje dok je meni otvoren
+  useEffect(() => {
+    if (isMenuOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "unset";
+  }, [isMenuOpen]);
 
   const nav = [
     { to: "/trainer/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/trainer/exercises", label: "Exercises", icon: Dumbbell },
     { to: "/trainer/programs", label: "Programs", icon: ListChecks },
-    { to: "/trainer/terms", label: "Terms", icon: CalendarDays },
+    { to: "/trainer/terms", label: "Sessions", icon: CalendarDays },
     { to: "/trainer/clients", label: "Clients", icon: Users },
     { to: "/trainer/profile", label: "Profile", icon: User },
   ];
 
   return (
-    <div className="bg-[#0a0a0a] min-h-screen text-gray-100 selection:bg-yellow-400 selection:text-black">
-      <header className="sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
-        <div className="max-w-7xl mx-auto h-20 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-          
-          {/* LEVO: Brand */}
-          <div className="flex-shrink-0">
-            <Brand text="FitTrack"/>
-          </div>
-          
-          {/* CENTAR: Desktop Navigation (Sada zauzima sredinu) */}
-          <nav className="hidden xl:flex items-center justify-center gap-1 flex-1">
-            {nav.map(l => (
-              <NavLink 
-                key={l.to} 
-                to={l.to} 
-                className={({isActive}) => `${linkBase} ${isActive ? linkActive : linkIdle}`}
+    <div className="min-h-screen bg-[#0a0a0f] text-white selection:bg-amber-400 selection:text-black font-sans">
+      
+      {/* HEADER */}
+      <header className="fixed top-0 left-0 right-0 z-[100] bg-[#0a0a0f]/80 backdrop-blur-md border-b border-[#27273a]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <Brand text="FitTrack" />
+
+          {/* DESKTOP NAV */}
+          <nav className="hidden lg:flex items-center gap-1">
+            {nav.map((l) => (
+              <NavLink
+                key={l.to}
+                to={l.to}
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? linkActive : linkIdle}`
+                }
               >
                 <l.icon className="w-4 h-4" />
-                {l.label}
+                {l.label.toUpperCase()}
               </NavLink>
             ))}
           </nav>
 
-          {/* DESNO: Logout dugme */}
-          <div className="flex-shrink-0">
-            <button
-              onClick={doLogout}
-              className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-red-500/50 hover:bg-red-500/10 transition-all duration-300"
-            >
-              <span className="hidden sm:inline text-xs font-black uppercase tracking-widest group-hover:text-red-500">Logout</span>
-              <LogOut className="w-4 h-4 text-gray-400 group-hover:text-red-500" />
-            </button>
-          </div>
+          {/* DESKTOP LOGOUT */}
+          <button
+            onClick={doLogout}
+            className="hidden lg:flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            LOGOUT
+          </button>
+
+          {/* MOBILE TOGGLE */}
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="lg:hidden p-2 rounded-lg bg-white/5 border border-[#27273a] text-slate-400"
+          >
+            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-32 sm:pb-12">
-        <Outlet />
-      </main>
-
-      {/* MOBILE BOTTOM NAV */}
-      <nav className="sm:hidden fixed bottom-6 inset-x-4 z-50">
-        <div className="bg-[#161616]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
-          <div className="grid grid-cols-6 items-center">
-            {nav.map(l => (
-              <NavLink 
+      {/* MOBILE MENU OVERLAY */}
+      <div className={`
+        fixed inset-0 z-[90] lg:hidden bg-[#0a0a0f] transition-all duration-500 ease-in-out
+        ${isMenuOpen ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}
+      `}>
+        <div className="flex flex-col h-full pt-24 pb-10 px-6">
+          <div className="flex flex-col gap-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 ml-4 mb-2">Trainer Menu</p>
+            {nav.map((l) => (
+              <NavLink
                 key={l.to}
-                to={l.to} 
-                className={({isActive}) => `
-                  flex flex-col items-center justify-center py-3 px-1 transition-all duration-300
-                  ${isActive ? "text-yellow-400 bg-white/5" : "text-gray-500 hover:text-gray-300"}
+                to={l.to}
+                onClick={closeMenu}
+                className={({ isActive }) => `
+                  flex items-center justify-between px-6 py-4 rounded-2xl transition-all
+                  ${isActive ? "bg-amber-400/10 text-amber-400 border border-amber-400/20" : "text-slate-400 border border-transparent"}
                 `}
               >
-                {({isActive}) => (
+                {({ isActive }) => (
                   <>
-                    <l.icon className={`h-5 w-5 ${isActive ? "scale-110" : ""}`} />
-                    <span className="text-[9px] mt-1 font-bold uppercase tracking-tighter truncate w-full text-center">
-                      {l.label}
-                    </span>
+                    <div className="flex items-center gap-4 text-lg font-bold">
+                      <l.icon size={20} />
+                      {l.label.toUpperCase()}
+                    </div>
+                    <ChevronRight size={18} className={isActive ? "opacity-100" : "opacity-20"} />
                   </>
                 )}
               </NavLink>
             ))}
           </div>
+
+          <div className="mt-auto">
+            <button
+              onClick={doLogout}
+              className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-500 font-bold uppercase tracking-widest"
+            >
+              <LogOut size={18} />
+              Sign Out
+            </button>
+          </div>
         </div>
-      </nav>
+      </div>
+
+      {/* PAGE CONTENT */}
+      <main className="relative pt-24 pb-12 px-4 sm:px-6">
+        <div className="relative max-w-7xl mx-auto">
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 }
