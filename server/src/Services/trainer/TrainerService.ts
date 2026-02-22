@@ -12,6 +12,8 @@ import { ITrainerProgramsRepository } from "../../Domain/repositories/trainer_pr
 import { parseISO } from "../../helpers/TrainerService/parseISO";
 import { WorkoutRepository } from "../../Database/repositories/workout/WorkoutRepository";
 import { IEmailService } from "../../Domain/services/email/IEmailService";
+import { RowDataPacket } from "mysql2/typings/mysql/lib/protocol/packets/RowDataPacket";
+import db from "../../Database/connection/DbConnectionPool";
 
 export class TrainerService implements ITrainerService {
   constructor(
@@ -438,7 +440,115 @@ export class TrainerService implements ITrainerService {
     datumRodjenja: dto.datumRodjenja,
     pol: dto.pol,
   });
-
     try { await this.audit.log('Informacija', 'TRAINER_PROFILE_UPDATE', trainerId, null, {}); } catch {}
+  }
+
+  async getClientProgressStats(trainerId: number, clientId: number): Promise<any> {
+    // Verify client belongs to trainer
+    const client = await this.userRepo.getById(clientId);
+    if (client.id === 0) throw new Error('Client not found');
+    
+    // Get workout history
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT 
+        ws.id as sessionId,
+        ws.start_time,
+        ws.end_time,
+        tt.program_id as programId,
+        p.title as programTitle,
+        e.name as exerciseName,
+        wel.exercise_id,
+        wel.set_number,
+        wel.actual_reps,
+        wel.actual_weight
+      FROM workout_sessions ws
+      INNER JOIN training_terms tt ON ws.term_id = tt.id
+      INNER JOIN programs p ON tt.program_id = p.id
+      INNER JOIN workout_exercise_logs wel ON ws.id = wel.session_id
+      INNER JOIN exercises e ON wel.exercise_id = e.id
+      WHERE ws.trainer_id = ? AND ws.client_id = ?
+      ORDER BY ws.start_time DESC, wel.exercise_id, wel.set_number`,
+      [trainerId, clientId]
+    );
+
+    // Group by exercise
+    const exerciseMap = new Map<number, any>();
+    
+    for (const row of rows as any[]) {
+      if (!exerciseMap.has(row.exercise_id)) {
+        exerciseMap.set(row.exercise_id, {
+          exerciseId: row.exercise_id,
+          exerciseName: row.exerciseName,
+          sessions: []
+        });
+      }
+      
+      const exData = exerciseMap.get(row.exercise_id)!;
+      let session = exData.sessions.find((s: any) => s.sessionId === row.sessionId);
+      
+      if (!session) {
+        session = {
+          sessionId: row.sessionId,
+          date: new Date(row.start_time).toISOString(),
+          programId: row.programId,
+          programTitle: row.programTitle,
+          sets: []
+        };
+        exData.sessions.push(session);
+      }
+      
+      session.sets.push({
+        setNumber: row.set_number,
+        reps: row.actual_reps,
+        weight: row.actual_weight
+      });
+    }
+
+    // Calculate stats per exercise
+    const exercises = Array.from(exerciseMap.values()).map(ex => {
+      const allWeights = ex.sessions.flatMap((s: any) => s.sets.map((set: any) => set.weight));
+      const maxWeight = allWeights.length > 0 ? Math.max(...allWeights) : 0;
+      
+      const totalVolume = ex.sessions.reduce((sum: number, s: any) => {
+        return sum + s.sets.reduce((ssum: number, set: any) => ssum + (set.reps * set.weight), 0);
+      }, 0);
+
+      // Progress over time (last 10 sessions)
+      const recentSessions = ex.sessions.slice(0, 10).reverse();
+      const progressData = recentSessions.map((s: any) => ({
+        date: new Date(s.date).toLocaleDateString(),
+        maxWeight: Math.max(...s.sets.map((set: any) => set.weight)),
+        totalVolume: s.sets.reduce((sum: number, set: any) => sum + (set.reps * set.weight), 0),
+        avgReps: s.sets.reduce((sum: number, set: any) => sum + set.reps, 0) / s.sets.length
+      }));
+
+      return {
+        exerciseId: ex.exerciseId,
+        exerciseName: ex.exerciseName,
+        totalSessions: ex.sessions.length,
+        maxWeight,
+        totalVolume,
+        progressData
+      };
+    });
+
+    // Overall stats
+    const totalWorkouts = new Set(rows.map((r: any) => r.sessionId)).size;
+    const totalVolume = exercises.reduce((sum, e) => sum + e.totalVolume, 0);
+
+    return {
+      client: {
+        id: client.id,
+        firstName: client.ime,
+        lastName: client.prezime,
+        email: client.korisnickoIme
+      },
+      summary: {
+        totalWorkouts,
+        totalVolume,
+        exercisesTracked: exercises.length
+      },
+      exercises
+    };
   }
 }

@@ -32,6 +32,7 @@ export class TrainerController {
     this.router.post("/trainer/programs/:id/assign", authenticate, authorize("trener"), this.assignProgram.bind(this));
 
     this.router.get("/trainer/clients", authenticate, authorize("trener"), this.listClients.bind(this));
+    this.router.get("/trainer/clients/:clientId/stats", authenticate, authorize("trener"), this.getClientStats.bind(this));
 
     this.router.get("/trainer/terms", authenticate, authorize("trener"), this.listTerms.bind(this));
     this.router.post("/trainer/terms", authenticate, authorize("trener"), this.createTerm.bind(this));
@@ -340,6 +341,24 @@ export class TrainerController {
     } catch (err) {
       console.error(err);
       res.status(500).json({ success: false, message: (err as Error)?.message || "Server error" });
+    }
+  }
+
+  private async getClientStats(req: Request, res: Response): Promise<void> {
+    try {
+      const trainerId = req.user!.id;
+      const clientId = Number(req.params.clientId);
+
+      if (!Number.isFinite(clientId) || clientId <= 0) {
+        res.status(400).json({ success: false, message: 'Invalid client ID' });
+        return;
+      }
+
+      const data = await this.trainer.getClientProgressStats(trainerId, clientId);
+      res.status(200).json({ success: true, data });
+    } catch (e: any) {
+      console.error('getClientStats error:', e);
+      res.status(500).json({ success: false, message: 'Error fetching stats' });
     }
   }
 

@@ -35,18 +35,28 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
       if (res.success) {
         setStats(res.data.stats);
         setPending(res.data.pendingRatings);
-        const items: WeeklyCardItem[] = res.data.events.map(e => ({
-          id: e.id,
-          title: e.title,
-          day: e.day,
-          start: e.start,
-          end: e.end,
-          type: String(e.type).toLowerCase() === "individual" ? "individual" : "group",
-          trainerName: "",
-          cancellable: e.cancellable,
-          programId: e.programId,
-          completed: e.completed,
-        }));
+        const now = Date.now();
+        const items: WeeklyCardItem[] = res.data.events
+          .map(e => {
+            const normalizedType: "individual" | "group" =
+              String(e.type).toLowerCase() === "individual" ? "individual" : "group";
+            return {
+              id: e.id,
+              title: e.title,
+              day: e.day,
+              start: e.start,
+              end: e.end,
+              type: normalizedType,
+              trainerName: "",
+              cancellable: e.cancellable,
+              programId: e.programId,
+              completed: e.completed,
+            };
+          })
+          .filter(ev => {
+            const endDate = toDate(weekStart, ev.day, ev.end);
+            return endDate.getTime() > now;
+          });
         setEvents(items);
       }
     } finally { setLoading(false); }

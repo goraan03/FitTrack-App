@@ -9,6 +9,7 @@ import type { ProgramListItem, ProgramDetails, UpsertProgram, ProgramExerciseIte
 import type { TrainerClient } from "../../types/trainer/TrainerClient";
 import type { TrainerTerm, CreateTermDto } from "../../types/trainer/Term";
 import type { UpdateMyProfileRequest } from "../../types/profile/UpdateMyProfileRequest";
+import type { AxiosResponse } from "axios";
 
 const baseURL = joinURL(import.meta.env.VITE_API_URL || '', 'trainer');
 
@@ -138,6 +139,14 @@ export const trainerApi: ITrainerAPIService = {
   async getTermParticipants(termId: number) {
     const res = await axios.get<{ success: boolean; data: Array<{userId: number; userName: string}> }>(
       `${baseURL}/terms/${termId}/participants`,
+      { headers: authHeaders() }
+    );
+    return res.data;
+  },
+
+  async getClientStats(clientId: number) {
+    const res: AxiosResponse<{ success: boolean; data: any; message?: string }> = await axios.get(
+      `${baseURL}/clients/${clientId}/stats`,
       { headers: authHeaders() }
     );
     return res.data;

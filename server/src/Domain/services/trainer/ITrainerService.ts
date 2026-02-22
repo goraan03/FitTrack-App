@@ -152,7 +152,8 @@ export interface ITrainerService {
 
   // Clients
   listMyClients(trainerId: number): Promise<{ id: number; firstName: string | null; lastName: string | null; email: string; gender: string | null; age: number | null }[]>;
-
+  getClientProgressStats(trainerId: number, clientId: number): Promise<any>;
+  
   // Terms
   listTerms(trainerId: number, from?: Date, to?: Date): Promise<TrainerTermDetails[]>;
   createTerm(trainerId: number, dto: { programId: number; type: 'individual'|'group'; startAt: Date; durationMin: number; capacity: number }): Promise<number>;

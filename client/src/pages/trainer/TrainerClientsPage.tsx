@@ -1,23 +1,100 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { TrainerClient } from "../../types/trainer/TrainerClient";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
+import type { ProgramListItem } from "../../types/trainer/Program";
 import { Users, User, Search, ChevronRight, X } from "lucide-react";
+import ClientStatsModal from "../../components/trainer/ClientStatsModal";
+import toast from "react-hot-toast";
 
 export default function TrainerClientsPage({ trainerApi }: { trainerApi: ITrainerAPIService }) {
   const [items, setItems] = useState<TrainerClient[]>([]);
   const [, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState<TrainerClient | null>(null);
+  const [programs, setPrograms] = useState<ProgramListItem[]>([]);
+  const [programSessions, setProgramSessions] = useState<Record<number, { sessionId: number; date: string }[]>>({});
+  const [openPrograms, setOpenPrograms] = useState<Record<number, boolean>>({});
+  const [sessionsLoading, setSessionsLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
     try {
       const r = await trainerApi.listMyClients();
       if (r.success) setItems(r.data);
+      const p = await trainerApi.listPrograms();
+      if (p.success) setPrograms(p.data || []);
     } finally { setLoading(false); }
   };
 
+  const [statsModal, setStatsModal] = useState<{ open: boolean; clientId: number | null }>({
+    open: false,
+    clientId: null
+  });
+
+  // load per-client recent sessions when profile opens
+  useEffect(() => {
+    const fetchSessions = async () => {
+      if (!selectedClient) return;
+      setSessionsLoading(true);
+      try {
+        const res = await trainerApi.getClientStats(selectedClient.id);
+        if (!res.success) {
+          toast.error(res.message || "Failed to load stats");
+          return;
+        }
+        const map: Record<number, { sessionId: number; date: string }[]> = {};
+        const seen = new Set<number>();
+        (res.data?.exercises || []).forEach((ex: any) => {
+          (ex.sessions || []).forEach((s: any) => {
+            if (!s.sessionId || seen.has(s.sessionId)) return;
+            seen.add(s.sessionId);
+            const pid = s.programId;
+            if (!pid) return;
+            map[pid] = map[pid] || [];
+            map[pid].push({ sessionId: s.sessionId, date: s.date });
+          });
+        });
+        Object.keys(map).forEach((k) => {
+          const pid = Number(k);
+          map[pid] = map[pid]
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            .slice(0, 3);
+        });
+        setProgramSessions(map);
+      } catch (e: any) {
+        toast.error(e?.response?.data?.message || "Error loading stats");
+      } finally {
+        setSessionsLoading(false);
+      }
+    };
+    fetchSessions();
+  }, [selectedClient, trainerApi]);
+
+  const selectedPrograms = useMemo(() => {
+    if (!selectedClient) return [];
+    return programs.filter((p) => (p.assignedClientIds || []).includes(selectedClient.id));
+  }, [programs, selectedClient]);
+
+  const toggleProgram = (id: number) => setOpenPrograms((prev) => ({ ...prev, [id]: !prev[id] }));
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleString("en-GB", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
   useEffect(() => { load(); }, []);
+
+  // Lock body scroll when profile modal open (better mobile UX)
+  useEffect(() => {
+    if (selectedClient) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [selectedClient]);
 
   const filteredClients = items.filter(c => {
     const searchStr = searchTerm.trim().toLowerCase();
@@ -98,21 +175,28 @@ return (
               </div>
             </div>
 
-            <button
-              onClick={() => setSelectedClient(c)}
-              className="
-                w-full flex items-center justify-between
-                py-3 px-4 rounded-xl
-                bg-white/5 border border-white/5
-                hover:bg-amber-400 hover:text-black hover:border-amber-400/30
-                transition-all
-              "
-            >
-              <span className="text-[11px] font-semibold uppercase tracking-widest">
-                View profile
-              </span>
-              <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setSelectedClient(c)}
+                className="
+                  flex-1 flex items-center justify-between
+                  py-3 px-4 rounded-xl
+                  bg-white/5 border border-white/5
+                  hover:bg-amber-400 hover:text-black hover:border-amber-400/30
+                  transition-all
+                "
+              >
+                <span className="font-semibold">View Profile</span>
+                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </button>
+
+              <button
+                onClick={() => setStatsModal({ open: true, clientId: c.id })}
+                className="px-4 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-sm uppercase transition"
+              >
+                Progress
+              </button>
+            </div>
           </div>
         ))}
 
@@ -131,7 +215,7 @@ return (
 
     {/* MODAL */}
     {selectedClient && (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 sm:p-6 pt-20 sm:pt-24 overflow-y-auto">
         <div
           className="absolute inset-0 bg-black/80"
           onClick={() => setSelectedClient(null)}
@@ -139,11 +223,12 @@ return (
 
         <div
           className="
-            relative w-full max-w-2xl
+            relative w-full max-w-xl sm:max-w-2xl lg:max-w-3xl
             bg-[#111118] border border-[#27273a]
             rounded-2xl overflow-hidden
             shadow-[0_30px_90px_rgba(0,0,0,0.70)]
             opacity-0 animate-fade-in-up
+            max-h-[90vh] overflow-y-auto
           "
           style={{ animationFillMode: "forwards" }}
         >
@@ -177,31 +262,90 @@ return (
           {/* Content */}
           <div className="p-6 sm:p-7 space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-[#0a0a0f] border border-[#27273a] p-4 rounded-xl">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
-                  Gender
-                </p>
-                <p className="mt-1 text-sm font-semibold text-white">
-                  {selectedClient.gender || "Not provided"}
-                </p>
+              <div className="bg-[#0a0a0f] border border-[#27273a] p-4 rounded-xl space-y-1">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Email</p>
+                <p className="text-sm font-semibold text-white break-all">{selectedClient.email}</p>
               </div>
-
-              <div className="bg-[#0a0a0f] border border-[#27273a] p-4 rounded-xl">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
-                  Age
-                </p>
-                <p className="mt-1 text-sm font-semibold text-white">
-                  {selectedClient.age ? `${selectedClient.age}` : "—"}
+              <div className="bg-[#0a0a0f] border border-[#27273a] p-4 rounded-xl space-y-1">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Gender</p>
+                <p className="text-sm font-semibold text-white">{selectedClient.gender || "Not provided"}</p>
+              </div>
+              <div className="bg-[#0a0a0f] border border-[#27273a] p-4 rounded-xl space-y-1">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Age</p>
+                <p className="text-sm font-semibold text-white">{selectedClient.age ? `${selectedClient.age}` : "—"}</p>
+              </div>
+              <div className="bg-[#0a0a0f] border border-[#27273a] p-4 rounded-xl space-y-1">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Assigned Programs</p>
+                <p className="text-sm font-semibold text-white">
+                  {selectedPrograms.length ? `${selectedPrograms.length}` : "None"}
                 </p>
               </div>
             </div>
 
-            <div className="h-48 w-full bg-[#0a0a0f] border border-[#27273a] rounded-2xl flex items-center justify-center text-slate-500 text-sm">
-              Charts placeholder (Recharts)
+            <div className="bg-[#0a0a0f] border border-[#27273a] rounded-2xl p-4 sm:p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">Programs</p>
+                {sessionsLoading && <p className="text-[11px] text-slate-500">Loading sessions…</p>}
+              </div>
+              {selectedPrograms.length ? (
+                <div className="divide-y divide-white/5">
+                  {selectedPrograms.map((p) => {
+                    const sessions = programSessions[p.id] || [];
+                    const open = openPrograms[p.id];
+                    return (
+                      <div key={p.id} className="py-3">
+                        <button
+                          onClick={() => toggleProgram(p.id)}
+                          className="w-full flex items-center justify-between text-left"
+                        >
+                          <div>
+                            <p className="text-white font-semibold">{p.title}</p>
+                            <p className="text-[11px] uppercase text-slate-500 tracking-widest">Level: {p.level}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] px-2 py-1 rounded-full bg-white/5 border border-white/10 uppercase tracking-widest text-slate-300">
+                              {p.isPublic ? "Public" : "Private"}
+                            </span>
+                            <ChevronRight className={`w-4 h-4 transition-transform ${open ? "rotate-90" : ""}`} />
+                          </div>
+                        </button>
+
+                        {open && (
+                          <div className="mt-3 space-y-2">
+                            {sessions.length ? (
+                              sessions.map((s) => (
+                                <div
+                                  key={s.sessionId}
+                                  className="rounded-lg border border-white/5 bg-white/5 px-3 py-2 text-sm text-slate-200 flex items-center justify-between"
+                                >
+                                  <span>Session #{s.sessionId}</span>
+                                  <span className="text-slate-400 text-xs">{formatDate(s.date)}</span>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-slate-500 text-sm">No recent sessions.</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-slate-500 text-sm">No programs assigned.</p>
+              )}
             </div>
           </div>
         </div>
       </div>
     )}
+
+    <ClientStatsModal
+      open={statsModal.open}
+      clientId={statsModal.clientId}
+      onClose={() => setStatsModal({ open: false, clientId: null })}
+      trainerApi={trainerApi}
+    />
   </div>
-);}
+);
+}
