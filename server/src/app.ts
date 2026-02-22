@@ -45,7 +45,13 @@ app.use(cookieParser());
 app.use(express.json());
 
 // Health
-app.get('/healthz', (_req, res) => res.status(200).send('OK'));
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    service: 'fittrack-api'
+  });
+});
 
 // DI
 const exercisesRepo = new ExercisesRepository(); 

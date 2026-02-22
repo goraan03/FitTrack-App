@@ -18,7 +18,6 @@ export default function LegalLayout({
     <section className="space-y-10 pb-20 px-4 sm:px-6 max-w-7xl mx-auto">
       {/* HERO / HEADER */}
       <div className="relative p-8 sm:p-14 lg:p-20 rounded-[2.5rem] border border-[#27273a] bg-[#111118] overflow-hidden shadow-2xl">
-        {/* Soft amber glow like your pages */}
         <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-amber-400/5 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-amber-400/5 blur-[120px] rounded-full" />
 

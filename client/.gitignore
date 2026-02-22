@@ -25,3 +25,19 @@ dist-ssr
 
 # Environment variables
 .env
+
+# Existing...
+
+# Docker
+docker-compose.override.yml
+
+# Environment
+.env.local
+.env.production.local
+
+# Logs
+server/logs/
+server/invoices/*.pdf
+
+# MySQL data (ako testiraš lokalno)
+mysql_data/

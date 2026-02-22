@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.env.local
+.env.development
+.DS_Store
+*.log
+coverage
+.vscode
+.idea
+invoices/*.pdf
+logs/*.log
