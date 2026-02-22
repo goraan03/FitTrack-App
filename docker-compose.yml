@@ -9,18 +9,19 @@ services:
     container_name: fittrack-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: Goran2003
-      MYSQL_DATABASE: DEFAULT_DB
-      MYSQL_USER: fittrack_user
-      MYSQL_PASSWORD: fittrack_pass
-    ports:
-      - "3307:3306"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    # ✅ PROD: ne izlaži bazu na host port
+    # ports:
+    #   - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
       - fittrack-network
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -pGoran2003 --silent"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -41,21 +42,21 @@ services:
       DB_HOST: mysql
       DB_PORT: 3306
       DB_USER: root
-      DB_PASSWORD: Goran2003
-      DB_NAME: DEFAULT_DB
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      DB_NAME: ${MYSQL_DATABASE}
       DB_SSL_MODE: DISABLED
 
       PORT: 4000
       NODE_ENV: production
 
-      JWT_SECRET: OVOJEODPKOVOLIVOLECEKONEZAVOLECEBUDITEUBEDJENIUTODALJENEMAODTOGA
-      SALT_ROUNDS: 10
+      JWT_SECRET: ${JWT_SECRET}
+      SALT_ROUNDS: ${SALT_ROUNDS}
 
       SMTP_HOST: smtp.gmail.com
       SMTP_PORT: 465
-      SMTP_SECURE: true
+      SMTP_SECURE: "true"
       SMTP_USER: fittrackappsupp@gmail.com
-      SMTP_PASS: "wuqw tjwg lnjn zhwi"
+      SMTP_PASS: ${SMTP_PASS}
       EMAIL_FROM: "Fitness App <fittrackappsupp@gmail.com>"
       TEST_EMAIL: fittrackappsupp@mail.com
       CONTACT_EMAIL: fittrackappsupp@gmail.com
