@@ -4,6 +4,7 @@ import type { LoginStep1Response } from "../../types/auth/LoginStep1Response";
 import type { Resend2FAResponse } from "../../types/auth/Resend2FAResponse";
 import type { BootInfoResponse } from "../../types/auth/BootInfo";
 import axios, { isAxiosError } from "axios";
+import { authHeader } from "../../helpers/admin/authHeader";
 
 const API_URL: string = (import.meta.env.VITE_API_URL || "") + "auth";
 
@@ -71,5 +72,74 @@ export const authApi: IAuthAPIService = {
       }
       return fallback;
     }
-  }
+  },
+
+  async forgotPassword(email: string) {
+    const res = await axios.post(`${API_URL}/forgot-password`, { korisnickoIme: email });
+    return res.data;
+  },
+
+  async verifyResetOtp(challengeId: string, code: string) {
+    const res = await axios.post(`${API_URL}/verify-reset-otp`, { challengeId, code });
+    return res.data;
+  },
+
+  async resetPassword(challengeId: string, newPassword: string) {
+    const res = await axios.post(`${API_URL}/reset-password`, { challengeId, newPassword });
+    return res.data;
+  },
+
+  async startChangePassword() {
+    try {
+      const res = await axios.post(
+        `${API_URL}/change-password/start`,
+        {},
+        { headers: { ...authHeader() } }
+      );
+      return res.data;
+    } catch (err) {
+      return {
+        success: false,
+        message: isAxiosError(err)
+          ? (err.response?.data?.message || err.message || "Greška pri slanju koda.")
+          : "Greška pri slanju koda.",
+      };
+    }
+  },
+
+  async verifyChangePasswordOtp(challengeId: string, code: string) {
+    try {
+      const res = await axios.post(
+        `${API_URL}/change-password/verify`,
+        { challengeId, code },
+        { headers: { ...authHeader() } }
+      );
+      return res.data;
+    } catch (err) {
+      return {
+        success: false,
+        message: isAxiosError(err)
+          ? (err.response?.data?.message || err.message || "Greška pri verifikaciji koda.")
+          : "Greška pri verifikaciji koda.",
+      };
+    }
+  },
+
+  async finishChangePassword(challengeId: string, newPassword: string) {
+    try {
+      const res = await axios.post(
+        `${API_URL}/change-password/finish`,
+        { challengeId, newPassword },
+        { headers: { ...authHeader() } }
+      );
+      return res.data;
+    } catch (err) {
+      return {
+        success: false,
+        message: isAxiosError(err)
+          ? (err.response?.data?.message || err.message || "Greška pri promeni lozinke.")
+          : "Greška pri promeni lozinke.",
+      };
+    }
+  },
 };

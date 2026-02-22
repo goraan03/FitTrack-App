@@ -104,4 +104,5 @@ export interface IClientService {
   cancelTerm(userId: number, termId: number): Promise<void>;
   getHistory(userId: number): Promise<HistoryData>;
   getMyProfile(userId: number): Promise<ClientProfile>;
+  updateMyProfile(userId: number, dto: { ime: string; prezime: string; pol: 'musko' | 'zensko'; datumRodjenja: Date | null }): Promise<void>;
 }

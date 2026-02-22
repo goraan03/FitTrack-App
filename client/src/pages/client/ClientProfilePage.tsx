@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -12,6 +13,7 @@ import {
   Title,
 } from "chart.js";
 import { Avatar } from "../../components/client/Avatar";
+import EditProfileModal from "../../components/profile/EditProfileModal";
 import type { IClientAPIService } from "../../api_services/client/IClientAPIService";
 import type { ClientProfile } from "../../types/users/ClientProfile";
 
@@ -22,9 +24,14 @@ interface ClientProfilePageProps {
 }
 
 export default function ClientProfilePage({ clientApi }: ClientProfilePageProps) {
+  const navigate = useNavigate();
+
   const [data, setData] = useState<ClientProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editErr, setEditErr] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -34,9 +41,10 @@ export default function ClientProfilePage({ clientApi }: ClientProfilePageProps)
         if (!mounted) return;
         if (res.success) setData(res.data);
         else setErr(res.message || "Failed to load profile");
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (!mounted) return;
-        setErr(e?.message || "Error loading the profile");
+        const msg = e instanceof Error ? e.message : "Error loading the profile";
+        setErr(msg);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -86,7 +94,7 @@ export default function ClientProfilePage({ clientApi }: ClientProfilePageProps)
 return (
   <div className="min-h-screen bg-[#0a0a0f] text-white selection:bg-amber-400 selection:text-black">
     <div className="absolute top-0 left-0 w-full h-[420px] bg-gradient-to-b from-white/5 via-white/0 to-transparent pointer-events-none" />
-    
+
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-24 sm:pb-12">
       {/* HERO */}
       <div className="bg-[#111118] border border-[#27273a] rounded-2xl shadow-[0_18px_60px_rgba(0,0,0,0.40)] overflow-hidden opacity-0 animate-fade-in-up">
@@ -127,8 +135,22 @@ return (
               )}
             </div>
 
+            {/* Edit */}
             <div className="w-full sm:w-auto">
-              <div className="w-full sm:w-[96px]" />
+              <button
+                onClick={() => {
+                  setEditErr(null);
+                  setEditOpen(true);
+                }}
+                className="
+                  w-full sm:w-auto px-6 py-3 rounded-xl
+                  bg-white/5 hover:bg-white/10 border border-white/5
+                  text-white text-sm font-semibold
+                  transition-all flex items-center justify-center gap-2
+                "
+              >
+                Edit profile
+              </button>
             </div>
           </div>
         </div>
@@ -137,9 +159,7 @@ return (
       {loading ? (
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <div className="w-10 h-10 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
-          <p className="text-slate-500 uppercase tracking-wide text-sm font-semibold">
-            Loading...
-          </p>
+          <p className="text-slate-500 uppercase tracking-wide text-sm font-semibold">Loading...</p>
         </div>
       ) : err ? (
         <div className="mt-10 bg-[#111118] border border-rose-500/25 rounded-2xl p-6 text-center shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
@@ -174,7 +194,9 @@ return (
                 toneBorder: "border-cyan-300/15",
                 toneText: "text-cyan-300",
               },
-            ].map((s, idx) => (
+            ].map((s, idx) => {
+              const displayVal = s.val ?? "—";
+              return (
               <div
                 key={idx}
                 className="
@@ -185,27 +207,20 @@ return (
                 "
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div
-                    className={`w-12 h-12 rounded-xl ${s.toneBg} border ${s.toneBorder} flex items-center justify-center`}
-                  >
+                  <div className={`w-12 h-12 rounded-xl ${s.toneBg} border ${s.toneBorder} flex items-center justify-center`}>
                     <div className={`w-2.5 h-2.5 rounded-full ${s.toneText} bg-current`} />
                   </div>
 
                   <div className="text-right">
-                    <p className="text-xs text-slate-400 uppercase tracking-wider mb-1 font-semibold">
-                      {s.label}
-                    </p>
-                    <p className="text-4xl font-bold text-white tabular-nums">
-                      {s.val as any}
-                    </p>
+                    <p className="text-xs text-slate-400 uppercase tracking-wider mb-1 font-semibold">{s.label}</p>
+                    <p className="text-4xl font-bold text-white tabular-nums">{displayVal}</p>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-500 uppercase tracking-wide">
-                  Overview
-                </p>
+                <p className="text-xs text-slate-500 uppercase tracking-wide">Overview</p>
               </div>
-            ))}
+            );
+            })}
           </div>
 
           {/* DETAILS + CHART */}
@@ -221,9 +236,7 @@ return (
             >
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-1 h-6 bg-gradient-to-b from-amber-400 to-amber-500 rounded-full" />
-                <h2 className="text-lg sm:text-xl font-bold text-white">
-                  PERSONAL INFORMATION
-                </h2>
+                <h2 className="text-lg sm:text-xl font-bold text-white">PERSONAL INFORMATION</h2>
               </div>
 
               <div className="grid grid-cols-1 gap-4">
@@ -246,9 +259,7 @@ return (
                       {item.label}
                     </span>
                     <span
-                      className={`text-sm font-semibold text-white ${
-                        item.isEmail ? "break-all sm:text-right" : "sm:text-right"
-                      }`}
+                      className={`text-sm font-semibold text-white ${item.isEmail ? "break-all sm:text-right" : "sm:text-right"}`}
                     >
                       {item.value || "—"}
                     </span>
@@ -270,9 +281,7 @@ return (
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="w-1 h-6 bg-gradient-to-b from-cyan-300 to-cyan-400 rounded-full" />
-                  <h2 className="text-lg sm:text-xl font-bold text-white">
-                    PROGRESS
-                  </h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-white">PROGRESS</h2>
                 </div>
 
                 <span className="text-xs text-slate-500 uppercase tracking-wide font-semibold">
@@ -298,6 +307,56 @@ return (
         </div>
       )}
     </div>
+
+    {/* EDIT MODAL */}
+    {data ? (
+      <EditProfileModal
+        open={editOpen}
+        title="Edit client profile"
+        loading={editLoading}
+        error={editErr}
+        initial={{
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+          gender: data.gender === "musko" || data.gender === "zensko" ? data.gender : null,
+          address: data.address || "",
+          birthDateISO: data.dateOfBirthISO || "",
+        }}
+        onClose={() => setEditOpen(false)}
+        onChangePassword={() => {
+          setEditOpen(false);
+          navigate("/app/change-password");
+        }}
+        onSave={async (v) => {
+          setEditErr(null);
+          setEditLoading(true);
+          try {
+            const res = await clientApi.updateMyProfile({
+              firstName: v.firstName,
+              lastName: v.lastName,
+              gender: v.gender === "musko" || v.gender === "zensko" ? v.gender : null,
+              address: v.address?.trim() ? v.address.trim() : null,
+              dateOfBirthISO: v.birthDateISO?.trim() ? v.birthDateISO.trim() : null,
+            });
+
+            if (!res.success) {
+              setEditErr(res.message || "Failed to save.");
+              return;
+            }
+
+            const refreshed = await clientApi.getMyProfile();
+            if (refreshed.success) setData(refreshed.data);
+
+            setEditOpen(false);
+          } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : "Failed to save changes.";
+            setEditErr(msg);
+          } finally {
+            setEditLoading(false);
+          }
+        }}
+      />
+    ) : null}
   </div>
 );
 }

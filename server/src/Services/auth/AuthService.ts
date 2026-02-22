@@ -188,4 +188,164 @@ export class AuthService implements IAuthService {
     }
     return created;
   }
+
+  async startPasswordReset(korisnickoIme: string): Promise<{ challengeId: string; expiresAt: string; maskedEmail: string }> {
+    const user = await this.userRepository.getByUsername(korisnickoIme);
+
+    if (user.id === 0) {
+      await this.audit.log("Upozorenje", "PASSWORD_RESET_UNKNOWN_EMAIL", null, korisnickoIme);
+      throw new Error("User not found");
+    }
+
+    const code = generateOtp6();
+    const codeHash = await bcrypt.hash(code, 10);
+    const expiresAt = new Date(Date.now() + OTP_TTL_MS);
+
+    const challengeIdNum = await this.challengeRepo.create(user.id, codeHash, expiresAt);
+    await this.emailService.sendPasswordResetOtp(user.korisnickoIme, code);
+
+    await this.audit.log("Informacija", "PASSWORD_RESET_OTP_SENT", user.id, user.korisnickoIme, {
+      challengeId: challengeIdNum,
+    });
+
+    return {
+      challengeId: String(challengeIdNum),
+      expiresAt: expiresAt.toISOString(),
+      maskedEmail: maskEmail(user.korisnickoIme),
+    };
+  }
+
+  async verifyPasswordResetOtp(challengeId: string, code: string): Promise<void> {
+    const id = Number(challengeId);
+    if (!Number.isFinite(id)) throw new Error("Bad request");
+
+    const challenge = await this.challengeRepo.getById(id);
+    if (!challenge) throw new Error("Not found");
+
+    const user = await this.userRepository.getById(challenge.userId);
+
+    if (challenge.consumedAt) {
+      await this.audit.log("Upozorenje", "PASSWORD_RESET_ALREADY_USED", user.id || null, user.korisnickoIme || null);
+      throw new Error("Already used");
+    }
+    
+    if (challenge.expiresAt.getTime() < Date.now()) {
+      await this.audit.log("Upozorenje", "PASSWORD_RESET_EXPIRED", user.id || null, user.korisnickoIme || null);
+      throw new Error("Expired");
+    }
+    
+    if (challenge.attempts >= MAX_ATTEMPTS) {
+      await this.audit.log("Upozorenje", "PASSWORD_RESET_TOO_MANY_ATTEMPTS", user.id || null, user.korisnickoIme || null);
+      throw new Error("Too many attempts");
+    }
+
+    const ok = await bcrypt.compare(code, challenge.codeHash);
+    if (!ok) {
+      await this.challengeRepo.incrementAttempts(id);
+      await this.audit.log("Upozorenje", "PASSWORD_RESET_INVALID_CODE", user.id || null, user.korisnickoIme || null);
+      throw new Error("Invalid code");
+    }
+
+    await this.audit.log("Informacija", "PASSWORD_RESET_OTP_VERIFIED", user.id, user.korisnickoIme);
+  }
+
+  async resetPassword(challengeId: string, newPassword: string): Promise<void> {
+    const id = Number(challengeId);
+    if (!Number.isFinite(id)) throw new Error("Bad request");
+
+    const challenge = await this.challengeRepo.getById(id);
+    if (!challenge) throw new Error("Challenge not found");
+
+    const user = await this.userRepository.getById(challenge.userId);
+    if (user.id === 0) throw new Error("User not found");
+
+    // Hash novu lozinku
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update u bazi
+    await this.userRepository.updatePassword(user.id, hashedPassword);
+
+    // Mark challenge kao consumed
+    await this.challengeRepo.markConsumed(id);
+
+    await this.audit.log("Informacija", "PASSWORD_RESET_SUCCESS", user.id, user.korisnickoIme);
+  }
+
+  async startChangePassword(userId: number): Promise<{ challengeId: string; expiresAt: string; maskedEmail: string }> {
+    const user = await this.userRepository.getById(userId);
+    if (!user || user.id === 0) throw new Error("User not found");
+
+    const code = generateOtp6();
+    const codeHash = await bcrypt.hash(code, 10);
+    const expiresAt = new Date(Date.now() + OTP_TTL_MS);
+
+    const challengeIdNum = await this.challengeRepo.create(user.id, codeHash, expiresAt);
+
+    await this.emailService.sendPasswordResetOtp(user.korisnickoIme, code);
+
+    await this.audit.log("Informacija", "CHANGE_PASSWORD_OTP_SENT", user.id, user.korisnickoIme, {
+      challengeId: challengeIdNum,
+    });
+
+    return {
+      challengeId: String(challengeIdNum),
+      expiresAt: expiresAt.toISOString(),
+      maskedEmail: maskEmail(user.korisnickoIme),
+    };
+  }
+
+  async verifyChangePasswordOtp(userId: number, challengeId: string, code: string): Promise<void> {
+    const id = Number(challengeId);
+    if (!Number.isFinite(id)) throw new Error("Bad request");
+
+    const challenge = await this.challengeRepo.getById(id);
+    if (!challenge) throw new Error("Not found");
+
+    if (challenge.userId !== userId) {
+      await this.audit.log("Upozorenje", "CHANGE_PASSWORD_OTP_NOT_ALLOWED", userId, null, { challengeId: id });
+      throw new Error("NOT_ALLOWED");
+    }
+
+    if (challenge.consumedAt) throw new Error("Already used");
+    if (challenge.expiresAt.getTime() < Date.now()) throw new Error("Expired");
+    if (challenge.attempts >= MAX_ATTEMPTS) throw new Error("Too many attempts");
+
+    const ok = await bcrypt.compare(code, challenge.codeHash);
+    if (!ok) {
+      await this.challengeRepo.incrementAttempts(id);
+      await this.audit.log("Upozorenje", "CHANGE_PASSWORD_INVALID_CODE", userId, null, { challengeId: id });
+      throw new Error("Invalid code");
+    }
+
+    await this.audit.log("Informacija", "CHANGE_PASSWORD_OTP_VERIFIED", userId, null, { challengeId: id });
+  }
+
+  async finishChangePassword(userId: number, challengeId: string, newPassword: string): Promise<void> {
+    const id = Number(challengeId);
+    if (!Number.isFinite(id)) throw new Error("Bad request");
+
+    const challenge = await this.challengeRepo.getById(id);
+    if (!challenge) throw new Error("Challenge not found");
+
+    // ✅ ownership check
+    if (challenge.userId !== userId) {
+      await this.audit.log("Upozorenje", "CHANGE_PASSWORD_FINISH_NOT_ALLOWED", userId, null, { challengeId: id });
+      throw new Error("NOT_ALLOWED");
+    }
+
+    if (challenge.consumedAt) throw new Error("Already used");
+    if (challenge.expiresAt.getTime() < Date.now()) throw new Error("Expired");
+
+    const user = await this.userRepository.getById(userId);
+    if (!user || user.id === 0) throw new Error("User not found");
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await this.userRepository.updatePassword(user.id, hashedPassword);
+    await this.challengeRepo.markConsumed(id);
+
+    await this.audit.log("Informacija", "CHANGE_PASSWORD_SUCCESS", user.id, user.korisnickoIme, { challengeId: id });
+  }
 }

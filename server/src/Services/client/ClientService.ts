@@ -201,4 +201,15 @@ export class ClientService implements IClientService {
       ratingsTrend,
     };
   }
+
+  async updateMyProfile(userId: number, dto: { ime: string; prezime: string; pol: 'musko' | 'zensko'; datumRodjenja: Date | null }): Promise<void> {
+    await this.userRepo.updateBasicInfo({
+      id: userId,
+      ime: dto.ime,
+      prezime: dto.prezime,
+      datumRodjenja: dto.datumRodjenja,
+      pol: dto.pol,
+    });
+    try { await this.audit.log('Informacija', 'CLIENT_PROFILE_UPDATE', userId, null, {}); } catch {}
+  }
 }

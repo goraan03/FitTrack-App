@@ -10,4 +10,10 @@ export interface IAuthAPIService {
   resend2fa(challengeId: string): Promise<Resend2FAResponse>;
   registracija(podaci: RegistrationData): Promise<AuthResponse>;
   getBoot(): Promise<BootInfoResponse>;
+  forgotPassword(email: string): Promise<any>;
+  verifyResetOtp(challengeId: string, code: string): Promise<any>;
+  resetPassword(challengeId: string, newPassword: string): Promise<any>;
+  startChangePassword(): Promise<any>;
+  verifyChangePasswordOtp(challengeId: string, code: string): Promise<any>;
+  finishChangePassword(challengeId: string, newPassword: string): Promise<any>;
 }

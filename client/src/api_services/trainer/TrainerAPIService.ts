@@ -8,6 +8,7 @@ import type { Exercise, UpsertExercise } from "../../types/trainer/Exercise";
 import type { ProgramListItem, ProgramDetails, UpsertProgram, ProgramExerciseItem } from "../../types/trainer/Program";
 import type { TrainerClient } from "../../types/trainer/TrainerClient";
 import type { TrainerTerm, CreateTermDto } from "../../types/trainer/Term";
+import type { UpdateMyProfileRequest } from "../../types/profile/UpdateMyProfileRequest";
 
 const baseURL = joinURL(import.meta.env.VITE_API_URL || '', 'trainer');
 
@@ -141,4 +142,13 @@ export const trainerApi: ITrainerAPIService = {
     );
     return res.data;
   },
+
+async updateMyProfile(payload: UpdateMyProfileRequest) {
+  const res = await axios.put<BasicResponse>(
+    `${baseURL}/me/profile`,
+    payload,
+    { headers: authHeaders() }
+  );
+  return res.data;
+},
 };

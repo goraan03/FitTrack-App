@@ -4,6 +4,7 @@ import type { Exercise, UpsertExercise } from "../../types/trainer/Exercise";
 import type { ProgramListItem, UpsertProgram, ProgramDetails, ProgramExerciseItem } from "../../types/trainer/Program";
 import type { TrainerClient } from "../../types/trainer/TrainerClient";
 import type { TrainerTerm, CreateTermDto } from "../../types/trainer/Term";
+import type { UpdateMyProfileRequest } from "../../types/profile/UpdateMyProfileRequest";
 
 export interface ITrainerAPIService {
   getDashboard(weekStartISO?: string): Promise<TrainerDashboardResponse>;
@@ -41,4 +42,5 @@ export interface ITrainerAPIService {
   }): Promise<BasicResponse>;
   deleteTerm(termId: number): Promise<BasicResponse>;
   getTermParticipants(termId: number): Promise<{ success: boolean; data: Array<{userId: number; userName: string}> }>;
+  updateMyProfile(payload: UpdateMyProfileRequest): Promise<BasicResponse>;
 }

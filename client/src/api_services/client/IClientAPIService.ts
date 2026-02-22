@@ -5,6 +5,7 @@ import type { HistoryResponse } from "../../types/client/HistoryResponse";
 import type { MyProfileResponse } from "../../types/client/MyProfileResponse";
 import type { TrainersResponse } from "../../types/client/TrainersResponse";
 import type { WeeklyScheduleResponse } from "../../types/client/WeeklyScheduleResponse";
+import type { UpdateMyProfileRequest } from "../../types/users/ClientProfile";
 
 
 export interface IClientAPIService {
@@ -16,4 +17,5 @@ export interface IClientAPIService {
   cancel(termId: number): Promise<BasicResponse>;
   getHistory(): Promise<HistoryResponse>;
   getMyProfile(): Promise<MyProfileResponse>;
+  updateMyProfile(payload: UpdateMyProfileRequest): Promise<BasicResponse>;
 }

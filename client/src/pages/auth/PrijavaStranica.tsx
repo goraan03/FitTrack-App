@@ -1,4 +1,3 @@
-// client/src/pages/auth/PrijavaStranica.tsx
 import { useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { PrijavaForma } from "../../components/autentifikacija/PrijavaForma";
@@ -7,7 +6,9 @@ import { useAuth } from "../../hooks/auth/useAuthHook";
 import { getDashboardPathForRole, isPathAllowedForRole } from "../../routes/roleRoutes";
 import Brand from "../../components/common/Brand";
 
-interface LoginPageProps { authApi: IAuthAPIService; }
+interface LoginPageProps {
+  authApi: IAuthAPIService;
+}
 
 export default function PrijavaStranica({ authApi }: LoginPageProps) {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -79,6 +80,16 @@ export default function PrijavaStranica({ authApi }: LoginPageProps) {
 
               {/* Form */}
               <PrijavaForma authApi={authApi} />
+
+              {/* Forgot password */}
+              <div className="mt-6 text-center">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm font-semibold text-amber-400 hover:text-amber-300 transition underline underline-offset-4"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
           </div>
 

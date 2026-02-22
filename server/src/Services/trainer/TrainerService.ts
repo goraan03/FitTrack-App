@@ -12,8 +12,6 @@ import { ITrainerProgramsRepository } from "../../Domain/repositories/trainer_pr
 import { parseISO } from "../../helpers/TrainerService/parseISO";
 import { WorkoutRepository } from "../../Database/repositories/workout/WorkoutRepository";
 
-
-
 export class TrainerService implements ITrainerService {
   constructor(
     private queries: ITrainerQueriesRepository,
@@ -33,7 +31,6 @@ export class TrainerService implements ITrainerService {
 
     const now = new Date();
     const isCurrentWeek = now >= weekStart && now < weekEnd;
-
     const statsFrom = isCurrentWeek ? now : weekStart;
 
     const [weekTerms, weekStats, avgRating, pendingRows] = await Promise.all([
@@ -45,34 +42,40 @@ export class TrainerService implements ITrainerService {
 
     const filteredTerms = weekTerms.filter(t => t.enrolledCount > 0);
 
+    const events = filteredTerms
+      .map(t => {
+        const s = new Date(t.startAt);
+        const e = new Date(s.getTime() + t.dur * 60000);
+        const nowMs = now.getTime();
+        
+        const graceEnd = new Date(e.getTime() + 60 * 60 * 1000);
+        
+        if (nowMs > graceEnd.getTime()) {
+          return null;
+        }
 
-    const events = filteredTerms.map(t => {
-      const s = new Date(t.startAt);
-      const e = new Date(s.getTime() + t.dur * 60000);
-      const graceEnd = new Date(e.getTime() + 60 * 60 * 1000);
-      if (now > graceEnd) {
-        return null;
-      }
-      const jsDay = s.getDay();
-      const day = (jsDay + 6) % 7;
-      const startMs = s.getTime();
-      const endMs = startMs + t.dur * 60000;
-      const nowMs = now.getTime();
-      const cancellable = (startMs - nowMs) >= (60 * 60000);
-      const startable = !t.completed && nowMs >= (startMs - 15 * 60 * 1000) && nowMs < endMs;
-      return {
-        id: t.termId,
-        title: t.title,
-        day,
-        start: toHHMM(s),
-        end: toHHMM(e),
-        type: t.type,
-        cancellable,
-        programId: t.programId,
-        completed: !!t.completed,
-        startable,
-      };
-    }).filter((e): e is Exclude<typeof e, null> => e !== null);
+        const jsDay = s.getDay();
+        const day = (jsDay + 6) % 7;
+        const startMs = s.getTime();
+        const endMs = e.getTime();
+        
+        const cancellable = (startMs - nowMs) >= (60 * 60000);
+        const startable = !t.completed && nowMs >= (startMs - 15 * 60 * 1000) && nowMs < endMs;
+
+        return {
+          id: t.termId,
+          title: t.title,
+          day,
+          start: toHHMM(s),
+          end: toHHMM(e),
+          type: t.type,
+          cancellable,
+          programId: t.programId,
+          completed: !!t.completed,
+          startable, // ✅ Dodao sam ovo
+        };
+      })
+      .filter((e): e is Exclude<typeof e, null> => e !== null); // ✅ Ukloni null-ove sa type guardom
 
     const totalTerms = filteredTerms.length;
     const totalMinutes = filteredTerms.reduce((sum, t) => sum + t.dur, 0);
@@ -86,7 +89,9 @@ export class TrainerService implements ITrainerService {
       pendingMap.set(key, item);
     }
 
-    try { await this.audit.log('Informacija', 'TRAINER_DASHBOARD_VIEW', trainerId, null, { weekStart: weekStart.toISOString() }); } catch {}
+    try { 
+      await this.audit.log('Informacija', 'TRAINER_DASHBOARD_VIEW', trainerId, null, { weekStart: weekStart.toISOString() }); 
+    } catch {}
 
     return {
       stats: {
@@ -394,5 +399,17 @@ export class TrainerService implements ITrainerService {
     });
     
     return sessionId;
+  }
+
+  async updateMyProfile(trainerId: number, dto: { ime: string; prezime: string; pol: 'musko' | 'zensko'; datumRodjenja: Date | null }): Promise<void> {
+  await this.userRepo.updateBasicInfo({
+    id: trainerId,
+    ime: dto.ime,
+    prezime: dto.prezime,
+    datumRodjenja: dto.datumRodjenja,
+    pol: dto.pol,
+  });
+
+    try { await this.audit.log('Informacija', 'TRAINER_PROFILE_UPDATE', trainerId, null, {}); } catch {}
   }
 }

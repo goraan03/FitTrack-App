@@ -14,4 +14,10 @@ export interface IAuthService {
     datumRodjenja: string,
     pol: string
   ): Promise<User>;
+  startPasswordReset(korisnickoIme: string): Promise<{ challengeId: string; expiresAt: string; maskedEmail: string }>;
+  verifyPasswordResetOtp(challengeId: string, code: string): Promise<void>;
+  resetPassword(challengeId: string, newPassword: string): Promise<void>;
+  startChangePassword(userId: number): Promise<{ challengeId: string; expiresAt: string; maskedEmail: string }>;
+  verifyChangePasswordOtp(userId: number, challengeId: string, code: string): Promise<void>;
+  finishChangePassword(userId: number, challengeId: string, newPassword: string): Promise<void>;
 }

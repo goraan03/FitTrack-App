@@ -134,6 +134,7 @@ export interface ITrainerService {
   rateParticipant(trainerId: number, termId: number, userId: number, rating: number): Promise<void>;
   cancelTerm(trainerId: number, termId: number): Promise<void>;
   getMyProfile(trainerId: number): Promise<TrainerProfile>;
+  updateMyProfile(trainerId: number, dto: { ime: string; prezime: string; pol: 'musko' | 'zensko'; datumRodjenja: Date | null }): Promise<void>;
 
   // Exercises
   listExercises(trainerId: number): Promise<ExerciseItem[]>;

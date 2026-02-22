@@ -49,6 +49,8 @@ import LiveWorkoutPage from "./pages/trainer/LiveWorkoutPage";
 import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/legal/TermsOfServicePage";
 import CookiePolicyPage from "./pages/legal/CookiePolicyPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
 
 export default function App() {
   return (
@@ -73,6 +75,7 @@ export default function App() {
         <Route path="/login" element={<PrijavaStranica authApi={authApi} />} />
         <Route path="/register" element={<RegistracijaStranica authApi={authApi} />} />
         <Route path="/logout" element={<LogoutPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage authApi={authApi}/>} />
 
         {/* Admin */}
         <Route
@@ -107,6 +110,7 @@ export default function App() {
             <Route path="programs" element={<ClientProgramsPage programsApi={programsApi} />} />
             <Route path="history" element={<ClientHistoryPage clientApi={clientApi} />} />
             <Route path="profile" element={<ClientProfilePage clientApi={clientApi} />} />
+            <Route path="change-password" element={<ChangePasswordPage authApi={authApi} redirectAfter="/app/profile" />} />
           </Route>
         </Route>
 
@@ -127,6 +131,7 @@ export default function App() {
           <Route path="terms" element={<TrainerTermsPage trainerApi={trainerApi} />} />
           <Route path="clients" element={<TrainerClientsPage trainerApi={trainerApi} />} />
           <Route path="/trainer/live-workout/:termId" element={<LiveWorkoutPage trainerApi={trainerApi} />} />
+          <Route path="change-password" element={<ChangePasswordPage authApi={authApi} redirectAfter="/trainer/profile" />} />
         </Route>
 
         {/* Fallback */}

@@ -17,6 +17,7 @@ export class TrainerController {
     this.router.post("/trainer/terms/:termId/rate", authenticate, authorize("trener"), this.rate.bind(this));
     this.router.post("/trainer/terms/:termId/cancel", authenticate, authorize("trener"), this.cancel.bind(this));
     this.router.get("/trainer/me/profile", authenticate, authorize("trener"), this.myProfile.bind(this));
+    this.router.put("/trainer/me/profile", authenticate, authorize("trener"), this.updateMyProfile.bind(this));
 
     this.router.get("/trainer/exercises", authenticate, authorize("trener"), this.listExercises.bind(this));
     this.router.post("/trainer/exercises", authenticate, authorize("trener"), this.createExercise.bind(this));
@@ -305,6 +306,40 @@ export class TrainerController {
       res.status(200).json({ success: true, data });
     } catch {
       res.status(500).json({ success: false, message: 'Greška na serveru' });
+    }
+  }
+
+  private async updateMyProfile(req: Request, res: Response) {
+    try {
+      const user = req.user!;
+      const body = req.body || {};
+
+      const ime = String(body.ime ?? body.firstName ?? '').trim();
+      const prezime = String(body.prezime ?? body.lastName ?? '').trim();
+
+      const polRaw = body.pol ?? body.gender;
+      const pol = polRaw === 'musko' || polRaw === 'zensko' ? polRaw : null;
+
+      const datumRodjenjaISO = body.datumRodjenjaISO ?? body.dateOfBirthISO ?? null;
+      const datumRodjenja =
+        datumRodjenjaISO && String(datumRodjenjaISO).trim()
+          ? new Date(String(datumRodjenjaISO))
+          : null;
+
+      if (!ime || ime.length < 2) return res.status(400).json({ success: false, message: 'Ime je obavezno (min 2)' });
+      if (!prezime || prezime.length < 2) return res.status(400).json({ success: false, message: 'Prezime je obavezno (min 2)' });
+      if (!pol) return res.status(400).json({ success: false, message: 'Pol je obavezan (musko/zensko)' });
+
+      if (datumRodjenja && Number.isNaN(datumRodjenja.getTime())) {
+        return res.status(400).json({ success: false, message: 'Neispravan datum rođenja' });
+      }
+
+      await this.trainer.updateMyProfile(user.id, { ime, prezime, pol, datumRodjenja });
+
+      res.json({ success: true, message: "Profil ažuriran" });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: (err as Error)?.message || "Server error" });
     }
   }
 

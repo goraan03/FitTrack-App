@@ -12,8 +12,9 @@ export interface TrainerProfile {
   firstName: string;
   lastName: string;
   email: string;
-  gender: string | null;
+  gender: "musko" | "zensko" | "male" | "female" | "other" | null;
   age: number | null;
+  dateOfBirthISO?: string | null;
   address: string | null;
   avatarUrl: string | null;
   isBlocked: boolean;
@@ -21,3 +22,4 @@ export interface TrainerProfile {
   stats: TrainerProfileStats;
   ratingsTrend: RatingsPoint[];
 }
+

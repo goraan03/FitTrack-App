@@ -19,4 +19,5 @@ export interface IUserRepository {
   updateAssignedTrainer(userId: number, trainerId: number): Promise<void>;
   listTrainers(): Promise<{ id: number; name: string; email: string }[]>;
   getAssignedTrainerId(userId: number): Promise<number | null>;
+  updatePassword(userId: number, hashedPassword: string): Promise<void>;
 }

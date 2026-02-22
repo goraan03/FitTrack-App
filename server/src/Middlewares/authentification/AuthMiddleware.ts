@@ -44,7 +44,7 @@ export const authenticate = (
   const token = extractToken(req);
 
   if (!token) {
-    res.status(401).json({ success: false, message: "Nedostaje token" });
+    res.status(401).json({ success: false, message: "Token is missing" });
     return;
   }
 
@@ -57,6 +57,6 @@ export const authenticate = (
     req.user = decoded;
     next();
   } catch (err) {
-    res.status(401).json({ success: false, message: "Nevažeći token" });
+    res.status(401).json({ success: false, message: "Invalid token" });
   }
 };

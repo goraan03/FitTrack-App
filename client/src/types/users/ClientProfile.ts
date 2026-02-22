@@ -1,7 +1,7 @@
 import type { ClientProfileStats } from "../../models/client/ClientProfileStats";
 
 export type TrainingType = "INDIVIDUAL" | "GROUP";
-export type Gender = "male" | "female" | "other" | null;
+export type Gender = "male" | "female" | "other" | "musko" | "zensko" | null;
 
 export interface RatingsPoint {
   date: string; 
@@ -26,6 +26,7 @@ export interface ClientProfile {
   email: string;
   gender?: Gender;
   age?: number | null;
+  dateOfBirthISO?: string | null;
   address?: string | null;
   avatarUrl?: string | null;
   isBlocked: boolean;
@@ -34,3 +35,11 @@ export interface ClientProfile {
   upcomingSessions: UpcomingSession[];
   ratingsTrend: RatingsPoint[];
 }
+
+export type UpdateMyProfileRequest = {
+  firstName: string;
+  lastName: string;
+  gender: "musko" | "zensko" | null;
+  address: string | null;
+  dateOfBirthISO: string | null; // "YYYY-MM-DD" ili null
+};

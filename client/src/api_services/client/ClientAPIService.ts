@@ -55,4 +55,9 @@ export const clientApi: IClientAPIService = {
     const res = await instance.get<MyProfileResponse>("/me/profile", { headers: authHeaders() });
     return res.data;
   },
+
+async updateMyProfile(payload) {
+  const res = await instance.put<MyProfileResponse>("/me/profile", payload, { headers: authHeaders() });
+  return res.data;
+}
 };

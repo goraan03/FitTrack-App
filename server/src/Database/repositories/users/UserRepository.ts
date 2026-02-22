@@ -193,4 +193,11 @@ export class UserRepository implements IUserRepository {
     const row = rows[0] as RowDataPacket | undefined;
     return row?.assigned_trener_id ?? null;
   }
+
+  async updatePassword(userId: number, hashedPassword: string): Promise<void> {
+  await db.execute(
+    'UPDATE users SET lozinka = ? WHERE id = ?',
+    [hashedPassword, userId]
+  );
+}
 }

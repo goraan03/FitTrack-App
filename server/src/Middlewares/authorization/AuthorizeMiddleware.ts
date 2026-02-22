@@ -7,7 +7,7 @@ export const authorize = (...dozvoljeneUloge: string[]) => {
     const user = req.user;
 
     if (!user) {
-      res.status(401).json({ success: false, message: "Nedostaje token" });
+      res.status(401).json({ success: false, message: "Token missing" });
       return;
     }
 
@@ -15,7 +15,7 @@ export const authorize = (...dozvoljeneUloge: string[]) => {
 
     if (!allowed.includes(role)) {
       console.warn(`[AUTHZ] deny path=${req.originalUrl} role=${role} needed=${allowed.join(",")}`);
-      res.status(403).json({ success: false, message: "Zabranjen pristup" });
+      res.status(403).json({ success: false, message: "Access denied" });
       return;
     }
 
