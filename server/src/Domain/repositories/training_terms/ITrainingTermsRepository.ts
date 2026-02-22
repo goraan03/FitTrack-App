@@ -13,9 +13,20 @@ export type TrainingTerm = {
   canceled: boolean;
 };
 
+export type TermWithProgramAndTrainer = {
+  termId: number;
+  programId: number;
+  programTitle: string;
+  trainerId: number;
+  trainerName: string;
+  trainerEmail: string;
+  startAt: Date;
+};
+
 export interface ITrainingTermsRepository {
   getAvailableTerms(trainerId: number, from: Date, to: Date, type?: TrainingType, programId?: number, status?: "free" | "full", userId?: number): Promise<AvailableTerm[]>;
   getById(termId: number): Promise<TrainingTerm | null>;
+  getWithProgramAndTrainer(termId: number): Promise<TermWithProgramAndTrainer | null>;
   incrementEnrolledCount(termId: number): Promise<void>;
   decrementEnrolledCount(termId: number): Promise<void>;
   cancelTerm(termId: number): Promise<void>;

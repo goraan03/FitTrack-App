@@ -20,6 +20,7 @@ import WeeklyCards from "../../components/client/WeeklyCards";
 import { hhmmToMinutes } from "../../helpers/client/hhmmToMinutes";
 import type { IClientAPIService } from "../../api_services/client/IClientAPIService";
 import { programsApi } from "../../api_services/programs/ProgramsAPIService";
+import toast from "react-hot-toast";
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Legend, Filler);
 
 const normalizeType = (t: unknown): 'individual' | 'group' =>
@@ -121,8 +122,14 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
   useEffect(() => { loadWeekly(); }, [weekStart]);
 
   const handleCancel = async (id: number) => {
+    const confirm = window.confirm("Are you sure you want to cancel this session?");
+    if (!confirm) return;
     const r = await clientApi.cancel(id);
-    if (!r.success) alert(r.message || "Cancel failed");
+    if (!r.success) {
+      alert(r.message || "Cancel failed");
+      return;
+    }
+    toast.success("Session canceled");
     await loadWeekly();
   };
 

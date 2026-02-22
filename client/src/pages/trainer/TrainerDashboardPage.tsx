@@ -66,6 +66,8 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
   };
 
   const cancelTerm = async (id: number) => {
+    const confirm = window.confirm("Are you sure you want to cancel this session?");
+    if (!confirm) return;
     try {
       const res = await trainerApi.cancelTerm(id);
       if (!res.success) { toast.error(res.message || "Error canceling session"); return; }

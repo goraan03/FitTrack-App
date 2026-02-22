@@ -13,13 +13,15 @@ import { ITrainingTermsRepository } from "../../Domain/repositories/training_ter
 import { TrainingType } from "../../Domain/types/training_enrollments/TrainingType";
 import { calcAge } from "../../helpers/ClientService/calcAge";
 import { toHHMM } from "../../helpers/ClientService/toHHMM";
+import { IEmailService } from "../../Domain/services/email/IEmailService";
 
 export class ClientService implements IClientService {
   constructor(
     private audit: IAuditService,
     private userRepo: IUserRepository,
     private trainingEnrollmentsRepo: ITrainingEnrollmentsRepository,
-    private trainingTermsRepo: ITrainingTermsRepository
+    private trainingTermsRepo: ITrainingTermsRepository,
+    private emailService: IEmailService,
   ) {}
 
   async chooseTrainer(userId: number, trainerId: number): Promise<void> {
@@ -90,6 +92,9 @@ export class ClientService implements IClientService {
     const term = await this.trainingTermsRepo.getById(termId);
     if (!term) throw new Error('TERM_NOT_FOUND');
 
+    const client = await this.userRepo.getById(userId);
+    if (!client) throw new Error('User not found');
+
     const assignedTrainerId = await this.userRepo.getAssignedTrainerId(userId);
     if (!assignedTrainerId) throw new Error('NO_TRAINER_SELECTED');
     if (assignedTrainerId !== term.trainerId) throw new Error('DIFFERENT_TRAINER');
@@ -107,18 +112,36 @@ export class ClientService implements IClientService {
       }
       await this.trainingEnrollmentsRepo.reactivateEnrollment(existing.id);
       await this.trainingTermsRepo.incrementEnrolledCount(termId);
-      try { await this.audit.log('Informacija', 'BOOK_SUCCESS', userId, null, { termId }); } catch {}
-      return;
+      try { await this.audit.log('Informacija', 'BOOK_SUCCESS', userId, null, { termId, reactivated: true }); } catch {}
+    } else {
+      if (term.enrolledCount >= term.capacity) {
+        try { await this.audit.log('Upozorenje', 'BOOK_CONFLICT_FULL', userId, null, { termId }); } catch {}
+        throw new Error('FULL');
+      }
+
+      await this.trainingEnrollmentsRepo.createEnrollment(termId, userId);
+      await this.trainingTermsRepo.incrementEnrolledCount(termId);
+      try { await this.audit.log('Informacija', 'BOOK_SUCCESS', userId, null, { termId, reactivated: false }); } catch {}
     }
 
-    if (term.enrolledCount >= term.capacity) {
-      try { await this.audit.log('Upozorenje', 'BOOK_CONFLICT_FULL', userId, null, { termId }); } catch {}
-      throw new Error('FULL');
+    try {
+      const meta = await this.trainingTermsRepo.getWithProgramAndTrainer(termId);
+      const trainerUser = meta ? await this.userRepo.getById(meta.trainerId) : null;
+      const trainerEmail = meta?.trainerEmail || trainerUser?.korisnickoIme;
+      if (trainerEmail && meta) {
+        const clientName = `${client.ime} ${client.prezime}`.trim() || client.korisnickoIme;
+        await this.emailService.sendTermBookedToTrainer(
+          trainerEmail,
+          meta.programTitle,
+          meta.startAt,
+          clientName
+        );
+      } else {
+        console.warn('Booking email skipped: trainer email missing', { termId, trainerId: term.trainerId });
+      }
+    } catch (e) {
+      console.error('Failed to send booking email:', e);
     }
-
-    await this.trainingEnrollmentsRepo.createEnrollment(termId, userId);
-    await this.trainingTermsRepo.incrementEnrolledCount(termId);
-    try { await this.audit.log('Informacija', 'BOOK_SUCCESS', userId, null, { termId }); } catch {}
   }
 
   async cancelTerm(userId: number, termId: number): Promise<void> {
@@ -131,6 +154,27 @@ export class ClientService implements IClientService {
     await this.trainingEnrollmentsRepo.cancelEnrollment(enr.enrollmentId);
     await this.trainingTermsRepo.decrementEnrolledCount(termId);
     try { await this.audit.log('Informacija', 'CANCEL_SUCCESS', userId, null, { termId }); } catch {}
+    try {
+      const [meta, client] = await Promise.all([
+        this.trainingTermsRepo.getWithProgramAndTrainer(termId),
+        this.userRepo.getById(userId),
+      ]);
+      const trainerUser = meta ? await this.userRepo.getById(meta.trainerId) : null;
+      const trainerEmail = meta?.trainerEmail || trainerUser?.korisnickoIme;
+      if (trainerEmail && client && meta) {
+        const clientName = `${client.ime} ${client.prezime}`.trim() || client.korisnickoIme;
+        await this.emailService.sendTermCanceledByClient(
+          trainerEmail,
+          meta.programTitle,
+          meta.startAt,
+          clientName
+        );
+      } else {
+        console.warn('Cancel email skipped: trainer email missing', { termId, trainerId: meta?.trainerId });
+      }
+    } catch (e) {
+      console.error('Failed to send cancelation email:', e);
+    }
   }
 
   async getHistory(userId: number): Promise<HistoryData> {

@@ -2,7 +2,7 @@ import db from "../../connection/DbConnectionPool";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { AvailableTerm } from "../../../Domain/types/training_terms/AvailableTerm";
 import { TrainingType } from "../../../Domain/types/training_enrollments/TrainingType";
-import {ITrainingTermsRepository, TrainingTerm,} from "../../../Domain/repositories/training_terms/ITrainingTermsRepository";
+import {ITrainingTermsRepository, TrainingTerm, TermWithProgramAndTrainer} from "../../../Domain/repositories/training_terms/ITrainingTermsRepository";
 
 export class TrainingTermsRepository implements ITrainingTermsRepository {
   async getAvailableTerms(
@@ -88,6 +88,35 @@ export class TrainingTermsRepository implements ITrainingTermsRepository {
       capacity: Number(r.capacity || 0),
       enrolledCount: Number(r.enrolledCount || 0),
       canceled: !!r.canceled,
+    };
+  }
+
+  async getWithProgramAndTrainer(termId: number): Promise<TermWithProgramAndTrainer | null> {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT t.id as termId,
+              t.program_id as programId,
+              p.title as programTitle,
+              t.trainer_id as trainerId,
+              CONCAT(u.ime,' ',u.prezime) as trainerName,
+              u.korisnickoIme as trainerEmail,
+              t.start_at as startAt
+       FROM training_terms t
+       JOIN programs p ON p.id = t.program_id
+       JOIN users u ON u.id = t.trainer_id
+       WHERE t.id = ?
+       LIMIT 1`,
+      [termId]
+    );
+    if (!(rows as any[]).length) return null;
+    const r: any = rows[0];
+    return {
+      termId: r.termId,
+      programId: r.programId,
+      programTitle: r.programTitle,
+      trainerId: r.trainerId,
+      trainerName: r.trainerName,
+      trainerEmail: r.trainerEmail,
+      startAt: new Date(r.startAt),
     };
   }
 

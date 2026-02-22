@@ -67,14 +67,24 @@ const emailService = new EmailService();
 const auditService = new AuditService(auditLogRepo);
 const trainerQueriesRepo = new TrainerQueriesRepository();
 const workoutRepo = new WorkoutRepository();
-const trainerService = new TrainerService(trainerQueriesRepo, trainingTermsRepo, trainingEnrollmentsRepo, auditService, userRepo, exercisesRepo, trainerProgramsRepo, workoutRepo);
+const trainerService = new TrainerService(
+  trainerQueriesRepo,
+  trainingTermsRepo,
+  trainingEnrollmentsRepo,
+  auditService,
+  userRepo,
+  exercisesRepo,
+  trainerProgramsRepo,
+  workoutRepo,
+  emailService
+);
 const trainerController = new TrainerController(trainerService);
 const publicContactController = new PublicContactController(emailService);
 
 
 const authService = new AuthService(userRepo, challengeRepo, emailService, auditService);
 const adminService = new AdminService(userRepo, auditService, invoicesRepo);
-const clientService = new ClientService(auditService, userRepo, trainingEnrollmentsRepo, trainingTermsRepo);
+const clientService = new ClientService(auditService, userRepo, trainingEnrollmentsRepo, trainingTermsRepo, emailService);
 const programsService = new ProgramsService(programsRepo);
 const trainingService = new TrainingTermsService(trainingTermsRepo, userRepo);
 

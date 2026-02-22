@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { clientApi } from "../../api_services/client/ClientAPIService";
 import { Filter, Search } from "lucide-react";
 import type { TermItem } from "../../types/client/TermItem";
+import toast from "react-hot-toast";
 
 interface ClientSessionsPageProps {
   clientApi: typeof clientApi;
@@ -41,25 +42,35 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
     try {
       setBookingId(id);
       const r = await clientApi.book(id);
-      if (r.success) await load();
-      else alert(r.message);
+      if (r.success) {
+        toast.success("Session booked");
+        await load();
+      } else {
+        toast.error(r.message || "Booking failed");
+      }
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'An error occurred';
-      alert(msg);
+      toast.error(msg);
     } finally {
       setBookingId(null);
     }
   };
 
   const cancelBooking = async (id: number) => {
+    const confirm = window.confirm("Are you sure you want to cancel this session?");
+    if (!confirm) return;
     try {
       setBookingId(id);
       const r = await clientApi.cancel(id);
-      if (r.success) await load();
-      else alert(r.message);
+      if (r.success) {
+        toast.success("Session canceled");
+        await load();
+      } else {
+        toast.error(r.message || "Cancel failed");
+      }
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'An error occurred';
-      alert(msg);
+      toast.error(msg);
     } finally {
       setBookingId(null);
     }

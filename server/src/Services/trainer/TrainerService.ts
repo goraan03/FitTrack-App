@@ -11,6 +11,7 @@ import { IExercisesRepository } from "../../Domain/repositories/exercises/IExerc
 import { ITrainerProgramsRepository } from "../../Domain/repositories/trainer_programs/ITrainerProgramsRepository";
 import { parseISO } from "../../helpers/TrainerService/parseISO";
 import { WorkoutRepository } from "../../Database/repositories/workout/WorkoutRepository";
+import { IEmailService } from "../../Domain/services/email/IEmailService";
 
 export class TrainerService implements ITrainerService {
   constructor(
@@ -21,7 +22,8 @@ export class TrainerService implements ITrainerService {
     private userRepo: IUserRepository,
     private exercisesRepo: IExercisesRepository,
     private programsRepo: ITrainerProgramsRepository,
-    private workoutRepo: WorkoutRepository
+    private workoutRepo: WorkoutRepository,
+    private emailService: IEmailService
   ) {}
 
   async getDashboard(trainerId: number, weekStartISO?: string): Promise<TrainerDashboard> {
@@ -72,10 +74,10 @@ export class TrainerService implements ITrainerService {
           cancellable,
           programId: t.programId,
           completed: !!t.completed,
-          startable, // ✅ Dodao sam ovo
+          startable,
         };
       })
-      .filter((e): e is Exclude<typeof e, null> => e !== null); // ✅ Ukloni null-ove sa type guardom
+      .filter((e): e is Exclude<typeof e, null> => e !== null);
 
     const totalTerms = filteredTerms.length;
     const totalMinutes = filteredTerms.reduce((sum, t) => sum + t.dur, 0);
@@ -119,13 +121,40 @@ export class TrainerService implements ITrainerService {
     const term = await this.termsRepo.getById(termId);
     if (!term || term.trainerId !== trainerId) throw new Error('NOT_ALLOWED');
 
+    const enrolledUsers = await this.enrollRepo.getEnrolledUsers(termId);
+
     const msUntilStart = term.startAt.getTime() - Date.now();
     if (msUntilStart < 60 * 60000) {
       throw new Error('CANNOT_CANCEL_WITHIN_60_MIN');
     }
-
+    
     await this.termsRepo.cancelTerm(termId);
     try { await this.audit.log('Informacija', 'TRAINER_CANCEL_TERM', trainerId, null, { termId }); } catch {}
+
+    if (enrolledUsers.length > 0) {
+      const program = await this.programsRepo.getById(term.programId);
+      if (!program) throw new Error('PROGRAM_NOT_FOUND');
+
+      const trainer = await this.userRepo.getById(trainerId);
+      const trainerName = trainer ? `${trainer.ime} ${trainer.prezime}`.trim() : 'Your trainer';
+
+      for (const user of enrolledUsers) {
+        try {
+          const client = await this.userRepo.getById(user.user_id);
+          const email = client?.korisnickoIme;
+          if (!email) continue;
+
+          await this.emailService.sendTermCanceledToClient(
+            email,
+            program.title,
+            term.startAt,
+            trainerName
+          );
+        } catch (e) {
+          console.error('Failed to send email to client for term cancellation', user.user_id, e);
+        }
+      }
+    }
   }
 
   async rateParticipant(trainerId: number, termId: number, userId: number, rating: number): Promise<void> {
