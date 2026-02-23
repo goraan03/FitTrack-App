@@ -1,9 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { TrainerTerm } from "../../types/trainer/Term";
-import { format } from "date-fns";
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, addDays, startOfDay, isSameDay, isSameMonth } from "date-fns";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
-import { Calendar, Clock, Users, Plus, Trash2, Activity, AlertCircle } from "lucide-react";
+import { Calendar, Clock, Users, Plus, Trash2, Activity, AlertCircle, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
+
+const parseLocal = (iso: string) => {
+  const [d, t] = iso.split("T");
+  if (!d || !t) return new Date(iso);
+  const time = t.replace("Z", "");
+  const [h, m] = time.split(":").map(Number);
+  const [y, mo, day] = d.split("-").map(Number);
+  return new Date(y || 0, (mo || 1) - 1, day || 1, h || 0, m || 0);
+};
 
 export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerAPIService }) {
   const [terms, setTerms] = useState<TrainerTerm[]>([]);
@@ -16,6 +25,16 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
     durationMin: 60, 
     capacity: 1 
   });
+
+  const timeOptions = useMemo(() => {
+    const slots: string[] = [];
+    for (let h = 6; h <= 22; h++) {
+      for (const m of [0, 15, 30, 45]) {
+        slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+      }
+    }
+    return slots;
+  }, []);
 
   const load = async () => {
     setLoading(true);
@@ -32,7 +51,8 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
 
   const save = async () => {
     if (!form.startDate || !form.startTime) return toast.error('Pick date and time');
-    const startAtISO = new Date(`${form.startDate}T${form.startTime}:00`).toISOString();
+    // Preserve local wall time; avoid timezone shift that occurs with toISOString()
+    const startAtISO = `${form.startDate}T${form.startTime}:00`;
     const r = await trainerApi.createTerm({
       type: form.type,
       startAtISO,
@@ -148,34 +168,23 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
             {/* Date + Time */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
-                  Date
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                  <Calendar className="w-3 h-3" /> Date
                 </label>
-                <input
-                  type="date"
+                <FancyDatePicker
                   value={form.startDate}
-                  onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
-                  className="
-                    w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl
-                    px-4 py-3 text-sm text-white
-                    focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                  "
+                  onChange={(v) => setForm(f => ({ ...f, startDate: v }))}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
-                  Time
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                  <Clock className="w-3 h-3" /> Time
                 </label>
-                <input
-                  type="time"
+                <FancyTimePicker
                   value={form.startTime}
-                  onChange={(e) => setForm((f) => ({ ...f, startTime: e.target.value }))}
-                  className="
-                    w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl
-                    px-4 py-3 text-sm text-white
-                    focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                  "
+                  options={timeOptions}
+                  onChange={(v) => setForm(f => ({ ...f, startTime: v }))}
                 />
               </div>
             </div>
@@ -269,10 +278,10 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
                           `}
                         >
                           <span className="text-[10px] font-semibold uppercase">
-                            {format(new Date(t.startAt), "MMM")}
+                            {format(parseLocal(t.startAt), "MMM")}
                           </span>
                           <span className="text-xl font-bold leading-none">
-                            {format(new Date(t.startAt), "dd")}
+                            {format(parseLocal(t.startAt), "dd")}
                           </span>
                         </div>
 
@@ -304,7 +313,7 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
                           <div className="mt-1 flex items-center gap-3 text-slate-400 flex-wrap">
                             <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-tight">
                               <Clock className="w-3.5 h-3.5" />
-                              {format(new Date(t.startAt), "HH:mm")} ({t.durationMin} min)
+                              {format(parseLocal(t.startAt), "HH:mm")} ({t.durationMin} min)
                             </span>
 
                             <span className="w-1 h-1 bg-slate-700 rounded-full" />
@@ -344,13 +353,135 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
       </div>
     </div>
 
-    <style>{`
-      input[type="date"]::-webkit-calendar-picker-indicator,
-      input[type="time"]::-webkit-calendar-picker-indicator {
-        filter: invert(1);
-        opacity: 0.55;
-        cursor: pointer;
-      }
-    `}</style>
   </div>
-);}
+)}
+
+type FancyDatePickerProps = { value: string; onChange: (isoDate: string) => void };
+function FancyDatePicker({ value, onChange }: FancyDatePickerProps) {
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const today = startOfDay(new Date());
+  const selected = value ? startOfDay(new Date(value)) : today;
+  const [viewMonth, setViewMonth] = useState<Date>(() => startOfMonth(selected));
+
+  const days = useMemo(() => {
+    const start = startOfWeek(startOfMonth(viewMonth), { weekStartsOn: 1 });
+    const end = startOfWeek(endOfMonth(viewMonth), { weekStartsOn: 1 });
+    const res: Date[] = [];
+    let cur = start;
+    while (cur <= end) {
+      res.push(cur);
+      cur = addDays(cur, 1);
+    }
+    return res;
+  }, [viewMonth]);
+
+  const label = value ? format(selected, "EEE, MMM d") : "Pick a date";
+
+  return (
+    <div className="relative" ref={anchorRef}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-[#27273a] bg-[#0a0a0f] text-sm text-white hover:border-amber-400/40 hover:bg-white/5 transition"
+      >
+        <span className="font-semibold">{label}</span>
+        <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div
+          className="absolute z-50 mt-2 w-full rounded-2xl border border-[#2f2f44] bg-[#111118] shadow-[0_24px_80px_rgba(0,0,0,0.75)] p-4"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <button
+              onClick={() => setViewMonth(m => subMonths(m, 1))}
+              className="w-9 h-9 rounded-lg border border-[#2f2f44] text-slate-300 hover:bg-white/5 transition"
+            >
+              <ChevronLeft className="w-4 h-4 mx-auto" />
+            </button>
+            <div className="text-sm font-semibold text-white">{format(viewMonth, "MMMM yyyy")}</div>
+            <button
+              onClick={() => setViewMonth(m => addMonths(m, 1))}
+              className="w-9 h-9 rounded-lg border border-[#2f2f44] text-slate-300 hover:bg-white/5 transition"
+            >
+              <ChevronRight className="w-4 h-4 mx-auto" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d => (
+              <div key={d} className="text-[11px] text-slate-500 font-semibold text-center py-1">{d}</div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {days.map(d => {
+              const inMonth = isSameMonth(d, viewMonth);
+              const isSel = isSameDay(d, selected);
+              const isToday = isSameDay(d, today);
+              return (
+                <button
+                  key={d.toISOString()}
+                  onClick={() => {
+                    onChange(format(d, "yyyy-MM-dd"));
+                    setOpen(false);
+                  }}
+                  className={[
+                    "h-10 rounded-lg text-sm font-semibold transition-all border",
+                    isSel
+                      ? "bg-amber-400 text-[#0a0a0f] border-amber-400 shadow-[0_0_0_3px_rgba(251,191,36,0.15)]"
+                      : "border-transparent hover:bg-white/5",
+                    inMonth ? "text-slate-200" : "text-slate-600",
+                    isToday && !isSel ? "border-[#2f2f44]" : "",
+                  ].join(" ")}
+                >
+                  {format(d, "d")}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+type FancyTimePickerProps = { value: string; options: string[]; onChange: (v: string) => void };
+function FancyTimePicker({ value, options, onChange }: FancyTimePickerProps) {
+  const [open, setOpen] = useState(false);
+  const label = value ? value : "Pick a time";
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-[#27273a] bg-[#0a0a0f] text-sm text-white hover:border-amber-400/40 hover:bg-white/5 transition"
+      >
+        <span className="font-semibold">{label}</span>
+        <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div
+          ref={panelRef}
+          className="absolute z-50 mt-2 w-full max-h-64 overflow-y-auto rounded-2xl border border-[#2f2f44] bg-[#111118] shadow-[0_24px_80px_rgba(0,0,0,0.75)] p-2 grid grid-cols-3 gap-1"
+        >
+          {options.map(opt => (
+            <button
+              key={opt}
+              onClick={() => { onChange(opt); setOpen(false); }}
+              className={`py-2 rounded-lg text-sm font-semibold transition-all border ${
+                opt === value
+                  ? "bg-amber-400 text-[#0a0a0f] border-amber-400"
+                  : "border-transparent text-slate-200 hover:bg-white/5"
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

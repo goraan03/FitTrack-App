@@ -50,6 +50,8 @@ export class TrainerService implements ITrainerService {
       .map(t => {
         const s = new Date(t.startAt);
         const e = new Date(s.getTime() + t.dur * 60000);
+        const startStr = s.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+        const endStr = e.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
         const nowMs = now.getTime();
 
         // Remove completed terms immediately
@@ -70,8 +72,10 @@ export class TrainerService implements ITrainerService {
           id: t.termId,
           title: t.title || 'Unassigned slot',
           day,
-          start: toHHMM(s),
-          end: toHHMM(e),
+          start: startStr,
+          end: endStr,
+          startAt: s.toISOString(),
+          durationMin: t.dur,
           type: t.type,
           cancellable,
           programId: t.programId,

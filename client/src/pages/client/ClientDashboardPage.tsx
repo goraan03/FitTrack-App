@@ -71,8 +71,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
       weekStartMidnight.setHours(0, 0, 0, 0);
 
       const mapped: WeeklyCardItem[] = resp.data.events.map((e) => {
-        // Build start/end using day + HH:mm to avoid cross-TZ drift between server and browser
-        const startDate = (() => {
+        const startDate = e.startAt ? new Date(e.startAt) : (() => {
           const d = addDays(weekStart, e.day ?? 0);
           const [hh, mm] = (e.start || "00:00").split(":").map(Number);
           return setMinutes(setHours(d, hh || 0), mm || 0);

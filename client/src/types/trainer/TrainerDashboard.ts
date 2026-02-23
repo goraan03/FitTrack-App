@@ -7,6 +7,8 @@ export type TrainerWeeklyEvent = {
   day: number;
   start: string;
   end: string;
+  startAt?: string;
+  durationMin?: number;
   type: TrainingType;
   cancellable: boolean;
   startable?: boolean;

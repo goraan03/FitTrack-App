@@ -40,12 +40,20 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
           .map(e => {
             const normalizedType: "individual" | "group" =
               String(e.type).toLowerCase() === "individual" ? "individual" : "group";
+
+            const startDate = e.startAt ? new Date(e.startAt) : toDate(weekStart, e.day, e.start);
+            const endDate = e.durationMin
+              ? new Date(startDate.getTime() + e.durationMin * 60000)
+              : toDate(weekStart, e.day, e.end);
+            const startStr = format(startDate, "HH:mm");
+            const endStr = format(endDate, "HH:mm");
+
             return {
               id: e.id,
               title: e.title,
               day: e.day,
-              start: e.start,
-              end: e.end,
+              start: startStr,
+              end: endStr,
               type: normalizedType,
               trainerName: "",
               cancellable: e.cancellable,
