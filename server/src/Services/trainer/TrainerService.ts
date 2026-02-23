@@ -51,24 +51,24 @@ export class TrainerService implements ITrainerService {
         const s = new Date(t.startAt);
         const e = new Date(s.getTime() + t.dur * 60000);
         const nowMs = now.getTime();
-        
+
+        // Remove completed terms immediately
+        if (t.completed) return null;
+
         const graceEnd = new Date(e.getTime() + 60 * 60 * 1000);
-        
-        if (nowMs > graceEnd.getTime()) {
-          return null;
-        }
+        if (nowMs > graceEnd.getTime()) return null;
 
         const jsDay = s.getDay();
         const day = (jsDay + 6) % 7;
         const startMs = s.getTime();
         const endMs = e.getTime();
-        
+
         const cancellable = (startMs - nowMs) >= (60 * 60000);
         const startable = !t.completed && nowMs >= (startMs - 15 * 60 * 1000) && nowMs < endMs;
 
         return {
           id: t.termId,
-          title: t.title,
+          title: t.title || 'Unassigned slot',
           day,
           start: toHHMM(s),
           end: toHHMM(e),
@@ -77,6 +77,8 @@ export class TrainerService implements ITrainerService {
           programId: t.programId,
           completed: !!t.completed,
           startable,
+          enrolledClientId: t.enrolledClientId,
+          enrolledClientName: t.enrolledClientName,
         };
       })
       .filter((e): e is Exclude<typeof e, null> => e !== null);
@@ -134,8 +136,14 @@ export class TrainerService implements ITrainerService {
     try { await this.audit.log('Informacija', 'TRAINER_CANCEL_TERM', trainerId, null, { termId }); } catch {}
 
     if (enrolledUsers.length > 0) {
-      const program = await this.programsRepo.getById(term.programId);
-      if (!program) throw new Error('PROGRAM_NOT_FOUND');
+      const programId = term.programId;
+      let programTitle = 'Zakazani termin';
+
+      if (programId) {
+        const program = await this.programsRepo.getById(programId);
+        if (!program) throw new Error('PROGRAM_NOT_FOUND');
+        programTitle = program.title;
+      }
 
       const trainer = await this.userRepo.getById(trainerId);
       const trainerName = trainer ? `${trainer.ime} ${trainer.prezime}`.trim() : 'Your trainer';
@@ -148,7 +156,7 @@ export class TrainerService implements ITrainerService {
 
           await this.emailService.sendTermCanceledToClient(
             email,
-            program.title,
+            programTitle,
             term.startAt,
             trainerName
           );
@@ -361,18 +369,20 @@ export class TrainerService implements ITrainerService {
     return rows;
   }
 
-  async createTerm(trainerId: number, dto: { programId: number; type: 'individual'|'group'; startAt: Date; durationMin: number; capacity: number }): Promise<number> {
+  async createTerm(trainerId: number, dto: { programId?: number | null; type: 'individual'|'group'; startAt: Date; durationMin: number; capacity: number }): Promise<number> {
     if (dto.type === 'individual') dto.capacity = 1;
     if (dto.type === 'group' && (dto.capacity < 2 || dto.capacity > 30)) throw new Error('BAD_CAPACITY');
 
-    const program = await this.programsRepo.getById(dto.programId);
-    if (!program || program.trainerId !== trainerId) throw new Error('NOT_ALLOWED');
+    if (dto.programId) {
+      const program = await this.programsRepo.getById(dto.programId);
+      if (!program || program.trainerId !== trainerId) throw new Error('NOT_ALLOWED');
+    }
 
     if (dto.startAt.getTime() < Date.now()) throw new Error('PAST_NOT_ALLOWED');
 
     const id = await this.termsRepo.create({
       trainerId,
-      programId: dto.programId,
+      programId: dto.programId ?? null,
       type: dto.type,
       startAt: dto.startAt,
       durationMin: dto.durationMin,
@@ -380,6 +390,34 @@ export class TrainerService implements ITrainerService {
     });
     try { await this.audit.log('Informacija', 'TRAINER_CREATE_TERM', trainerId, null, { id }); } catch {}
     return id;
+  }
+
+  async setTermProgram(trainerId: number, termId: number, programId: number): Promise<void> {
+    const term = await this.termsRepo.getById(termId);
+    if (!term || term.trainerId !== trainerId) throw new Error('NOT_ALLOWED');
+
+    const program = await this.programsRepo.getById(programId);
+    if (!program || program.trainerId !== trainerId) throw new Error('NOT_ALLOWED');
+
+    const clientId = await this.termsRepo.getEnrolledClientId(termId);
+    if (!clientId) throw new Error('NO_CLIENT_ENROLLED');
+
+    const assignedPrograms = await this.programsRepo.listAssignedToClient(trainerId, clientId);
+    const isAssigned = assignedPrograms.some(p => p.id === programId);
+    if (!isAssigned) throw new Error('PROGRAM_NOT_ASSIGNED_TO_CLIENT');
+
+    await this.termsRepo.setProgram(termId, programId);
+    try { await this.audit.log('Informacija', 'TRAINER_SET_TERM_PROGRAM', trainerId, null, { termId, programId }); } catch {}
+  }
+
+  async listProgramsForClient(trainerId: number, clientId: number): Promise<ProgramLite[]> {
+    const programs = await this.programsRepo.listAssignedToClient(trainerId, clientId);
+    return programs.map(p => ({
+      id: p.id,
+      title: p.title,
+      level: p.level,
+      isPublic: p.isPublic,
+    }));
   }
 
   async getTermParticipants(termId: number): Promise<Array<{userId: number; userName: string}>> {

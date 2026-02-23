@@ -51,6 +51,8 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
               cancellable: e.cancellable,
               programId: e.programId,
               completed: e.completed,
+              enrolledClientId: e.enrolledClientId,
+              enrolledClientName: e.enrolledClientName,
             };
           })
           .filter(ev => {
@@ -91,7 +93,20 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
     if (!ev) return;
     const start = toDate(weekStart, ev.day, ev.start);
     const end = toDate(weekStart, ev.day, ev.end);
-    setDetails({ open: true, data: { id: ev.id, title: ev.title, startAt: start.toISOString(), endAt: end.toISOString(), type: ev.type, completed: ev.completed, } });
+    setDetails({
+      open: true,
+      data: {
+        id: ev.id,
+        title: ev.title,
+        startAt: start.toISOString(),
+        endAt: end.toISOString(),
+        type: ev.type,
+        completed: ev.completed,
+        enrolledClientId: ev.enrolledClientId,
+        enrolledClientName: ev.enrolledClientName,
+        programId: ev.programId,
+      }
+    });
   };
 
   const handleDeleteTerm = async (id: number) => {
@@ -271,6 +286,8 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
         data={details.data}
         isTrainer={true}
         onDelete={handleDeleteTerm}
+        trainerApi={trainerApi}
+        onProgramSet={load}
       />
     </div>
   );

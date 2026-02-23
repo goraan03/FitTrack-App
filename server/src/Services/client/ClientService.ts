@@ -130,9 +130,10 @@ export class ClientService implements IClientService {
       const trainerEmail = meta?.trainerEmail || trainerUser?.korisnickoIme;
       if (trainerEmail && meta) {
         const clientName = `${client.ime} ${client.prezime}`.trim() || client.korisnickoIme;
+        const programTitle = meta.programTitle ?? 'Zakazani termin';
         await this.emailService.sendTermBookedToTrainer(
           trainerEmail,
-          meta.programTitle,
+          programTitle,
           meta.startAt,
           clientName
         );
@@ -153,6 +154,7 @@ export class ClientService implements IClientService {
 
     await this.trainingEnrollmentsRepo.cancelEnrollment(enr.enrollmentId);
     await this.trainingTermsRepo.decrementEnrolledCount(termId);
+    await this.trainingTermsRepo.setProgram(termId, null);
     try { await this.audit.log('Informacija', 'CANCEL_SUCCESS', userId, null, { termId }); } catch {}
     try {
       const [meta, client] = await Promise.all([
@@ -163,9 +165,10 @@ export class ClientService implements IClientService {
       const trainerEmail = meta?.trainerEmail || trainerUser?.korisnickoIme;
       if (trainerEmail && client && meta) {
         const clientName = `${client.ime} ${client.prezime}`.trim() || client.korisnickoIme;
+        const programTitle = meta.programTitle ?? 'Zakazani termin';
         await this.emailService.sendTermCanceledByClient(
           trainerEmail,
-          meta.programTitle,
+          programTitle,
           meta.startAt,
           clientName
         );

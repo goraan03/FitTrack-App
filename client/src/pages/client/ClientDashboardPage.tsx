@@ -42,6 +42,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
     type: 'individual'|'group';
     trainerName?: string;
     programTitle?: string;
+    programId?: number | null;
     exercises?: string[];
   }>();
 
@@ -70,7 +71,8 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
       weekStartMidnight.setHours(0, 0, 0, 0);
 
       const mapped: WeeklyCardItem[] = resp.data.events.map((e) => {
-        const startDate = e.startAt ? new Date(e.startAt) : (() => {
+        // Build start/end using day + HH:mm to avoid cross-TZ drift between server and browser
+        const startDate = (() => {
           const d = addDays(weekStart, e.day ?? 0);
           const [hh, mm] = (e.start || "00:00").split(":").map(Number);
           return setMinutes(setHours(d, hh || 0), mm || 0);
@@ -186,6 +188,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
       type: ev.type,
       trainerName: ev.trainerName,
       programTitle: ev.programTitle,
+      programId: ev.programId,
       exercises: exerciseNames,
     });
     setDetailsOpen(true);

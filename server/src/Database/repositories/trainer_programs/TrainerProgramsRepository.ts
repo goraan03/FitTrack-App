@@ -193,4 +193,24 @@ export class TrainerProgramsRepository implements ITrainerProgramsRepository {
       assignedAt: new Date(r.assignedAt),
     }));
   }
+
+  async listAssignedToClient(trainerId: number, clientId: number): Promise<any[]> {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT p.id, p.title, p.level, p.is_public as isPublic, p.trainer_id as trainerId
+       FROM programs p
+       JOIN client_programs cp ON cp.program_id = p.id
+       WHERE p.trainer_id = ?
+         AND cp.client_id = ?
+         AND cp.status = 'active'
+       ORDER BY p.title ASC`,
+      [trainerId, clientId]
+    );
+    return (rows as any[]).map(r => ({
+      id: r.id,
+      title: r.title,
+      level: r.level,
+      isPublic: !!r.isPublic,
+      trainerId: r.trainerId,
+    }));
+  }
 }

@@ -36,7 +36,10 @@ export class TrainerController {
 
     this.router.get("/trainer/terms", authenticate, authorize("trener"), this.listTerms.bind(this));
     this.router.post("/trainer/terms", authenticate, authorize("trener"), this.createTerm.bind(this));
+    this.router.patch("/trainer/terms/:termId/program", authenticate, authorize("trener"), this.setTermProgram.bind(this));
     this.router.get("/trainer/terms/:termId/participants", authenticate, authorize("trener"), this.getTermParticipants.bind(this));
+    this.router.get("/trainer/clients/:clientId/programs", authenticate, authorize("trener"), this.listProgramsForClient.bind(this));
+
 
     this.router.post("/trainer/workout/finish", authenticate, authorize("trener"), this.finishWorkout.bind(this));
   }
@@ -275,11 +278,44 @@ export class TrainerController {
     try {
       const user = req.user!;
       const { programId, type, startAtISO, durationMin, capacity } = req.body || {};
-      if (!Number.isFinite(programId) || !['individual','group'].includes(type) || !startAtISO || !Number.isFinite(durationMin) || !Number.isFinite(capacity)) {
+      if (!['individual','group'].includes(type) || !startAtISO || !Number.isFinite(durationMin) || !Number.isFinite(capacity)) {
         return res.status(400).json({ success: false, message: 'Bad input' });
       }
-      const id = await this.trainer.createTerm(user.id, { programId: Number(programId), type, startAt: new Date(startAtISO), durationMin: Number(durationMin), capacity: Number(capacity) });
+      const id = await this.trainer.createTerm(user.id, {
+        programId: programId ? Number(programId) : null,
+        type,
+        startAt: new Date(startAtISO),
+        durationMin: Number(durationMin),
+        capacity: Number(capacity)
+      });
       res.json({ success: true, message: 'Created', data: { id } });
+    } catch (err) {
+      res.status(400).json({ success: false, message: (err as Error)?.message || 'Bad request' });
+    }
+  }
+
+  private async setTermProgram(req: Request, res: Response) {
+    try {
+      const user = req.user!;
+      const termId = Number(req.params.termId);
+      const programId = Number(req.body?.programId);
+      if (!Number.isFinite(termId) || !Number.isFinite(programId)) {
+        return res.status(400).json({ success: false, message: 'Bad input' });
+      }
+      await this.trainer.setTermProgram(user.id, termId, programId);
+      res.json({ success: true, message: 'Program set' });
+    } catch (err) {
+      res.status(400).json({ success: false, message: (err as Error)?.message || 'Bad request' });
+    }
+  }
+
+  private async listProgramsForClient(req: Request, res: Response) {
+    try {
+      const user = req.user!;
+      const clientId = Number(req.params.clientId);
+      if (!Number.isFinite(clientId)) return res.status(400).json({ success: false, message: 'Bad clientId' });
+      const data = await this.trainer.listProgramsForClient(user.id, clientId);
+      res.json({ success: true, message: 'OK', data });
     } catch (err) {
       res.status(400).json({ success: false, message: (err as Error)?.message || 'Bad request' });
     }

@@ -4,7 +4,7 @@ import { TrainingType } from "../../types/training_enrollments/TrainingType";
 export type TrainingTerm = {
   id: number;
   trainerId: number;
-  programId: number;
+  programId: number | null;
   type: TrainingType;
   startAt: Date;
   durationMin: number;
@@ -15,8 +15,8 @@ export type TrainingTerm = {
 
 export type TermWithProgramAndTrainer = {
   termId: number;
-  programId: number;
-  programTitle: string;
+  programId: number | null;
+  programTitle: string | null;
   trainerId: number;
   trainerName: string;
   trainerEmail: string;
@@ -30,5 +30,7 @@ export interface ITrainingTermsRepository {
   incrementEnrolledCount(termId: number): Promise<void>;
   decrementEnrolledCount(termId: number): Promise<void>;
   cancelTerm(termId: number): Promise<void>;
-  create(dto: { trainerId: number; programId: number; type: TrainingType; startAt: Date; durationMin: number; capacity: number }): Promise<number>;
+  create(dto: { trainerId: number; programId?: number | null; type: TrainingType; startAt: Date; durationMin: number; capacity: number }): Promise<number>;
+  setProgram(termId: number, programId: number | null): Promise<void>;
+  getEnrolledClientId(termId: number): Promise<number | null>;
 }

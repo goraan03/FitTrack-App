@@ -39,4 +39,5 @@ export interface ITrainerProgramsRepository {
   replaceProgramExercises(trainerId: number, programId: number, items: ProgramExerciseRow[]): Promise<void>;
   assignToClient(programId: number, clientId: number): Promise<void>;
   listAssignedClients(trainerId: number, programId: number): Promise<ProgramAssignedClientRow[]>;
+  listAssignedToClient(trainerId: number, clientId: number): Promise<ProgramRow[]>;
 }

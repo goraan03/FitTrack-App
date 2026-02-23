@@ -44,4 +44,6 @@ export interface ITrainerAPIService {
   getTermParticipants(termId: number): Promise<{ success: boolean; data: Array<{userId: number; userName: string}> }>;
   updateMyProfile(payload: UpdateMyProfileRequest): Promise<BasicResponse>;
   getClientStats(clientId: number): Promise<{ success: boolean; data: any; message?: string }>;
+  setTermProgram(termId: number, programId: number): Promise<BasicResponse>;
+  listProgramsForClient(clientId: number): Promise<{ success: boolean; message: string; data: ProgramListItem[] }>;
 }

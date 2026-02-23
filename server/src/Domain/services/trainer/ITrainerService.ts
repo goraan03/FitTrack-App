@@ -3,11 +3,13 @@ export type TrainerWeeklyTermRow = {
   startAt: Date;
   dur: number;
   type: 'individual' | 'group';
-  title: string;
+  title: string | null;
   enrolledCount: number;
   capacity: number;
-  programId: number;
+  programId: number | null;
   completed?: number;
+  enrolledClientId: number | null;
+  enrolledClientName: string | null;
 };
 
 export type PendingParticipant = { userId: number; userName: string };
@@ -29,7 +31,9 @@ export type TrainerDashboard = {
     cancellable: boolean;
     startable?: boolean;
     completed?: boolean | number;
-    programId: number;
+    programId: number | null;
+    enrolledClientId: number | null;
+    enrolledClientName: string | null;
   }[];
   pendingRatings: {
     termId: number;
@@ -103,7 +107,7 @@ export type AssignedClient = {
   lastName: string;
   email: string;
   status: 'active' | 'paused' | 'completed' | 'canceled';
-  assignedAt: string; // ISO
+  assignedAt: string;
 };
 
 export type ProgramDetails = {
@@ -123,9 +127,11 @@ export type TrainerTermDetails = {
   capacity: number;
   enrolledCount: number;
   canceled: boolean;
-  programId: number;
+  programId: number | null;
   completed?: boolean;
-  programTitle: string;
+  programTitle: string | null;
+  enrolledClientId: number | null;
+  enrolledClientName: string | null;
 };
 
 export interface ITrainerService {
@@ -149,14 +155,16 @@ export interface ITrainerService {
   getProgramDetails(trainerId: number, programId: number): Promise<ProgramDetails>;
   setProgramExercises(trainerId: number, programId: number, items: ProgramExerciseSet[]): Promise<void>;
   assignProgramToClient(trainerId: number, programId: number, clientId: number): Promise<void>;
+  listProgramsForClient(trainerId: number, clientId: number): Promise<ProgramLite[]>;
 
   // Clients
   listMyClients(trainerId: number): Promise<{ id: number; firstName: string | null; lastName: string | null; email: string; gender: string | null; age: number | null }[]>;
   getClientProgressStats(trainerId: number, clientId: number): Promise<any>;
-  
+
   // Terms
   listTerms(trainerId: number, from?: Date, to?: Date): Promise<TrainerTermDetails[]>;
-  createTerm(trainerId: number, dto: { programId: number; type: 'individual'|'group'; startAt: Date; durationMin: number; capacity: number }): Promise<number>;
+  createTerm(trainerId: number, dto: { programId?: number | null; type: 'individual'|'group'; startAt: Date; durationMin: number; capacity: number }): Promise<number>;
+  setTermProgram(trainerId: number, termId: number, programId: number): Promise<void>;
   getTermParticipants(termId: number): Promise<Array<{userId: number; userName: string}>>;
   finishWorkout(trainerId: number, payload: any): Promise<number>;
 }

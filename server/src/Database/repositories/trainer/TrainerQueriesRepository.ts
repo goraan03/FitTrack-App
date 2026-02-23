@@ -20,16 +20,22 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
         CASE 
           WHEN COUNT(ws.id) > 0 THEN 1
           ELSE COALESCE(MAX(te.session_completed), 0)
-        END as completed
+        END as completed,
+        ec.user_id as enrolledClientId,
+        CONCAT(cu.ime, ' ', cu.prezime) as enrolledClientName
       FROM training_terms tt
       LEFT JOIN programs p ON tt.program_id = p.id
       LEFT JOIN training_enrollments te ON tt.id = te.term_id
       LEFT JOIN workout_sessions ws ON ws.term_id = tt.id
+      LEFT JOIN (
+        SELECT term_id, MIN(user_id) as user_id FROM training_enrollments WHERE status = 'enrolled' GROUP BY term_id
+      ) ec ON ec.term_id = tt.id
+      LEFT JOIN users cu ON cu.id = ec.user_id
       WHERE tt.trainer_id = ?
         AND tt.start_at >= ?
         AND tt.start_at < ?
         AND tt.canceled = 0
-      GROUP BY tt.id
+      GROUP BY tt.id, ec.user_id, cu.ime, cu.prezime
       ORDER BY tt.start_at`,
       [trainerId, weekStart, weekEnd]
     );
@@ -38,11 +44,13 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
       startAt: new Date(r.startAt),
       dur: Number(r.dur || 0),
       type: r.type,
-      title: r.title,
-      programId: r.programId,
+      title: r.title || null,
+      programId: r.programId || null,
       enrolledCount: Number(r.enrolledCount || 0),
       capacity: Number(r.capacity || 0),
       completed: Number(r.completed || 0),
+      enrolledClientId: r.enrolledClientId || null,
+      enrolledClientName: r.enrolledClientName || null,
     }));
   }
 
@@ -200,15 +208,21 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
               CASE 
                 WHEN COUNT(ws.id) > 0 THEN 1
                 ELSE COALESCE(MAX(te.session_completed), 0)
-              END AS completed
+              END AS completed,
+              ec.user_id AS enrolledClientId,
+              CONCAT(cu.ime, ' ', cu.prezime) AS enrolledClientName
        FROM training_terms t
-       JOIN programs p ON p.id=t.program_id
+       LEFT JOIN programs p ON p.id=t.program_id
        LEFT JOIN training_enrollments te ON te.term_id = t.id
        LEFT JOIN workout_sessions ws ON ws.term_id = t.id
+       LEFT JOIN (
+         SELECT term_id, MIN(user_id) as user_id FROM training_enrollments WHERE status = 'enrolled' GROUP BY term_id
+       ) ec ON ec.term_id = t.id
+       LEFT JOIN users cu ON cu.id = ec.user_id
        WHERE t.trainer_id=?
          AND t.start_at BETWEEN ? AND ?
          AND t.canceled = 0
-       GROUP BY t.id
+       GROUP BY t.id, ec.user_id, cu.ime, cu.prezime
        ORDER BY t.start_at ASC`,
       [trainerId, from, to]
     );
@@ -220,9 +234,11 @@ export class TrainerQueriesRepository implements ITrainerQueriesRepository {
       capacity: Number(r.capacity || 0),
       enrolledCount: Number(r.enrolledCount || 0),
       canceled: !!r.canceled,
-      programId: r.programId,
+      programId: r.programId || null,
       completed: Number(r.completed || 0) === 1,
-      programTitle: r.programTitle,
+      programTitle: r.programTitle || null,
+      enrolledClientId: r.enrolledClientId || null,
+      enrolledClientName: r.enrolledClientName || null,
     }));
   }
 

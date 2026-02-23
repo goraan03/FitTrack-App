@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import type { ProgramListItem } from "../../types/trainer/Program";
 import type { TrainerTerm } from "../../types/trainer/Term";
 import { format } from "date-fns";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
@@ -7,12 +6,10 @@ import { Calendar, Clock, Users, Plus, Trash2, Activity, AlertCircle } from "luc
 import toast from "react-hot-toast";
 
 export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerAPIService }) {
-  const [programs, setPrograms] = useState<ProgramListItem[]>([]);
   const [terms, setTerms] = useState<TrainerTerm[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({ 
-    programId: 0, 
     type: 'individual' as 'individual'|'group', 
     startDate: '', 
     startTime: '', 
@@ -23,13 +20,8 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
   const load = async () => {
     setLoading(true);
     try {
-      const [p, t] = await Promise.all([trainerApi.listPrograms(), trainerApi.listTerms()]);
-      if (p.success) setPrograms(p.data);
-      if (t.success) {
-        const activeProgramIds = new Set((p.success ? p.data : []).map(pr => pr.id));
-        const filtered = t.data.filter(term => activeProgramIds.has(term.programId));
-        setTerms(filtered);
-      }
+      const t = await trainerApi.listTerms();
+      if (t.success) setTerms(t.data);
     } finally { setLoading(false); }
   };
 
@@ -39,21 +31,16 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
   }, [form.type]);
 
   const save = async () => {
-    if (!form.programId) return toast.error('Pick a program');
     if (!form.startDate || !form.startTime) return toast.error('Pick date and time');
-    
     const startAtISO = new Date(`${form.startDate}T${form.startTime}:00`).toISOString();
     const r = await trainerApi.createTerm({
-      programId: Number(form.programId), 
-      type: form.type, 
-      startAtISO, 
-      durationMin: form.durationMin, 
+      type: form.type,
+      startAtISO,
+      durationMin: form.durationMin,
       capacity: form.capacity
     });
-
     if (!r.success) return toast.error(r.message);
-    
-    toast.success('Term created successfully');
+    toast.success('Session slot created! Clients can now book it.');
     await load();
   };
 
@@ -100,28 +87,7 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
 
           <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-5 sm:p-6 shadow-[0_18px_60px_rgba(0,0,0,0.35)] space-y-5">
             {/* Program */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
-                Select program
-              </label>
-              <select
-                value={form.programId}
-                onChange={(e) => setForm((f) => ({ ...f, programId: Number(e.target.value) }))}
-                className="
-                  w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl
-                  px-4 py-3 text-sm text-white
-                  focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                  appearance-none cursor-pointer
-                "
-              >
-                <option value={0}>Choose a program...</option>
-                {programs.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.title}
-                  </option>
-                ))}
-              </select>
-            </div>
+            
 
             {/* Type + Capacity */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -314,7 +280,7 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h4 className="font-semibold text-sm sm:text-base text-white truncate group-hover:text-amber-300 transition-colors">
-                              {t.programTitle}
+                              {t.programTitle || <span className="italic text-slate-400 text-sm">No program yet</span>}
                             </h4>
 
                             {t.canceled && (
@@ -324,6 +290,16 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
                               </span>
                             )}
                           </div>
+                          {t.enrolledClientName && (
+                            <div className="mt-0.5 text-xs text-cyan-400 font-medium">
+                              Client: {t.enrolledClientName}
+                            </div>
+                          )}
+                          {!t.enrolledClientId && (
+                            <div className="mt-0.5 text-xs text-slate-500 italic">
+                              Awaiting booking
+                            </div>
+                          )}
 
                           <div className="mt-1 flex items-center gap-3 text-slate-400 flex-wrap">
                             <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-tight">

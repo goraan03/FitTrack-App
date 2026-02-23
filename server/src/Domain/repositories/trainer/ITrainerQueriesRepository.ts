@@ -11,7 +11,20 @@ export interface ITrainerQueriesRepository {
   getTotalCompletedMinutes(trainerId: number): Promise<number>;
   getProgramsCount(trainerId: number): Promise<number>;
   getRatingsTrend(trainerId: number): Promise<{ date: Date; avg: number | null }[]>;
-  getTermsBetweenDetailed(trainerId: number, from: Date, to: Date): Promise<{id: number; startAt: Date; durationMin: number; type: 'individual'|'group'; capacity: number; enrolledCount: number; canceled: boolean; programId: number; programTitle: string; completed?: boolean;}[]>;
+  getTermsBetweenDetailed(trainerId: number, from: Date, to: Date): Promise<{
+    id: number;
+    startAt: Date;
+    durationMin: number;
+    type: 'individual'|'group';
+    capacity: number;
+    enrolledCount: number;
+    canceled: boolean;
+    programId: number | null;
+    programTitle: string | null;
+    completed?: boolean;
+    enrolledClientId: number | null;
+    enrolledClientName: string | null;
+  }[]>;
   listMyClients(trainerId: number): Promise<{ id: number; firstName: string | null; lastName: string | null; email: string; gender: string | null; birthDate: Date | null }[]>;
   isClientAssignedToTrainer(clientId: number, trainerId: number): Promise<boolean>;
 }

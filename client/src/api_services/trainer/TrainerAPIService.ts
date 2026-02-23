@@ -152,6 +152,23 @@ export const trainerApi: ITrainerAPIService = {
     return res.data;
   },
 
+  async setTermProgram(termId: number, programId: number) {
+    const res = await axios.patch<BasicResponse>(
+      `${baseURL}/terms/${termId}/program`,
+      { programId },
+      { headers: authHeaders() }
+    );
+    return res.data;
+  },
+
+  async listProgramsForClient(clientId: number) {
+    const res = await axios.get<{ success: boolean; message: string; data: ProgramListItem[] }>(
+      `${baseURL}/clients/${clientId}/programs`,
+      { headers: authHeaders() }
+    );
+    return res.data;
+  },
+
 async updateMyProfile(payload: UpdateMyProfileRequest) {
   const res = await axios.put<BasicResponse>(
     `${baseURL}/me/profile`,

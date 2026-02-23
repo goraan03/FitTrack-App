@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { addMinutes } from "date-fns";
 import { clientApi } from "../../api_services/client/ClientAPIService";
 import { Filter, Search } from "lucide-react";
 import type { TermItem } from "../../types/client/TermItem";
@@ -225,11 +226,27 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
                       )}
                     </div>
 
-                    <div className="text-sm text-slate-400">
-                      {new Date(item.startAt).toLocaleString()} •{" "}
-                      <span className="uppercase tracking-wider">{item.type}</span> •{" "}
-                      {item.enrolledCount}/{item.capacity}
-                    </div>
+                    {(() => {
+                      // Parse ISO as local wall time to avoid TZ drift (server sends UTC string)
+                      const start = (() => {
+                        const iso = item.startAt;
+                        const [datePart, timePartRaw] = iso.split("T");
+                        if (!datePart || !timePartRaw) return new Date(iso);
+                        const timePart = timePartRaw.replace("Z", "");
+                        const [h, m] = timePart.split(":").map(Number);
+                        const [y, mo, d] = datePart.split("-").map(Number);
+                        return new Date(y, (mo || 1) - 1, d || 1, h || 0, m || 0);
+                      })();
+                      const end = addMinutes(start, item.durationMin);
+                      return (
+                        <div className="text-sm text-slate-400">
+                          {start.toLocaleString([], { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" })}{" "}
+                          – {end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} •{" "}
+                          <span className="uppercase tracking-wider">{item.type}</span> •{" "}
+                          {item.enrolledCount}/{item.capacity}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <div className="flex items-center justify-end gap-2">

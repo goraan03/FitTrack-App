@@ -36,7 +36,7 @@ export class TrainingTermsRepository implements ITrainingTermsRepository {
               u.id as trainerId,
               CASE WHEN e.id IS NULL THEN 0 ELSE 1 END as isEnrolled
        FROM training_terms t
-       JOIN programs p ON p.id=t.program_id
+       LEFT JOIN programs p ON p.id=t.program_id
        JOIN users u ON u.id=t.trainer_id
        LEFT JOIN training_enrollments e
               ON e.term_id = t.id
@@ -81,7 +81,7 @@ export class TrainingTermsRepository implements ITrainingTermsRepository {
     return {
       id: r.id,
       trainerId: r.trainerId,
-      programId: r.programId,
+      programId: r.programId ?? null,
       type: r.type,
       startAt: new Date(r.startAt),
       durationMin: Number(r.durationMin || 0),
@@ -101,7 +101,7 @@ export class TrainingTermsRepository implements ITrainingTermsRepository {
               u.korisnickoIme as trainerEmail,
               t.start_at as startAt
        FROM training_terms t
-       JOIN programs p ON p.id = t.program_id
+       LEFT JOIN programs p ON p.id = t.program_id
        JOIN users u ON u.id = t.trainer_id
        WHERE t.id = ?
        LIMIT 1`,
@@ -111,8 +111,8 @@ export class TrainingTermsRepository implements ITrainingTermsRepository {
     const r: any = rows[0];
     return {
       termId: r.termId,
-      programId: r.programId,
-      programTitle: r.programTitle,
+      programId: r.programId ?? null,
+      programTitle: r.programTitle ?? null,
       trainerId: r.trainerId,
       trainerName: r.trainerName,
       trainerEmail: r.trainerEmail,
@@ -141,12 +141,27 @@ export class TrainingTermsRepository implements ITrainingTermsRepository {
     );
   }
 
-  async create(dto: { trainerId: number; programId: number; type: TrainingType; startAt: Date; durationMin: number; capacity: number }): Promise<number> {
+  async create(dto: { trainerId: number; programId?: number | null; type: TrainingType; startAt: Date; durationMin: number; capacity: number }): Promise<number> {
     const [res] = await db.execute<ResultSetHeader>(
       `INSERT INTO training_terms (trainer_id, program_id, type, start_at, duration_min, capacity, enrolled_count, canceled, created_at)
        VALUES (?,?,?,?,?,?,0,0,NOW())`,
-      [dto.trainerId, dto.programId, dto.type, dto.startAt, dto.durationMin, dto.capacity]
+      [dto.trainerId, dto.programId ?? null, dto.type, dto.startAt, dto.durationMin, dto.capacity]
     );
     return (res as ResultSetHeader).insertId;
+  }
+
+  async setProgram(termId: number, programId: number | null): Promise<void> {
+    await db.execute<ResultSetHeader>(
+      `UPDATE training_terms SET program_id = ? WHERE id = ?`,
+      [programId, termId]
+    );
+  }
+
+  async getEnrolledClientId(termId: number): Promise<number | null> {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT user_id FROM training_enrollments WHERE term_id = ? AND status = 'enrolled' LIMIT 1`,
+      [termId]
+    );
+    return (rows as any[]).length > 0 ? (rows as any[])[0].user_id : null;
   }
 }

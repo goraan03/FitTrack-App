@@ -10,7 +10,9 @@ export type TrainerWeeklyEvent = {
   type: TrainingType;
   cancellable: boolean;
   startable?: boolean;
-  programId: number;
+  programId: number | null;
+  enrolledClientId: number | null;
+  enrolledClientName: string | null;
 };
 
 export type PendingTerm = {
