@@ -1,5 +1,5 @@
 import db from "../../connection/DbConnectionPool";
-import { ResultSetHeader, Connection, RowDataPacket } from "mysql2/promise";
+import { ResultSetHeader, PoolConnection, RowDataPacket } from "mysql2/promise";
 
 export interface WorkoutLogItem {
   exerciseId: number;
@@ -28,7 +28,7 @@ export class WorkoutRepository {
     notes?: string;
     logs: WorkoutLogItem[];
   }): Promise<number> {
-    const conn = (await (db as any).getConnection()) as Connection;
+    const conn = (await db.getConnection()) as PoolConnection;
     try {
       await conn.beginTransaction();
 
@@ -70,7 +70,7 @@ export class WorkoutRepository {
       await conn.rollback();
       throw err;
     } finally {
-      await conn.end();
+      conn.release();
     }
   }
 }

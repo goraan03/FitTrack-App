@@ -8,14 +8,25 @@ WORKDIR /app
 COPY package*.json ./
 COPY tsconfig.json ./
 
-# Install dependencies
+# Install dependencies for Puppeteer (Chromium)
+RUN apk add --no-cache \
+      chromium \
+      nss \
+      freetype \
+      harfbuzz \
+      ca-certificates \
+      ttf-freefont
+
+# Install node dependencies
 RUN npm ci --legacy-peer-deps
 
 # Copy source code
 COPY . .
 
 # Build TypeScript
-RUN npm run build
+RUN npm run build \
+ && mkdir -p dist/templates \
+ && cp -r src/templates/* dist/templates/
 
 # Expose port
 EXPOSE 4000

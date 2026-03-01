@@ -14,6 +14,8 @@ import { TrainingType } from "../../Domain/types/training_enrollments/TrainingTy
 import { calcAge } from "../../helpers/ClientService/calcAge";
 import { toHHMM } from "../../helpers/ClientService/toHHMM";
 import { IEmailService } from "../../Domain/services/email/IEmailService";
+import db from "../../Database/connection/DbConnectionPool";
+import { RowDataPacket } from "mysql2";
 
 export class ClientService implements IClientService {
   constructor(
@@ -22,7 +24,7 @@ export class ClientService implements IClientService {
     private trainingEnrollmentsRepo: ITrainingEnrollmentsRepository,
     private trainingTermsRepo: ITrainingTermsRepository,
     private emailService: IEmailService,
-  ) {}
+  ) { }
 
   async chooseTrainer(userId: number, trainerId: number): Promise<void> {
     const trainer = await this.userRepo.getById(trainerId);
@@ -37,7 +39,7 @@ export class ClientService implements IClientService {
 
     try {
       await this.audit.log("Informacija", "CLIENT_CHOOSE_TRAINER", userId, null, { trainerId });
-    } catch {}
+    } catch { }
   }
 
   async listTrainers(): Promise<{ id: number; name: string; email: string }[]> {
@@ -107,21 +109,21 @@ export class ClientService implements IClientService {
     if (existing) {
       if (existing.status === 'enrolled') throw new Error('ALREADY_ENROLLED');
       if (term.enrolledCount >= term.capacity) {
-        try { await this.audit.log('Upozorenje', 'BOOK_CONFLICT_FULL', userId, null, { termId }); } catch {}
+        try { await this.audit.log('Upozorenje', 'BOOK_CONFLICT_FULL', userId, null, { termId }); } catch { }
         throw new Error('FULL');
       }
       await this.trainingEnrollmentsRepo.reactivateEnrollment(existing.id);
       await this.trainingTermsRepo.incrementEnrolledCount(termId);
-      try { await this.audit.log('Informacija', 'BOOK_SUCCESS', userId, null, { termId, reactivated: true }); } catch {}
+      try { await this.audit.log('Informacija', 'BOOK_SUCCESS', userId, null, { termId, reactivated: true }); } catch { }
     } else {
       if (term.enrolledCount >= term.capacity) {
-        try { await this.audit.log('Upozorenje', 'BOOK_CONFLICT_FULL', userId, null, { termId }); } catch {}
+        try { await this.audit.log('Upozorenje', 'BOOK_CONFLICT_FULL', userId, null, { termId }); } catch { }
         throw new Error('FULL');
       }
 
       await this.trainingEnrollmentsRepo.createEnrollment(termId, userId);
       await this.trainingTermsRepo.incrementEnrolledCount(termId);
-      try { await this.audit.log('Informacija', 'BOOK_SUCCESS', userId, null, { termId, reactivated: false }); } catch {}
+      try { await this.audit.log('Informacija', 'BOOK_SUCCESS', userId, null, { termId, reactivated: false }); } catch { }
     }
 
     try {
@@ -155,7 +157,7 @@ export class ClientService implements IClientService {
     await this.trainingEnrollmentsRepo.cancelEnrollment(enr.enrollmentId);
     await this.trainingTermsRepo.decrementEnrolledCount(termId);
     await this.trainingTermsRepo.setProgram(termId, null);
-    try { await this.audit.log('Informacija', 'CANCEL_SUCCESS', userId, null, { termId }); } catch {}
+    try { await this.audit.log('Informacija', 'CANCEL_SUCCESS', userId, null, { termId }); } catch { }
     try {
       const [meta, client] = await Promise.all([
         this.trainingTermsRepo.getWithProgramAndTrainer(termId),
@@ -180,19 +182,64 @@ export class ClientService implements IClientService {
     }
   }
 
-  async getHistory(userId: number): Promise<HistoryData> {
-    const rows = await this.trainingEnrollmentsRepo.listHistory(userId);
-    const items = rows.map(r => ({
-      id: r.id,
-      date: r.startAt.toISOString(),
-      programTitle: r.programTitle,
-      trainerName: r.trainerName,
-      status: r.status,
-      rating: r.rating,
-      feedback: r.feedback
-    }));
+  async getHistory(userId: number): Promise<any> {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT 
+        ws.id as sessionId,
+        ws.start_time as date,
+        p.title as programTitle,
+        CONCAT(u.ime, ' ', u.prezime) as trainerName,
+        e.name as exerciseName,
+        wel.exercise_id,
+        wel.set_number,
+        wel.actual_reps,
+        wel.actual_weight
+      FROM workout_sessions ws
+      INNER JOIN training_terms tt ON ws.term_id = tt.id
+      INNER JOIN programs p ON tt.program_id = p.id
+      INNER JOIN users u ON tt.trainer_id = u.id
+      INNER JOIN workout_exercise_logs wel ON ws.id = wel.session_id
+      INNER JOIN exercises e ON wel.exercise_id = e.id
+      WHERE ws.client_id = ?
+      ORDER BY ws.start_time DESC, wel.exercise_id, wel.set_number`,
+      [userId]
+    );
 
+    const sessionMap = new Map<number, any>();
+
+    for (const row of rows as any[]) {
+      if (!sessionMap.has(row.sessionId)) {
+        sessionMap.set(row.sessionId, {
+          id: row.sessionId,
+          date: row.date,
+          programTitle: row.programTitle,
+          trainerName: row.trainerName,
+          exercises: []
+        });
+      }
+
+      const session = sessionMap.get(row.sessionId)!;
+      let ex = session.exercises.find((e: any) => e.exerciseId === row.exercise_id);
+
+      if (!ex) {
+        ex = {
+          exerciseId: row.exercise_id,
+          name: row.exerciseName,
+          sets: []
+        };
+        session.exercises.push(ex);
+      }
+
+      ex.sets.push({
+        setNumber: row.set_number,
+        reps: row.actual_reps,
+        weight: row.actual_weight
+      });
+    }
+
+    const items = Array.from(sessionMap.values());
     const stats = await this.trainingEnrollmentsRepo.getRatingsStats(userId);
+
     return { items, stats };
   }
 
@@ -225,7 +272,7 @@ export class ClientService implements IClientService {
       avg: r.avg,
     }));
 
-    try { await this.audit.log('Informacija', 'CLIENT_PROFILE_VIEW', userId, null, {}); } catch {}
+    try { await this.audit.log('Informacija', 'CLIENT_PROFILE_VIEW', userId, null, {}); } catch { }
 
     return {
       id: user.id!,
@@ -257,6 +304,6 @@ export class ClientService implements IClientService {
       datumRodjenja: dto.datumRodjenja,
       pol: dto.pol,
     });
-    try { await this.audit.log('Informacija', 'CLIENT_PROFILE_UPDATE', userId, null, {}); } catch {}
+    try { await this.audit.log('Informacija', 'CLIENT_PROFILE_UPDATE', userId, null, {}); } catch { }
   }
 }

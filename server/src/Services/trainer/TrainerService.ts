@@ -3,12 +3,14 @@ import { ITrainerQueriesRepository } from "../../Domain/repositories/trainer/ITr
 import { ITrainingTermsRepository } from "../../Domain/repositories/training_terms/ITrainingTermsRepository";
 import { ITrainingEnrollmentsRepository } from "../../Domain/repositories/training_enrollments/ITrainingEnrollmentsRepository";
 import { IAuditService } from "../../Domain/services/audit/IAuditService";
-import { toHHMM } from "../../helpers/ClientService/toHHMM";
 import { startOfWeek } from "date-fns";
 import { IUserRepository } from "../../Domain/repositories/users/IUserRepository";
 import { calcAge } from "../../helpers/ClientService/calcAge";
 import { IExercisesRepository } from "../../Domain/repositories/exercises/IExercisesRepository";
 import { ITrainerProgramsRepository } from "../../Domain/repositories/trainer_programs/ITrainerProgramsRepository";
+import fs from 'fs';
+import path from 'path';
+import { htmlToPdfBuffer } from '../billing/BillingService';
 import { parseISO } from "../../helpers/TrainerService/parseISO";
 import { WorkoutRepository } from "../../Database/repositories/workout/WorkoutRepository";
 import { IEmailService } from "../../Domain/services/email/IEmailService";
@@ -26,7 +28,7 @@ export class TrainerService implements ITrainerService {
     private programsRepo: ITrainerProgramsRepository,
     private workoutRepo: WorkoutRepository,
     private emailService: IEmailService
-  ) {}
+  ) { }
 
   async getDashboard(trainerId: number, weekStartISO?: string): Promise<TrainerDashboard> {
     const weekStart = parseISO(weekStartISO) || startOfWeek(new Date(), { weekStartsOn: 1 });
@@ -99,9 +101,9 @@ export class TrainerService implements ITrainerService {
       pendingMap.set(key, item);
     }
 
-    try { 
-      await this.audit.log('Informacija', 'TRAINER_DASHBOARD_VIEW', trainerId, null, { weekStart: weekStart.toISOString() }); 
-    } catch {}
+    try {
+      await this.audit.log('Informacija', 'TRAINER_DASHBOARD_VIEW', trainerId, null, { weekStart: weekStart.toISOString() });
+    } catch { }
 
     return {
       stats: {
@@ -135,9 +137,9 @@ export class TrainerService implements ITrainerService {
     if (msUntilStart < 60 * 60000) {
       throw new Error('CANNOT_CANCEL_WITHIN_60_MIN');
     }
-    
+
     await this.termsRepo.cancelTerm(termId);
-    try { await this.audit.log('Informacija', 'TRAINER_CANCEL_TERM', trainerId, null, { termId }); } catch {}
+    try { await this.audit.log('Informacija', 'TRAINER_CANCEL_TERM', trainerId, null, { termId }); } catch { }
 
     if (enrolledUsers.length > 0) {
       const programId = term.programId;
@@ -181,7 +183,7 @@ export class TrainerService implements ITrainerService {
     if (end.getTime() > Date.now()) throw new Error('TERM_NOT_FINISHED');
 
     await this.enrollRepo.setRating(termId, userId, rating);
-    try { await this.audit.log('Informacija', 'TRAINER_RATE_PARTICIPANT', trainerId, null, { termId, userId, rating }); } catch {}
+    try { await this.audit.log('Informacija', 'TRAINER_RATE_PARTICIPANT', trainerId, null, { termId, userId, rating }); } catch { }
   }
 
   async getMyProfile(trainerId: number): Promise<TrainerProfile> {
@@ -196,7 +198,7 @@ export class TrainerService implements ITrainerService {
       this.queries.getRatingsTrend(trainerId),
     ]);
 
-    try { await this.audit.log('Informacija', 'TRAINER_PROFILE_VIEW', trainerId, null, {}); } catch {}
+    try { await this.audit.log('Informacija', 'TRAINER_PROFILE_VIEW', trainerId, null, {}); } catch { }
 
     return {
       id: user.id!,
@@ -245,7 +247,7 @@ export class TrainerService implements ITrainerService {
       level: input.level ?? 'beginner',
       videoUrl: input.videoUrl ?? null
     });
-    try { await this.audit.log('Informacija', 'TRAINER_CREATE_EXERCISE', trainerId, null, { id, name: input.name }); } catch {}
+    try { await this.audit.log('Informacija', 'TRAINER_CREATE_EXERCISE', trainerId, null, { id, name: input.name }); } catch { }
     return id;
   }
 
@@ -259,12 +261,12 @@ export class TrainerService implements ITrainerService {
       level: input.level ?? 'beginner',
       videoUrl: input.videoUrl ?? null
     } as any);
-    try { await this.audit.log('Informacija', 'TRAINER_UPDATE_EXERCISE', trainerId, null, { id: exerciseId }); } catch {}
+    try { await this.audit.log('Informacija', 'TRAINER_UPDATE_EXERCISE', trainerId, null, { id: exerciseId }); } catch { }
   }
 
   async deleteExercise(trainerId: number, exerciseId: number): Promise<void> {
     await this.exercisesRepo.delete(trainerId, exerciseId);
-    try { await this.audit.log('Upozorenje', 'TRAINER_DELETE_EXERCISE', trainerId, null, { id: exerciseId }); } catch {}
+    try { await this.audit.log('Upozorenje', 'TRAINER_DELETE_EXERCISE', trainerId, null, { id: exerciseId }); } catch { }
   }
 
   // Programs
@@ -286,7 +288,7 @@ export class TrainerService implements ITrainerService {
       level: input.level,
       isPublic: !!input.isPublic
     });
-    try { await this.audit.log('Informacija', 'TRAINER_CREATE_PROGRAM', trainerId, null, { id, title: input.title }); } catch {}
+    try { await this.audit.log('Informacija', 'TRAINER_CREATE_PROGRAM', trainerId, null, { id, title: input.title }); } catch { }
     return id;
   }
 
@@ -297,40 +299,40 @@ export class TrainerService implements ITrainerService {
       level: input.level,
       isPublic: !!input.isPublic
     } as any);
-    try { await this.audit.log('Informacija', 'TRAINER_UPDATE_PROGRAM', trainerId, null, { id: programId }); } catch {}
+    try { await this.audit.log('Informacija', 'TRAINER_UPDATE_PROGRAM', trainerId, null, { id: programId }); } catch { }
   }
 
   async getProgramDetails(trainerId: number, programId: number): Promise<ProgramDetailsType> {
-  const [{ program, exercises }, assigned] = await Promise.all([
-    this.programsRepo.getDetails(trainerId, programId),
-    this.programsRepo.listAssignedClients(trainerId, programId),
-  ]);
+    const [{ program, exercises }, assigned] = await Promise.all([
+      this.programsRepo.getDetails(trainerId, programId),
+      this.programsRepo.listAssignedClients(trainerId, programId),
+    ]);
 
-  return {
-    id: program.id,
-    title: program.title,
-    description: program.description,
-    level: program.level,
-    exercises: exercises.map(x => ({
-      exerciseId: x.exerciseId,
-      position: x.position,
-      sets: x.sets,
-      reps: x.reps,
-      tempo: x.tempo,
-      restSec: x.restSec,
-      notes: x.notes,
-      name: x.name || ''
-    })),
-    assignedClients: assigned.map(c => ({
-      id: c.id,
-      firstName: c.firstName,
-      lastName: c.lastName,
-      email: c.email,
-      status: c.status,
-      assignedAt: c.assignedAt.toISOString(),
-    })),
-  };
-}
+    return {
+      id: program.id,
+      title: program.title,
+      description: program.description,
+      level: program.level,
+      exercises: exercises.map(x => ({
+        exerciseId: x.exerciseId,
+        position: x.position,
+        sets: x.sets,
+        reps: x.reps,
+        tempo: x.tempo,
+        restSec: x.restSec,
+        notes: x.notes,
+        name: x.name || ''
+      })),
+      assignedClients: assigned.map(c => ({
+        id: c.id,
+        firstName: c.firstName,
+        lastName: c.lastName,
+        email: c.email,
+        status: c.status,
+        assignedAt: c.assignedAt.toISOString(),
+      })),
+    };
+  }
 
   async setProgramExercises(trainerId: number, programId: number, items: ProgramExerciseSet[]): Promise<void> {
     const ids = Array.from(new Set(items.map(x => x.exerciseId)));
@@ -338,7 +340,7 @@ export class TrainerService implements ITrainerService {
     if (owned.length !== ids.length) throw new Error('EXERCISE_OWNERSHIP_MISMATCH');
 
     await this.programsRepo.replaceProgramExercises(trainerId, programId, items as any);
-    try { await this.audit.log('Informacija', 'TRAINER_SET_PROGRAM_EXERCISES', trainerId, null, { programId, count: items.length }); } catch {}
+    try { await this.audit.log('Informacija', 'TRAINER_SET_PROGRAM_EXERCISES', trainerId, null, { programId, count: items.length }); } catch { }
   }
 
   async assignProgramToClient(trainerId: number, programId: number, clientId: number): Promise<void> {
@@ -349,7 +351,7 @@ export class TrainerService implements ITrainerService {
     if (!program || program.trainerId !== trainerId) throw new Error('NOT_ALLOWED');
 
     await this.programsRepo.assignToClient(programId, clientId);
-    try { await this.audit.log('Informacija', 'TRAINER_ASSIGN_PROGRAM', trainerId, null, { programId, clientId }); } catch {}
+    try { await this.audit.log('Informacija', 'TRAINER_ASSIGN_PROGRAM', trainerId, null, { programId, clientId }); } catch { }
   }
 
   // Clients
@@ -368,12 +370,12 @@ export class TrainerService implements ITrainerService {
   // Terms
   async listTerms(trainerId: number, from?: Date, to?: Date): Promise<TrainerTermDetails[]> {
     const f = from || new Date();
-    const t = to || new Date(Date.now() + 30*24*3600*1000);
+    const t = to || new Date(Date.now() + 30 * 24 * 3600 * 1000);
     const rows = await this.queries.getTermsBetweenDetailed(trainerId, f, t);
     return rows;
   }
 
-  async createTerm(trainerId: number, dto: { programId?: number | null; type: 'individual'|'group'; startAt: Date; durationMin: number; capacity: number }): Promise<number> {
+  async createTerm(trainerId: number, dto: { programId?: number | null; type: 'individual' | 'group'; startAt: Date; durationMin: number; capacity: number }): Promise<number> {
     if (dto.type === 'individual') dto.capacity = 1;
     if (dto.type === 'group' && (dto.capacity < 2 || dto.capacity > 30)) throw new Error('BAD_CAPACITY');
 
@@ -392,7 +394,7 @@ export class TrainerService implements ITrainerService {
       durationMin: dto.durationMin,
       capacity: dto.capacity
     });
-    try { await this.audit.log('Informacija', 'TRAINER_CREATE_TERM', trainerId, null, { id }); } catch {}
+    try { await this.audit.log('Informacija', 'TRAINER_CREATE_TERM', trainerId, null, { id }); } catch { }
     return id;
   }
 
@@ -411,7 +413,7 @@ export class TrainerService implements ITrainerService {
     if (!isAssigned) throw new Error('PROGRAM_NOT_ASSIGNED_TO_CLIENT');
 
     await this.termsRepo.setProgram(termId, programId);
-    try { await this.audit.log('Informacija', 'TRAINER_SET_TERM_PROGRAM', trainerId, null, { termId, programId }); } catch {}
+    try { await this.audit.log('Informacija', 'TRAINER_SET_TERM_PROGRAM', trainerId, null, { termId, programId }); } catch { }
   }
 
   async listProgramsForClient(trainerId: number, clientId: number): Promise<ProgramLite[]> {
@@ -424,7 +426,7 @@ export class TrainerService implements ITrainerService {
     }));
   }
 
-  async getTermParticipants(termId: number): Promise<Array<{userId: number; userName: string}>> {
+  async getTermParticipants(termId: number): Promise<Array<{ userId: number; userName: string }>> {
     const rows = await this.enrollRepo.getEnrolledUsers(termId);
     return rows.map(r => ({
       userId: r.user_id,
@@ -460,36 +462,140 @@ export class TrainerService implements ITrainerService {
       startTime: start,
       endTime: end,
     });
-    
+
     // 2. Označi enrollment kao completed
     await this.enrollRepo.markSessionCompleted(termId, clientId);
-    
+
     // 3. Audit log
     await this.audit.log('Informacija', 'WORKOUT_COMPLETED', trainerId, null, {
       termId: payload.termId,
       clientId: payload.clientId,
       sessionId
     });
-    
+
+    // 4. Send report email (async, don't block finisher)
+    this.sendWorkoutReport(trainerId, clientId, payload).catch(err => {
+      console.error("[finishWorkout] Error sending report:", err);
+    });
+
     return sessionId;
   }
 
+  private async sendWorkoutReport(trainerId: number, clientId: number, payload: any) {
+    try {
+      const trainer = await this.getMyProfile(trainerId);
+      const client = await this.userRepo.getById(clientId);
+      if (!client || !client.korisnickoIme) return;
+
+      const term = await this.termsRepo.getWithProgramAndTrainer(Number(payload.termId));
+      const programTitle = term?.programTitle || "Individual Workout";
+
+      const exercises = await this.listExercises(trainerId);
+      const startTime = new Date(payload.startTime);
+      const endTime = new Date(payload.endTime);
+      const duration = Math.round((endTime.getTime() - startTime.getTime()) / 60000);
+
+      // Total Volume
+      let totalVolume = 0;
+      (payload.logs || []).forEach((l: any) => {
+        totalVolume += (Number(l.actualReps) || 0) * (Number(l.actualWeight) || 0);
+      });
+
+      // HTML Exercise Logs - Group flat logs by exercise
+      const exMap = new Map<number, any[]>();
+      (payload.logs || []).forEach((l: any) => {
+        if (!exMap.has(l.exerciseId)) exMap.set(l.exerciseId, []);
+        exMap.get(l.exerciseId)!.push(l);
+      });
+
+      let exerciseLogsHtml = '';
+      for (const [exId, setLogs] of exMap.entries()) {
+        const exName = exercises.find(e => e.id === Number(exId))?.name || `Exercise #${exId}`;
+        let setsRows = '';
+        setLogs.forEach((s: any) => {
+          setsRows += `
+            <tr>
+              <td>Set ${s.setNumber}</td>
+              <td>${s.actualReps}</td>
+              <td>${s.actualWeight} kg</td>
+            </tr>
+          `;
+        });
+
+        exerciseLogsHtml += `
+          <div class="exercise-item">
+            <div class="exercise-header">${exName}</div>
+            <table class="set-table">
+              <thead>
+                <tr>
+                  <th>Set</th>
+                  <th>Reps</th>
+                  <th>Weight</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${setsRows}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      const templatePath = path.join(__dirname, '..', '..', 'templates', 'workout_report.html');
+      let html = fs.readFileSync(templatePath, 'utf8');
+
+      const replacements: Record<string, string | number> = {
+        '{{workoutDate}}': startTime.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        '{{clientName}}': `${client.ime} ${client.prezime}`,
+        '{{trainerName}}': `${trainer.firstName} ${trainer.lastName}`,
+        '{{duration}}': duration,
+        '{{totalVolume}}': totalVolume.toLocaleString(),
+        '{{exerciseCount}}': exMap.size,
+        '{{exerciseLogs}}': exerciseLogsHtml,
+        '{{programTitle}}': programTitle,
+        '{{currentYear}}': new Date().getFullYear()
+      };
+
+      for (const [key, value] of Object.entries(replacements)) {
+        html = html.replace(new RegExp(key, 'g'), String(value));
+      }
+
+      const pdfBuffer = await htmlToPdfBuffer(html);
+
+      await this.emailService.sendEmail({
+        to: client.korisnickoIme,
+        subject: `Your Workout Report - ${startTime.toLocaleDateString()}`,
+        text: `Hello ${client.ime},\n\nAttached is your workout report from today's session with ${trainer.firstName}.\n\nKeep up the great work!\nFitTrack Team`,
+        attachments: [
+          {
+            filename: `WorkoutReport_${startTime.toISOString().split('T')[0]}.pdf`,
+            content: pdfBuffer
+          }
+        ]
+      });
+
+      console.log(`[sendWorkoutReport] Successfully sent report to ${client.korisnickoIme}`);
+    } catch (err) {
+      console.error("[sendWorkoutReport] Final error:", err);
+    }
+  }
+
   async updateMyProfile(trainerId: number, dto: { ime: string; prezime: string; pol: 'musko' | 'zensko'; datumRodjenja: Date | null }): Promise<void> {
-  await this.userRepo.updateBasicInfo({
-    id: trainerId,
-    ime: dto.ime,
-    prezime: dto.prezime,
-    datumRodjenja: dto.datumRodjenja,
-    pol: dto.pol,
-  });
-    try { await this.audit.log('Informacija', 'TRAINER_PROFILE_UPDATE', trainerId, null, {}); } catch {}
+    await this.userRepo.updateBasicInfo({
+      id: trainerId,
+      ime: dto.ime,
+      prezime: dto.prezime,
+      datumRodjenja: dto.datumRodjenja,
+      pol: dto.pol,
+    });
+    try { await this.audit.log('Informacija', 'TRAINER_PROFILE_UPDATE', trainerId, null, {}); } catch { }
   }
 
   async getClientProgressStats(trainerId: number, clientId: number): Promise<any> {
     // Verify client belongs to trainer
     const client = await this.userRepo.getById(clientId);
     if (client.id === 0) throw new Error('Client not found');
-    
+
     // Get workout history
     const [rows] = await db.execute<RowDataPacket[]>(
       `SELECT 
@@ -515,7 +621,7 @@ export class TrainerService implements ITrainerService {
 
     // Group by exercise
     const exerciseMap = new Map<number, any>();
-    
+
     for (const row of rows as any[]) {
       if (!exerciseMap.has(row.exercise_id)) {
         exerciseMap.set(row.exercise_id, {
@@ -524,10 +630,10 @@ export class TrainerService implements ITrainerService {
           sessions: []
         });
       }
-      
+
       const exData = exerciseMap.get(row.exercise_id)!;
       let session = exData.sessions.find((s: any) => s.sessionId === row.sessionId);
-      
+
       if (!session) {
         session = {
           sessionId: row.sessionId,
@@ -538,7 +644,7 @@ export class TrainerService implements ITrainerService {
         };
         exData.sessions.push(session);
       }
-      
+
       session.sets.push({
         setNumber: row.set_number,
         reps: row.actual_reps,
@@ -550,7 +656,7 @@ export class TrainerService implements ITrainerService {
     const exercises = Array.from(exerciseMap.values()).map(ex => {
       const allWeights = ex.sessions.flatMap((s: any) => s.sets.map((set: any) => set.weight));
       const maxWeight = allWeights.length > 0 ? Math.max(...allWeights) : 0;
-      
+
       const totalVolume = ex.sessions.reduce((sum: number, s: any) => {
         return sum + s.sets.reduce((ssum: number, set: any) => ssum + (set.reps * set.weight), 0);
       }, 0);
@@ -578,6 +684,47 @@ export class TrainerService implements ITrainerService {
     const totalWorkouts = new Set(rows.map((r: any) => r.sessionId)).size;
     const totalVolume = exercises.reduce((sum, e) => sum + e.totalVolume, 0);
 
+    // Group by program for history view
+    const programMap = new Map<number, any>();
+    for (const row of rows as any[]) {
+      if (!programMap.has(row.programId)) {
+        programMap.set(row.programId, {
+          programId: row.programId,
+          programTitle: row.programTitle,
+          sessions: new Map<number, any>()
+        });
+      }
+
+      const pData = programMap.get(row.programId)!;
+      if (!pData.sessions.has(row.sessionId)) {
+        pData.sessions.set(row.sessionId, {
+          sessionId: row.sessionId,
+          date: new Date(row.start_time).toISOString(),
+          exercises: []
+        });
+      }
+
+      const sData = pData.sessions.get(row.sessionId)!;
+      let ex = sData.exercises.find((e: any) => e.exerciseId === row.exercise_id);
+      if (!ex) {
+        ex = { exerciseId: row.exercise_id, name: row.exerciseName, sets: [] };
+        sData.exercises.push(ex);
+      }
+      ex.sets.push({
+        setNumber: row.set_number,
+        reps: row.actual_reps,
+        weight: row.actual_weight
+      });
+    }
+
+    const programHistory = Array.from(programMap.values()).map(p => ({
+      programId: p.programId,
+      programTitle: p.programTitle,
+      recentSessions: Array.from(p.sessions.values() as any[])
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 5)
+    }));
+
     return {
       client: {
         id: client.id,
@@ -590,7 +737,8 @@ export class TrainerService implements ITrainerService {
         totalVolume,
         exercisesTracked: exercises.length
       },
-      exercises
+      exercises,
+      programHistory
     };
   }
 }

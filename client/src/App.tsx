@@ -75,7 +75,7 @@ export default function App() {
         <Route path="/login" element={<PrijavaStranica authApi={authApi} />} />
         <Route path="/register" element={<RegistracijaStranica authApi={authApi} />} />
         <Route path="/logout" element={<LogoutPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage authApi={authApi}/>} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage authApi={authApi} />} />
 
         {/* Admin */}
         <Route
@@ -102,7 +102,7 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          <Route path="choose-trainer" element={<ChooseTrainerPage clientApi={clientApi} />} />
+          <Route path="choose-trainer" element={<ChooseTrainerPage clientApi={clientApi} onTrainerChosen={() => { }} />} />
           <Route element={<RequireTrainer />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<ClientDashboardPage clientApi={clientApi} />} />

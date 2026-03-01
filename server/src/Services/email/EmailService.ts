@@ -74,7 +74,7 @@ export class EmailService implements IEmailService {
     });
   }
 
-  async sendInvoiceEmail(to: string, subject: string, text: string, pdf: Buffer, filename: string) : Promise<void> {
+  async sendInvoiceEmail(to: string, subject: string, text: string, pdf: Buffer, filename: string): Promise<void> {
     await this.transporter.sendMail({
       from: this.from,
       to,
@@ -279,4 +279,18 @@ export class EmailService implements IEmailService {
     });
   }
 
+  async sendEmail(options: {
+    to: string;
+    subject: string;
+    text: string;
+    attachments?: Array<{ filename: string; content: Buffer }>;
+  }): Promise<void> {
+    await this.transporter.sendMail({
+      from: this.from,
+      to: options.to,
+      subject: options.subject,
+      text: options.text,
+      attachments: options.attachments,
+    });
+  }
 }

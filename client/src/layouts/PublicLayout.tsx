@@ -3,12 +3,14 @@ import Brand from "../components/common/Brand";
 import { Menu, X, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import Footer from "../components/public/Footer";
+import { useSettings } from "../context/SettingsContext";
 
 const linkBase = "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200";
 const linkActive = "bg-amber-400/10 text-amber-400";
 const linkIdle = "text-slate-400 hover:text-white hover:bg-white/5";
 
 export default function PublicLayout() {
+  const { t } = useSettings();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const closeMenu = () => setIsMenuOpen(false);
 
@@ -18,15 +20,15 @@ export default function PublicLayout() {
   }, [isMenuOpen]);
 
   const nav = [
-    { to: "/", label: "Home" },
-    { to: "/about", label: "About" },
-    { to: "/guide", label: "Guide" },
-    { to: "/contact", label: "Contact" },
+    { to: "/", label: t('nav_home') || "Home" },
+    { to: "/about", label: t('nav_about') || "About" },
+    { to: "/guide", label: t('nav_guide') || "Guide" },
+    { to: "/contact", label: t('nav_contact') || "Contact" },
   ];
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white selection:bg-amber-400 selection:text-black font-sans">
-      
+
       {/* HEADER */}
       <header className="fixed top-0 left-0 right-0 z-[100] bg-[#0a0a0f]/80 backdrop-blur-md border-b border-[#27273a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -49,10 +51,10 @@ export default function PublicLayout() {
           {/* DESKTOP ACTIONS */}
           <div className="hidden lg:flex items-center gap-3">
             <Link to="/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">
-              LOG IN
+              {t('nav_login') || "LOG IN"}
             </Link>
             <Link to="/register" className="bg-amber-400 hover:bg-amber-500 text-[#0a0a0f] px-5 py-2 rounded-xl font-bold text-sm transition-all shadow-[0_0_20px_rgba(251,191,36,0.15)]">
-              REGISTER
+              {t('nav_register') || "REGISTER"}
             </Link>
           </div>
 
@@ -84,8 +86,8 @@ export default function PublicLayout() {
             ))}
           </div>
           <div className="mt-auto flex flex-col gap-3">
-            <Link to="/login" onClick={closeMenu} className="w-full py-4 text-center text-slate-400 font-bold uppercase tracking-widest border border-[#27273a] rounded-2xl">Log In</Link>
-            <Link to="/register" onClick={closeMenu} className="w-full py-4 text-center bg-amber-400 text-[#0a0a0f] font-bold uppercase tracking-widest rounded-2xl shadow-lg">Register Now</Link>
+            <Link to="/login" onClick={closeMenu} className="w-full py-4 text-center text-slate-400 font-bold uppercase tracking-widest border border-[#27273a] rounded-2xl">{t('nav_login') || "Log In"}</Link>
+            <Link to="/register" onClick={closeMenu} className="w-full py-4 text-center bg-amber-400 text-[#0a0a0f] font-bold uppercase tracking-widest rounded-2xl shadow-lg">{t('register_now') || "Register Now"}</Link>
           </div>
         </div>
       </div>

@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import type { IClientAPIService } from "../../api_services/client/IClientAPIService";
+import { useSettings } from "../../context/SettingsContext";
 
 interface ChooseTrainerPageProps {
   clientApi: IClientAPIService;
+  onTrainerChosen: () => void;
 }
 
-type Trainer = { id: number; name: string; email: string };
+// Assuming User type is similar to Trainer or defined elsewhere, as per the edit's useState change
+type User = { id: number; name: string; email: string };
 
-export default function ChooseTrainerPage({ clientApi }: ChooseTrainerPageProps) {
-  const [list, setList] = useState<Trainer[]>([]);
+
+export default function ChooseTrainerPage({ clientApi, onTrainerChosen }: ChooseTrainerPageProps) {
+  const { t } = useSettings();
+  const [trainers, setTrainers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
@@ -18,10 +23,10 @@ export default function ChooseTrainerPage({ clientApi }: ChooseTrainerPageProps)
     setError(null);
     try {
       const resp = await clientApi.listTrainers();
-      if (resp.success && Array.isArray(resp.data)) setList(resp.data);
-      else setError(resp.message || "Neuspelo učitavanje trenera");
+      if (resp.success && Array.isArray(resp.data)) setTrainers(resp.data);
+      else setError(resp.message || t("failed_to_load_trainers"));
     } catch (e: any) {
-      setError(e?.response?.data?.message || e?.message || "Greška pri učitavanju trenera");
+      setError(e?.response?.data?.message || e?.message || t("error_loading_trainers"));
     } finally {
       setLoading(false);
     }
@@ -31,10 +36,10 @@ export default function ChooseTrainerPage({ clientApi }: ChooseTrainerPageProps)
     setActionLoading(id);
     try {
       const r = await clientApi.chooseTrainer(id);
-      if (r.success) window.location.href = "/app/sessions";
-      else alert(r.message || "Nije uspelo biranje trenera");
+      if (r.success) onTrainerChosen();
+      else alert(r.message || t("failed_to_choose_trainer"));
     } catch (e: any) {
-      alert(e?.response?.data?.message || e?.message || "Greška pri biranju trenera");
+      alert(e?.response?.data?.message || e?.message || t("error_choosing_trainer"));
     } finally {
       setActionLoading(null);
     }
@@ -45,13 +50,17 @@ export default function ChooseTrainerPage({ clientApi }: ChooseTrainerPageProps)
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <header>
-        <h1 className="text-3xl font-bold tracking-tight text-yellow-500">Choose Your Trainer</h1>
-        <p className="text-gray-400">Pick a trainer to unlock sessions and programs</p>
+        <h1 className="text-3xl font-bold tracking-tight text-yellow-500">
+          {t('choose_trainer')}
+        </h1>
+        <p className="text-gray-400">
+          {t('pick_trainer_subtitle')}
+        </p>
       </header>
 
       {loading && (
-        <div className="rounded-2xl border border-gray-200 bg-white text-black p-4 shadow">
-          Učitavanje...
+        <div className="flex items-center justify-center p-12 text-gray-400">
+          {t('loading')}...
         </div>
       )}
 
@@ -61,29 +70,29 @@ export default function ChooseTrainerPage({ clientApi }: ChooseTrainerPageProps)
         </div>
       )}
 
-      {!loading && !error && list.length === 0 && (
-        <div className="rounded-2xl border border-gray-200 bg-white text-black p-4 shadow">
-          Nema dostupnih trenera.
+      {!loading && !error && trainers.length === 0 && (
+        <div className="text-center p-12 text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">
+          {t('no_trainers_available')}
         </div>
       )}
 
-      {!loading && !error && list.length > 0 && (
+      {!loading && !error && trainers.length > 0 && (
         <div className="grid gap-4">
-          {list.map((t) => (
+          {trainers.map((tr) => (
             <div
-              key={t.id}
+              key={tr.id}
               className="bg-white text-black rounded-2xl border border-gray-200 shadow p-5 flex items-center justify-between"
             >
               <div>
-                <div className="font-semibold text-gray-900">{t.name}</div>
-                <div className="text-sm text-gray-600">{t.email}</div>
+                <div className="font-semibold text-gray-900">{tr.name}</div>
+                <div className="text-sm text-gray-600">{tr.email}</div>
               </div>
               <button
-                onClick={() => choose(t.id)}
-                disabled={actionLoading === t.id}
+                onClick={() => choose(tr.id)}
+                disabled={actionLoading === tr.id}
                 className="inline-flex items-center rounded-xl bg-yellow-400 text-black px-4 py-2.5 font-semibold hover:bg-yellow-500 transition disabled:opacity-60 shadow"
               >
-                {actionLoading === t.id ? "Biranje..." : "Select"}
+                {actionLoading === tr.id ? `${t('selecting')}...` : t('select')}
               </button>
             </div>
           ))}

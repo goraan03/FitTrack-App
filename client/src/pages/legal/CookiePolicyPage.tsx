@@ -1,61 +1,53 @@
 import LegalLayout from "../../layouts/LegalLayout";
+import { useSettings } from "../../context/SettingsContext";
 
 export default function CookiePolicyPage() {
+  const { t } = useSettings();
   return (
     <LegalLayout
-      badge="Cookies & Storage"
+      badge={t('cookie_badge') || "Cookies & Storage"}
       title={
         <>
-          COOKIE <span className="text-amber-400">POLICY</span>
+          {(t('cookie_title') || "COOKIE POLICY").replace(' POLICY', '')} <span className="text-amber-400">POLICY</span>
         </>
       }
-      subtitle="This policy explains how cookies and local storage are used to keep the platform secure and functional."
+      subtitle={t('cookie_subtitle') || "This policy explains how cookies and local storage are used to keep the platform secure and functional."}
     >
-      <Meta />
+      <Meta t={t} />
 
-      <LegalSection title="1. What Cookies Are">
-        <p>
-          Cookies are small text files stored in your browser. They help websites remember preferences and maintain sessions.
-        </p>
+      <LegalSection title={t('cookie_sec1_title') || "1. What Cookies Are"}>
+        <p>{t('cookie_sec1_desc') || "Cookies are small text files stored in your browser. They help websites remember preferences and maintain sessions."}</p>
       </LegalSection>
 
-      <LegalSection title="2. What We Use">
+      <LegalSection title={t('cookie_sec2_title') || "2. What We Use"}>
         <ul className="list-disc pl-5 space-y-2">
-          <li><span className="text-slate-300 font-semibold">Essential:</span> authentication and session continuity.</li>
-          <li><span className="text-slate-300 font-semibold">Security:</span> protection against abuse and unauthorized access.</li>
-          <li><span className="text-slate-300 font-semibold">Preferences:</span> basic UI preferences where applicable.</li>
+          <li><span className="text-slate-300 font-semibold">Essential:</span> {t('cookie_sec2_li1') || "authentication and session continuity."}</li>
+          <li><span className="text-slate-300 font-semibold">Security:</span> {t('cookie_sec2_li2') || "protection against abuse and unauthorized access."}</li>
+          <li><span className="text-slate-300 font-semibold">Preferences:</span> {t('cookie_sec2_li3') || "basic UI preferences where applicable."}</li>
         </ul>
       </LegalSection>
 
-      <LegalSection title="3. Local Storage">
-        <p>
-          Some data may be stored locally (e.g., temporary authentication flows) to improve user experience.
-          You can clear this in your browser settings.
-        </p>
+      <LegalSection title={t('cookie_sec3_title') || "3. Local Storage"}>
+        <p>{t('cookie_sec3_desc') || "Some data may be stored locally (e.g., temporary authentication flows) to improve user experience. You can clear this in your browser settings."}</p>
       </LegalSection>
 
-      <LegalSection title="4. Managing Cookies">
-        <p>
-          You can control cookies via browser settings. Disabling essential cookies may prevent login
-          or core features from working correctly.
-        </p>
+      <LegalSection title={t('cookie_sec4_title') || "4. Managing Cookies"}>
+        <p>{t('cookie_sec4_desc') || "You can control cookies via browser settings. Disabling essential cookies may prevent login or core features from working correctly."}</p>
       </LegalSection>
 
-      <LegalSection title="5. Contact">
-        <p>
-          If you have questions about cookies, please contact us via the contact page.
-        </p>
+      <LegalSection title={t('cookie_sec5_title') || "5. Contact"}>
+        <p>{t('cookie_sec5_desc') || "If you have questions about cookies, please contact us via the contact page."}</p>
       </LegalSection>
     </LegalLayout>
   );
 }
 
-function Meta() {
+function Meta({ t }: { t: (key: string) => string }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <MetaCard label="Policy Status" value="Active" />
-      <MetaCard label="Last Updated" value="22.02.2026." />
-      <MetaCard label="Applies To" value="Public website & app" />
+      <MetaCard label={t('policy_status') || "Policy Status"} value={t('active') || "Active"} />
+      <MetaCard label={t('last_updated') || "Last Updated"} value="22.02.2026." />
+      <MetaCard label={t('applies_to') || "Applies To"} value={t('public_website_app') || "Public website & app"} />
     </div>
   );
 }

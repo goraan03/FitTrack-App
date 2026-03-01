@@ -12,8 +12,12 @@ import {
   Menu,
   X,
   ChevronRight,
+  Sun,
+  Moon,
+  Globe,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useSettings } from "../context/SettingsContext";
 
 const linkBase = "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200";
 const linkActive = "bg-amber-400/10 text-amber-400";
@@ -23,6 +27,9 @@ export default function TrainerLayout() {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { theme, setTheme, language, setLanguage, t } = useSettings();
+  const [langOpen, setLangOpen] = useState(false);
+  const langs = ['English', 'Serbian', 'Russian', 'German', 'Hungarian'] as const;
 
   const closeMenu = () => setIsMenuOpen(false);
 
@@ -39,17 +46,17 @@ export default function TrainerLayout() {
   }, [isMenuOpen]);
 
   const nav = [
-    { to: "/trainer/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/trainer/exercises", label: "Exercises", icon: Dumbbell },
-    { to: "/trainer/programs", label: "Programs", icon: ListChecks },
-    { to: "/trainer/terms", label: "Sessions", icon: CalendarDays },
-    { to: "/trainer/clients", label: "Clients", icon: Users },
-    { to: "/trainer/profile", label: "Profile", icon: User },
+    { to: "/trainer/dashboard", label: t('nav_dashboard') || "Dashboard", icon: LayoutDashboard },
+    { to: "/trainer/exercises", label: t('nav_exercises') || "Exercises", icon: Dumbbell },
+    { to: "/trainer/programs", label: t('nav_programs') || "Programs", icon: ListChecks },
+    { to: "/trainer/terms", label: t('nav_sessions') || "Sessions", icon: CalendarDays },
+    { to: "/trainer/clients", label: t('nav_clients') || "Clients", icon: Users },
+    { to: "/trainer/profile", label: t('nav_profile') || "Profile", icon: User },
   ];
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white selection:bg-amber-400 selection:text-black font-sans">
-      
+
       {/* HEADER */}
       <header className="fixed top-0 left-0 right-0 z-[100] bg-[#0a0a0f]/80 backdrop-blur-md border-b border-[#27273a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -71,17 +78,53 @@ export default function TrainerLayout() {
             ))}
           </nav>
 
-          {/* DESKTOP LOGOUT */}
-          <button
-            onClick={doLogout}
-            className="hidden lg:flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            LOGOUT
-          </button>
+          {/* DESKTOP CONTROLS */}
+          <div className="hidden lg:flex items-center gap-2">
+            {/* Theme toggle */}
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+              title={theme === 'dark' ? t('light') : t('dark')}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
+            {/* Language selector */}
+            <div className="relative">
+              <button
+                onClick={() => setLangOpen(!langOpen)}
+                className="flex items-center gap-1.5 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all text-xs font-bold uppercase tracking-wider"
+              >
+                <Globe className="w-4 h-4" />
+                {language.slice(0, 2).toUpperCase()}
+              </button>
+              {langOpen && (
+                <div className="absolute right-0 top-full mt-1 w-40 bg-[#111118] border border-[#27273a] rounded-xl shadow-2xl py-1 z-50">
+                  {langs.map(l => (
+                    <button
+                      key={l}
+                      onClick={() => { setLanguage(l); setLangOpen(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors ${language === l ? 'text-amber-400 bg-amber-400/10' : 'text-slate-400 hover:text-white hover:bg-white/5'
+                        }`}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={doLogout}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              {t('logout').toUpperCase()}
+            </button>
+          </div>
 
           {/* MOBILE TOGGLE */}
-          <button 
+          <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="lg:hidden p-2 rounded-lg bg-white/5 border border-[#27273a] text-slate-400"
           >
@@ -97,7 +140,7 @@ export default function TrainerLayout() {
       `}>
         <div className="flex flex-col h-full pt-24 pb-10 px-6">
           <div className="flex flex-col gap-2">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 ml-4 mb-2">Trainer Menu</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 ml-4 mb-2">{t('trainer_menu')}</p>
             {nav.map((l) => (
               <NavLink
                 key={l.to}
@@ -112,7 +155,7 @@ export default function TrainerLayout() {
                   <>
                     <div className="flex items-center gap-4 text-lg font-bold">
                       <l.icon size={20} />
-                      {l.label.toUpperCase()}
+                      {t(l.label.toLowerCase()).toUpperCase()}
                     </div>
                     <ChevronRight size={18} className={isActive ? "opacity-100" : "opacity-20"} />
                   </>
@@ -121,13 +164,31 @@ export default function TrainerLayout() {
             ))}
           </div>
 
+          {/* Mobile theme/lang controls */}
+          <div className="mt-6 flex items-center gap-3 px-4">
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-white/5 border border-[#27273a] text-slate-400 font-bold text-sm uppercase tracking-wider"
+            >
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+              {theme === 'dark' ? t('light') : t('dark')}
+            </button>
+            <select
+              value={language}
+              onChange={e => setLanguage(e.target.value as any)}
+              className="flex-1 py-3 rounded-2xl bg-white/5 border border-[#27273a] text-slate-400 font-bold text-sm uppercase tracking-wider text-center appearance-none cursor-pointer"
+            >
+              {langs.map(l => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>
+
           <div className="mt-auto">
             <button
               onClick={doLogout}
               className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-500 font-bold uppercase tracking-widest"
             >
               <LogOut size={18} />
-              Sign Out
+              {t('logout')}
             </button>
           </div>
         </div>

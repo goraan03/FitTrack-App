@@ -19,7 +19,7 @@ export interface InvoiceMeta {
 }
 
 export function calculateInvoiceMeta(forDate: Date): InvoiceMeta {
-  const d =   new Date(forDate);
+  const d = new Date(forDate);
   d.setMonth(d.getMonth() - 1);
 
   const month = d.getMonth() + 1;
@@ -79,6 +79,8 @@ export function renderInvoiceHtml(
 export async function htmlToPdfBuffer(html: string): Promise<Buffer> {
   const browser = await puppeteer.launch({
     headless: true,
+    executablePath: '/usr/bin/chromium-browser',
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
   const page = await browser.newPage();
@@ -105,7 +107,7 @@ export async function savePdfToDisk(
   const baseDir = path.join(__dirname, "..", "..", "..", "invoices");
   console.log("[Billing] savePdfToDisk baseDir =", baseDir);
 
-  if(!fs.existsSync(baseDir)){
+  if (!fs.existsSync(baseDir)) {
     console.log("[Billing] invoices dir ne postoji, kreiram...");
     fs.mkdirSync(baseDir, { recursive: true });
   }

@@ -21,6 +21,7 @@ import { hhmmToMinutes } from "../../helpers/client/hhmmToMinutes";
 import type { IClientAPIService } from "../../api_services/client/IClientAPIService";
 import { programsApi } from "../../api_services/programs/ProgramsAPIService";
 import toast from "react-hot-toast";
+import { useSettings } from "../../context/SettingsContext";
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Legend, Filler);
 
 const normalizeType = (t: unknown): 'individual' | 'group' =>
@@ -31,6 +32,7 @@ interface ClientDashboardPageProps {
 }
 
 export default function ClientDashboardPage({ clientApi }: ClientDashboardPageProps) {
+  const { t } = useSettings();
   const [weekStart, setWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [events, setEvents] = useState<WeeklyCardItem[]>([]);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -39,7 +41,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
     title: string;
     startAt: string;
     endAt: string;
-    type: 'individual'|'group';
+    type: 'individual' | 'group';
     trainerName?: string;
     programTitle?: string;
     programId?: number | null;
@@ -79,10 +81,10 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
         const endDate = e.durationMin
           ? addMinutes(startDate, e.durationMin)
           : (() => {
-              const d = addDays(weekStart, e.day);
-              const [hh, mm] = (e.end || "00:00").split(":").map(Number);
-              return setMinutes(setHours(d, hh || 0), mm || 0);
-            })();
+            const d = addDays(weekStart, e.day);
+            const [hh, mm] = (e.end || "00:00").split(":").map(Number);
+            return setMinutes(setHours(d, hh || 0), mm || 0);
+          })();
         const startMidnight = new Date(startDate);
         startMidnight.setHours(0, 0, 0, 0);
         const dayIdx = Math.round(
@@ -123,14 +125,14 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
   useEffect(() => { loadWeekly(); }, [weekStart]);
 
   const handleCancel = async (id: number) => {
-    const confirm = window.confirm("Are you sure you want to cancel this session?");
+    const confirm = window.confirm(t('cancel_session_confirm'));
     if (!confirm) return;
     const r = await clientApi.cancel(id);
     if (!r.success) {
       alert(r.message || "Cancel failed");
       return;
     }
-    toast.success("Session canceled");
+    toast.success(t('session_canceled'));
     await loadWeekly();
   };
 
@@ -140,11 +142,11 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
 
     const [sh, sm] = ev.start.split(":").map(Number);
     const [eh, em] = ev.end.split(":").map(Number);
-    
+
     let startDate = addDays(weekStart, ev.day);
     startDate = setHours(startDate, sh || 0);
     startDate = setMinutes(startDate, sm || 0);
-    
+
     let endDate = addDays(weekStart, ev.day);
     endDate = setHours(endDate, eh || 0);
     endDate = setMinutes(endDate, em || 0);
@@ -156,10 +158,10 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
       if (ev.programId && profile?.assignedTrainerId != null && profile?.id) {
 
         console.log("Calling getVisibleDetails with", {
-        programId: ev.programId,
-        trainerId: profile.assignedTrainerId,
-        clientId: profile.id,
-      });
+          programId: ev.programId,
+          trainerId: profile.assignedTrainerId,
+          clientId: profile.id,
+        });
 
         const res = await programsApi.getVisibleDetails({
           programId: ev.programId,
@@ -167,7 +169,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
           clientId: profile.id,
         });
 
-         console.log("getVisibleDetails response:", res);
+        console.log("getVisibleDetails response:", res);
         if (res.success && res.data) {
           exerciseNames = res.data.exercises.map(ex => ex.name);
           console.log("exerciseNames:", exerciseNames);
@@ -191,7 +193,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
       exercises: exerciseNames,
     });
     setDetailsOpen(true);
-};
+  };
 
   const [tab, setTab] = useState<'progress' | 'recent'>('progress');
 
@@ -214,10 +216,10 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
           <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 opacity-0 animate-fade-in-up">
             <div>
               <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
-                CLIENT <span className="text-amber-400">DASHBOARD</span>
+                {t('client_dashboard').split(' ')[0].toUpperCase()} <span className="text-amber-400">{t('client_dashboard').split(' ').slice(1).join(' ').toUpperCase()}</span>
               </h1>
               <p className="text-slate-400 text-sm tracking-wide uppercase">
-                Your weekly overview & progress
+                {t('client_dashboard_subtitle')}
               </p>
             </div>
 
@@ -235,13 +237,13 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
                   <span className="text-xs font-black uppercase tracking-widest">#</span>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">SESSIONS</p>
+                  <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">{t('sessions').toUpperCase()}</p>
                   <p className="text-4xl font-bold text-white">
                     {profile?.stats.sessionsCompleted ?? 0}
                   </p>
                 </div>
               </div>
-              <p className="text-xs text-slate-500 uppercase tracking-wide">Completed total</p>
+              <p className="text-xs text-slate-500 uppercase tracking-wide">{t('completed_total')}</p>
             </div>
 
             <div
@@ -253,13 +255,13 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
                   <span className="text-xs font-black uppercase tracking-widest">★</span>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">AVG RATING</p>
+                  <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">{t('avg_rating').toUpperCase()}</p>
                   <p className="text-4xl font-bold text-white">
                     {profile?.stats.avgRating != null ? profile.stats.avgRating.toFixed(1) : "—"}
                   </p>
                 </div>
               </div>
-              <p className="text-xs text-slate-500 uppercase tracking-wide">Out of 10</p>
+              <p className="text-xs text-slate-500 uppercase tracking-wide">{t('out_of_10')}</p>
             </div>
 
             <div
@@ -271,11 +273,11 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
                   <span className="text-xs font-black uppercase tracking-widest">⏱</span>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">SCHEDULED</p>
+                  <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">{t('scheduled').toUpperCase()}</p>
                   <p className="text-4xl font-bold text-white">{events.length}</p>
                 </div>
               </div>
-              <p className="text-xs text-slate-500 uppercase tracking-wide">This week • {weekHours}h</p>
+              <p className="text-xs text-slate-500 uppercase tracking-wide">{t('this_week')} • {weekHours}h</p>
             </div>
           </div>
 
@@ -289,7 +291,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-1 h-6 bg-gradient-to-b from-amber-400 to-amber-500 rounded-full" />
                 <div>
-                  <h2 className="text-xl font-bold text-white">WEEKLY SCHEDULE</h2>
+                  <h2 className="text-xl font-bold text-white">{t('weekly_schedule').toUpperCase()}</h2>
                   <p className="text-slate-500 text-xs uppercase tracking-widest">{weekLabel}</p>
                 </div>
               </div>
@@ -312,36 +314,34 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-1 h-6 bg-gradient-to-b from-cyan-400 to-cyan-500 rounded-full" />
                 <h2 className="text-xl font-bold text-white">
-                  {tab === "progress" ? "PROGRESS" : "RECENT"}
+                  {tab === "progress" ? t('progress').toUpperCase() : t('recent_sessions').split(' ')[0].toUpperCase()}
                 </h2>
               </div>
 
               <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-5 shadow-[0_30px_90px_rgba(0,0,0,0.55)]">
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm font-semibold text-white">
-                    {tab === "progress" ? "Ratings trend" : "Recent sessions"}
+                    {tab === "progress" ? t('ratings_trend') : t('recent_sessions')}
                   </div>
 
                   <div className="inline-flex rounded-xl bg-black/40 border border-white/5 p-1">
                     <button
                       onClick={() => setTab("progress")}
-                      className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
-                        tab === "progress"
+                      className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${tab === "progress"
                           ? "bg-white/5 text-amber-400 border border-amber-400/20"
                           : "text-slate-400 hover:text-white"
-                      }`}
+                        }`}
                     >
-                      Progress
+                      {t('progress')}
                     </button>
                     <button
                       onClick={() => setTab("recent")}
-                      className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
-                        tab === "recent"
+                      className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${tab === "recent"
                           ? "bg-white/5 text-amber-400 border border-amber-400/20"
                           : "text-slate-400 hover:text-white"
-                      }`}
+                        }`}
                     >
-                      Recent
+                      {t('recent_sessions').split(' ')[0]}
                     </button>
                   </div>
                 </div>
@@ -373,7 +373,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center text-slate-500">
-                          No data yet
+                          {t('no_data_yet')}
                         </div>
                       )}
                     </div>
@@ -395,13 +395,13 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
                                 </div>
                               </div>
                               <div className="text-xs text-slate-400 whitespace-nowrap">
-                                {h.rating != null ? `Rating: ${h.rating}/10` : "—"}
+                                {h.rating != null ? `${t('rating')}: ${h.rating}/10` : "—"}
                               </div>
                             </div>
                           );
                         })
                       ) : (
-                        <div className="py-12 text-center text-slate-500">No recent sessions</div>
+                        <div className="py-12 text-center text-slate-500">{t('no_recent_sessions')}</div>
                       )}
                     </div>
                   )}

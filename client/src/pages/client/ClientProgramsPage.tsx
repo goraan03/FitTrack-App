@@ -5,12 +5,14 @@ import type { PublicProgram } from "../../types/programs/PublicProgram";
 import { clientApi } from "../../api_services/client/ClientAPIService";
 import ProgramDetailsModal from "../../components/client/ProgramDetailsModal";
 import type { ProgramDetails } from "../../types/programs/ProgramDetails";
+import { useSettings } from "../../context/SettingsContext";
 
 interface ClientProgramsPageProps {
   programsApi: IProgramsAPIService;
 }
 
 export default function ClientProgramsPage({ programsApi }: ClientProgramsPageProps) {
+  const { t } = useSettings();
   const [items, setItems] = useState<PublicProgram[]>([]);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState("");
@@ -100,8 +102,8 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
 
   const header = (
     <header>
-      <h1 className="text-3xl font-bold tracking-tight text-yellow-500">Programs</h1>
-      <p className="text-gray-400">Programs of your trainer</p>
+      <h1 className="text-3xl font-bold tracking-tight text-yellow-500">{t('my_programs')}</h1>
+      <p className="text-gray-400">{t('programs_of_trainer')}</p>
     </header>
   );
 
@@ -110,7 +112,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {header}
         <div className="rounded-2xl border border-gray-200 bg-white text-black p-4 shadow">
-          Loading profile…
+          {t('loading_profile')}...
         </div>
       </section>
     );
@@ -120,7 +122,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {header}
         <div className="rounded-2xl border border-yellow-300 bg-yellow-50 text-yellow-900 p-4 shadow">
-          Select a trainer to see their programs.
+          {t('select_trainer_msg')}
         </div>
       </section>
     );
@@ -135,10 +137,10 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 opacity-0 animate-fade-in-up">
           <div className="min-w-0">
             <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-white">
-              My <span className="text-amber-400">Programs</span>
+              {t('my_programs')}
             </h1>
             <p className="text-slate-400 text-sm uppercase tracking-widest mt-2">
-              Programs of your trainer
+              {t('programs_of_trainer')}
             </p>
           </div>
         </div>
@@ -151,7 +153,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
               <div className="text-slate-400 text-sm font-semibold uppercase tracking-widest">
-                Loading profile…
+                {t('loading_profile')}...
               </div>
             </div>
           </div>
@@ -161,10 +163,10 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
             style={{ animationFillMode: "forwards" }}
           >
             <div className="text-amber-300 font-black uppercase tracking-widest text-xs">
-              No trainer assigned
+              {t('no_trainer_assigned')}
             </div>
             <div className="text-slate-300 mt-2">
-              Select a trainer to see their programs.
+              {t('select_trainer_msg')}
             </div>
           </div>
         ) : (
@@ -184,7 +186,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
                       placeholder:text-slate-500 text-sm font-semibold
                       focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400/40
                     "
-                    placeholder="Search programs..."
+                    placeholder={t('search_programs')}
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && load()}
@@ -202,10 +204,10 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
                   value={level}
                   onChange={(e) => setLevel(e.target.value as any)}
                 >
-                  <option value="">All levels</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
+                  <option value="">{t('all_levels')}</option>
+                  <option value="beginner">{t('beginner')}</option>
+                  <option value="intermediate">{t('intermediate')}</option>
+                  <option value="advanced">{t('advanced')}</option>
                 </select>
 
                 <button
@@ -219,7 +221,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
                     active:scale-[0.99]
                   "
                 >
-                  Apply
+                  {t('apply')}
                 </button>
               </div>
             </div>
@@ -234,7 +236,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
                   <div className="flex items-center gap-4">
                     <div className="w-8 h-8 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
                     <div className="text-slate-400 text-sm font-semibold uppercase tracking-widest">
-                      Loading programs…
+                      {t('loading_programs')}...
                     </div>
                   </div>
                 </div>
@@ -243,11 +245,11 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
                   <div className="text-6xl mb-3">📦</div>
                   <div className="text-slate-300 font-black uppercase tracking-widest text-sm">
                     {Boolean(q || level)
-                      ? "No programs found for the given filters."
-                      : "The trainer currently has no programs for you."}
+                      ? t('no_programs_found_msg')
+                      : t('no_programs_for_you')}
                   </div>
                   <div className="text-slate-500 text-sm mt-2">
-                    Try adjusting search or level.
+                    {t('try_adjusting_search')}
                   </div>
                 </div>
               ) : (
@@ -268,7 +270,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
                             {p.title}
                           </div>
                           <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">
-                            Author: <span className="text-slate-300">{p.trainerName}</span>
+                            {t('author')}: <span className="text-slate-300">{p.trainerName}</span>
                           </div>
                         </div>
 
@@ -278,7 +280,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
                             bg-white/5 text-slate-200 border border-white/10
                           "
                         >
-                          {p.level}
+                          {t(p.level)}
                         </span>
                       </div>
 
@@ -300,7 +302,7 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
                             disabled:opacity-60 disabled:cursor-not-allowed
                           "
                         >
-                          {detailsLoading ? "Loading…" : "View Details"}
+                          {detailsLoading ? `${t('loading')}...` : t('view_details').toUpperCase()}
                         </button>
                       </div>
                     </div>

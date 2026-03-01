@@ -5,13 +5,16 @@
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #0a0a0f;
 }
+
 ::-webkit-scrollbar-thumb {
   background: rgba(39, 39, 58, 0.9);
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(60, 60, 90, 0.9);
 }
@@ -28,6 +31,7 @@
 .card-hover {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .card-hover:hover {
   transform: translateY(-4px);
   box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
@@ -38,10 +42,12 @@
   background: linear-gradient(135deg, rgba(251, 191, 36, 0.10) 0%, rgba(251, 191, 36, 0.02) 100%);
   border: 1px solid rgba(251, 191, 36, 0.15);
 }
+
 .stat-card-2 {
   background: linear-gradient(135deg, rgba(34, 211, 238, 0.10) 0%, rgba(34, 211, 238, 0.02) 100%);
   border: 1px solid rgba(34, 211, 238, 0.15);
 }
+
 .stat-card-3 {
   background: linear-gradient(135deg, rgba(167, 139, 250, 0.10) 0%, rgba(167, 139, 250, 0.02) 100%);
   border: 1px solid rgba(167, 139, 250, 0.15);
@@ -52,6 +58,7 @@
   position: relative;
   overflow: hidden;
 }
+
 .schedule-item::before {
   content: '';
   position: absolute;
@@ -62,9 +69,11 @@
   background: linear-gradient(180deg, #fbbf24, #f59e0b);
   border-radius: 2px 0 0 2px;
 }
+
 .schedule-item.group::before {
   background: linear-gradient(180deg, #22d3ee, #06b6d4);
 }
+
 .schedule-item.completed::before {
   background: linear-gradient(180deg, #34d399, #10b981);
 }
@@ -74,6 +83,7 @@
   position: relative;
   overflow: hidden;
 }
+
 .btn-glow::after {
   content: '';
   position: absolute;
@@ -85,20 +95,215 @@
   transition: opacity 0.3s ease;
   filter: blur(12px);
 }
+
 .btn-glow:hover::after {
   opacity: 0.4;
 }
 
 /* Animation */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 .animate-fade-in-up {
   animation: fadeInUp 0.5s ease-out forwards;
 }
-.stagger-1 { animation-delay: 0.1s; }
-.stagger-2 { animation-delay: 0.2s; }
-.stagger-3 { animation-delay: 0.3s; }
-.stagger-4 { animation-delay: 0.4s; }
-.stagger-5 { animation-delay: 0.5s; }
+
+.stagger-1 {
+  animation-delay: 0.1s;
+}
+
+.stagger-2 {
+  animation-delay: 0.2s;
+}
+
+.stagger-3 {
+  animation-delay: 0.3s;
+}
+
+.stagger-4 {
+  animation-delay: 0.4s;
+}
+
+.stagger-5 {
+  animation-delay: 0.5s;
+}
+
+/* ═══════════════════════════════════════════════
+   LIGHT THEME — CSS-only overrides
+   Activates when SettingsContext sets html.light
+   No component files are touched.
+   ═══════════════════════════════════════════════ */
+
+/* --- Core background recolors --- */
+html.light {
+  color-scheme: light;
+}
+
+/* Main app bg: #0a0a0f → #f4f5f7 */
+html.light .bg-\[\#0a0a0f\] {
+  background-color: #f4f5f7 !important;
+}
+
+/* Cards: #111118 → white */
+html.light .bg-\[\#111118\] {
+  background-color: #ffffff !important;
+}
+
+/* Slightly darker card variant: #0d0d14 → #f9fafb */
+html.light .bg-\[\#0d0d14\] {
+  background-color: #f9fafb !important;
+}
+
+/* --- Borders --- */
+html.light .border-\[\#27273a\] {
+  border-color: #e2e5ea !important;
+}
+
+html.light .border-white\/5 {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+html.light .border-white\/10 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* --- Text colors --- */
+html.light .text-white {
+  color: #1a1a2e !important;
+}
+
+html.light .text-slate-300 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.light .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+html.light .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+html.light .text-slate-700 {
+  color: #cbd5e1 !important;
+}
+
+html.light .placeholder\:text-slate-500::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light .placeholder\:text-slate-600::placeholder {
+  color: #cbd5e1 !important;
+}
+
+html.light .placeholder\:text-slate-700::placeholder {
+  color: #cbd5e1 !important;
+}
+
+/* --- Semi-transparent white backgrounds → semi-transparent black --- */
+html.light .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+html.light .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+html.light .bg-white\/\[0\.03\] {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+html.light .hover\:bg-white\/5:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+html.light .hover\:bg-white\/10:hover {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+html.light .hover\:text-white:hover {
+  color: #1a1a2e !important;
+}
+
+/* --- Glassmorphism override --- */
+html.light .glass {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-bottom-color: #e2e5ea !important;
+}
+
+/* --- Header / fixed nav bg override --- */
+html.light .bg-\[\#0a0a0f\]\/80 {
+  background-color: rgba(244, 245, 247, 0.9) !important;
+}
+
+/* --- Scrollbar for light --- */
+html.light ::-webkit-scrollbar-track {
+  background: #f4f5f7;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* --- Box shadows lighten --- */
+html.light .shadow-2xl,
+html.light .shadow-xl {
+  --tw-shadow-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* --- Card hover effect lighter shadows --- */
+html.light .card-hover:hover {
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.08);
+}
+
+/* --- Stat card gradients (keep accent colors, lighter bg) --- */
+html.light .stat-card-1 {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(251, 191, 36, 0.01) 100%);
+  border-color: rgba(251, 191, 36, 0.2);
+}
+
+html.light .stat-card-2 {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.08) 0%, rgba(34, 211, 238, 0.01) 100%);
+  border-color: rgba(34, 211, 238, 0.2);
+}
+
+html.light .stat-card-3 {
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.08) 0%, rgba(167, 139, 250, 0.01) 100%);
+  border-color: rgba(167, 139, 250, 0.2);
+}
+
+/* --- Input fields --- */
+html.light input,
+html.light textarea,
+html.light select {
+  color: #1a1a2e !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* --- Amber accent stays the same (already great in light mode) --- */
+/* Keep amber-400/10 backgrounds, amber-400 text, etc. unchanged */
+
+/* --- Red / danger tones (keep as-is, they work on both) --- */
+
+/* --- focus borders stay amber (already works) --- */

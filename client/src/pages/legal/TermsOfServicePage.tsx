@@ -1,84 +1,70 @@
 import LegalLayout from "../../layouts/LegalLayout";
+import { useSettings } from "../../context/SettingsContext";
 
 export default function TermsOfServicePage() {
+  const { t } = useSettings();
   return (
     <LegalLayout
-      badge="Platform Rules"
+      badge={t('platform_rules_badge') || "Platform Rules"}
       title={
         <>
-          TERMS <span className="text-amber-400">OF SERVICE</span>
+          {(t('terms_of_service_title') || "TERMS OF SERVICE").replace(' OF SERVICE', '')} <span className="text-amber-400">OF SERVICE</span>
         </>
       }
-      subtitle="These terms define how the platform can be used and what users can expect from the service."
+      subtitle={t('terms_subtitle') || "These terms define how the platform can be used and what users can expect from the service."}
     >
-      <Meta />
+      <Meta t={t} />
 
-      <LegalSection title="1. Agreement">
-        <p>
-          By accessing or using FitTrack, you agree to these Terms of Service and any applicable laws.
-          If you do not agree, do not use the platform.
-        </p>
+      <LegalSection title={t('terms_sec1_title') || "1. Agreement"}>
+        <p>{t('terms_sec1_desc') || "By accessing or using FitTrack, you agree to these Terms of Service and any applicable laws. If you do not agree, do not use the platform."}</p>
       </LegalSection>
 
-      <LegalSection title="2. Accounts & Access">
+      <LegalSection title={t('terms_sec2_title') || "2. Accounts & Access"}>
         <ul className="list-disc pl-5 space-y-2">
-          <li>Clients can self-register.</li>
-          <li>Trainer accounts are created and managed by an administrator.</li>
-          <li>You are responsible for maintaining the confidentiality of your credentials.</li>
+          <li>{t('terms_sec2_li1') || "Clients can self-register."}</li>
+          <li>{t('terms_sec2_li2') || "Trainer accounts are created and managed by an administrator."}</li>
+          <li>{t('terms_sec2_li3') || "You are responsible for maintaining the confidentiality of your credentials."}</li>
         </ul>
       </LegalSection>
 
-      <LegalSection title="3. Acceptable Use">
-        <p>You agree not to:</p>
+      <LegalSection title={t('terms_sec3_title') || "3. Acceptable Use"}>
+        <p>{t('terms_sec3_desc') || "You agree not to:"}</p>
         <ul className="list-disc pl-5 space-y-2 mt-3">
-          <li>Use the platform for unlawful activities.</li>
-          <li>Attempt to access other accounts or restricted data.</li>
-          <li>Upload malicious content or disrupt service availability.</li>
+          <li>{t('terms_sec3_li1') || "Use the platform for unlawful activities."}</li>
+          <li>{t('terms_sec3_li2') || "Attempt to access other accounts or restricted data."}</li>
+          <li>{t('terms_sec3_li3') || "Upload malicious content or disrupt service availability."}</li>
         </ul>
       </LegalSection>
 
-      <LegalSection title="4. Training Disclaimer">
-        <p>
-          FitTrack is a management platform. Training programs and coaching decisions are the responsibility
-          of trainers and clients. Always follow professional guidance and prioritize safety.
-        </p>
+      <LegalSection title={t('terms_sec4_title') || "4. Training Disclaimer"}>
+        <p>{t('terms_sec4_desc') || "FitTrack is a management platform. Training programs and coaching decisions are the responsibility of trainers and clients. Always follow professional guidance and prioritize safety."}</p>
       </LegalSection>
 
-      <LegalSection title="5. Availability">
-        <p>
-          We aim for reliable service, but availability can be affected by maintenance, updates, or technical issues.
-          We may modify or discontinue features to improve the platform.
-        </p>
+      <LegalSection title={t('terms_sec5_title') || "5. Availability"}>
+        <p>{t('terms_sec5_desc') || "We aim for reliable service, but availability can be affected by maintenance, updates, or technical issues. We may modify or discontinue features to improve the platform."}</p>
       </LegalSection>
 
-      <LegalSection title="6. Limitation of Liability">
-        <p>
-          To the extent permitted by law, FitTrack is not liable for indirect damages or losses arising from
-          the use of the platform, including business decisions or training outcomes.
-        </p>
+      <LegalSection title={t('terms_sec6_title') || "6. Limitation of Liability"}>
+        <p>{t('terms_sec6_desc') || "To the extent permitted by law, FitTrack is not liable for indirect damages or losses arising from the use of the platform, including business decisions or training outcomes."}</p>
       </LegalSection>
 
-      <LegalSection title="7. Changes to Terms">
-        <p>
-          We may update these terms. Continued use after updates means you accept the revised terms.
-        </p>
+      <LegalSection title={t('terms_sec7_title') || "7. Changes to Terms"}>
+        <p>{t('terms_sec7_desc') || "We may update these terms. Continued use after updates means you accept the revised terms."}</p>
       </LegalSection>
 
-      <LegalSection title="8. Contact">
-        <p>
-          Questions about these terms can be submitted via the contact page.
-        </p>
+      <LegalSection title={t('terms_sec8_title') || "8. Contact"}>
+        <p>{t('terms_sec8_desc') || "Questions about these terms can be submitted via the contact page."}</p>
       </LegalSection>
     </LegalLayout>
   );
 }
 
-function Meta() {
+function Meta({ t }: { t: (key: string) => string }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <MetaCard label="Policy Status" value="Active" />
-      <MetaCard label="Last Updated" value="22.02.2026." />
-      <MetaCard label="Applies To" value="All users" />
+      <MetaCard label={t('policy_status') || "Policy Status"} value={t('active') || "Active"} />
+      <MetaCard label={t('last_updated') || "Last Updated"} value="22.02.2026." />
+      <MetaCard label={t('applies_to') || "Applies To"} value={t('all_users') || "All users"} />
     </div>
   );
 }

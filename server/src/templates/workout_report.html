@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Report</title>
+    <style>
+        :root {
+            --primary: #fbbf24;
+            --primary-dark: #f59e0b;
+            --bg-dark: #0a0a0f;
+            --card-bg: #111118;
+            --border: #27273a;
+            --text-main: #ffffff;
+            --text-secondary: #94a3b8;
+            --accent-cyan: #22d3ee;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: white;
+            color: #1e293b;
+            margin: 0;
+            padding: 40px;
+            line-height: 1.5;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.025em;
+        }
+
+        .logo span {
+            color: #eab308;
+        }
+
+        .report-title {
+            text-align: right;
+        }
+
+        .report-title h1 {
+            margin: 0;
+            font-size: 28px;
+            color: #0f172a;
+        }
+
+        .report-title p {
+            margin: 4px 0 0 0;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 12px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-cols: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .info-box h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 4px;
+        }
+
+        .info-box p {
+            margin: 0;
+            font-weight: 700;
+            font-size: 16px;
+            color: #1e293b;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-cols: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background-color: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            display: block;
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .stat-card .label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 4px;
+        }
+
+        .exercise-list {
+            margin-bottom: 40px;
+        }
+
+        .exercise-item {
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .exercise-header {
+            background-color: #f8fafc;
+            padding: 12px 20px;
+            font-weight: 700;
+            color: #0f172a;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .set-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .set-table th {
+            text-align: left;
+            padding: 12px 20px;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #64748b;
+            background-color: #ffffff;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .set-table td {
+            padding: 12px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            border-top: 2px solid #f1f5f9;
+            padding-top: 24px;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .notes {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 16px 20px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #92400e;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="logo">FIT<span>TRACK</span></div>
+        <div class="report-title">
+            <h1>{{programTitle}}</h1>
+            <p>{{workoutDate}}</p>
+        </div>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-box">
+            <h3>Client</h3>
+            <p>{{clientName}}</p>
+        </div>
+        <div class="info-box" style="text-align: right;">
+            <h3>Trainer</h3>
+            <p>{{trainerName}}</p>
+        </div>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <span class="value">{{duration}} min</span>
+            <span class="label">Duration</span>
+        </div>
+        <div class="stat-card">
+            <span class="value">{{totalVolume}} kg</span>
+            <span class="label">Total Volume</span>
+        </div>
+        <div class="stat-card">
+            <span class="value">{{exerciseCount}}</span>
+            <span class="label">Exercises</span>
+        </div>
+    </div>
+
+    <div class="exercise-list">
+        {{exerciseLogs}}
+    </div>
+
+    <div class="footer">
+        <p>Great job on completing your workout! Keep pushing forward.</p>
+        <p>© {{currentYear}} FitTrack Platform. All rights reserved.</p>
+    </div>
+</body>
+
+</html>

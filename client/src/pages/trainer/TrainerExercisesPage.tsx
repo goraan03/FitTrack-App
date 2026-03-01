@@ -3,18 +3,20 @@ import type { Exercise, UpsertExercise, MuscleGroup, Equipment, Level } from "..
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
 import { Plus, Dumbbell, Edit3, Trash2, Video, Activity, X, Save, Search } from "lucide-react";
 import toast from "react-hot-toast";
+import { useSettings } from "../../context/SettingsContext";
 
 interface TrainerExercisesPageProps { trainerApi: ITrainerAPIService; }
 
-const groups: MuscleGroup[] = ['full_body','chest','back','legs','shoulders','arms','core','cardio','mobility'];
-const equipments: Equipment[] = ['none','bodyweight','dumbbells','barbell','kettlebell','machine','bands','other'];
-const levels: Level[] = ['beginner','intermediate','advanced'];
+const groups: MuscleGroup[] = ['full_body', 'chest', 'back', 'legs', 'shoulders', 'arms', 'core', 'cardio', 'mobility'];
+const equipments: Equipment[] = ['none', 'bodyweight', 'dumbbells', 'barbell', 'kettlebell', 'machine', 'bands', 'other'];
+const levels: Level[] = ['beginner', 'intermediate', 'advanced'];
 
 export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPageProps) {
+  const { t } = useSettings();
   const [items, setItems] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [modal, setModal] = useState<{open: boolean; editId?: number; data: UpsertExercise}>({
+  const [modal, setModal] = useState<{ open: boolean; editId?: number; data: UpsertExercise }>({
     open: false,
     data: { name: '', description: '', muscleGroup: 'full_body', equipment: 'none', level: 'beginner', videoUrl: '' }
   });
@@ -27,7 +29,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
     } finally { setLoading(false); }
   };
 
-  useEffect(()=> { load(); }, []);
+  useEffect(() => { load(); }, []);
 
   const filteredItems = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -57,7 +59,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
 
   const save = async () => {
     const { editId, data } = modal;
-    if (!data.name?.trim()) return toast.error('Name is required');
+    if (!data.name?.trim()) return toast.error(t('exercise_name') + '!');
     try {
       const r = editId
         ? await trainerApi.updateExercise(editId, data)
@@ -65,7 +67,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
 
       if (!r.success) return toast.error(r.message);
 
-      toast.success(editId ? 'Exercise updated' : 'Exercise created');
+      toast.success(editId ? t('edit_exercise') : t('new_exercise'));
       setModal({ open: false, data: modal.data });
       await load();
     } catch {
@@ -74,7 +76,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
   };
 
   const del = async (id: number) => {
-    if (!confirm('Delete this exercise?')) return;
+    if (!confirm(t('delete_exercise_confirm'))) return;
     try {
       const r = await trainerApi.deleteExercise(id);
       if (!r.success) return toast.error(r.message);
@@ -111,10 +113,10 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
             </div>
             <div>
               <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
-                EXERCISE <span className="text-amber-400">LIBRARY</span>
+                {t('exercise_library').split(' ')[0].toUpperCase()} <span className="text-amber-400">{t('exercise_library').split(' ').slice(1).join(' ').toUpperCase()}</span>
               </h1>
               <p className="text-slate-400 text-sm tracking-wide uppercase">
-                Manage your workout movements
+                {t('manage_movements')}
               </p>
             </div>
           </div>
@@ -125,7 +127,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 type="text"
-                placeholder="Search exercises..."
+                placeholder={t('search_exercises')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="
@@ -149,7 +151,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
               "
             >
               <Plus className="w-4 h-4" />
-              NEW EXERCISE
+              {t('new_exercise').toUpperCase()}
             </button>
           </div>
         </div>
@@ -158,7 +160,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
         {loading ? (
           <div className="flex flex-col items-center justify-center h-64 space-y-4">
             <div className="w-10 h-10 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
-            <p className="text-slate-500 uppercase tracking-wide text-sm font-semibold">Loading...</p>
+            <p className="text-slate-500 uppercase tracking-wide text-sm font-semibold">{t('loading')}...</p>
           </div>
         ) : (
           <>
@@ -197,7 +199,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
                     </p>
                   ) : (
                     <p className="text-sm text-slate-500 italic min-h-[60px]">
-                      No description
+                      {t('no_description')}
                     </p>
                   )}
 
@@ -212,7 +214,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
                       "
                     >
                       <Edit3 className="w-4 h-4" />
-                      Edit
+                      {t('edit')}
                     </button>
 
                     <button
@@ -238,7 +240,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
                   <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-10 text-center opacity-80">
                     <Dumbbell className="w-12 h-12 mx-auto mb-4 text-slate-500" />
                     <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">
-                      No exercises found
+                      {t('no_exercises_found')}
                     </p>
                   </div>
                 </div>
@@ -260,7 +262,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
                 <span className="w-10 h-10 rounded-xl bg-[#0a0a0f] border border-[#27273a] flex items-center justify-center">
                   <Activity className="w-5 h-5 text-amber-400" />
                 </span>
-                {modal.editId ? "Edit" : "New"} <span className="text-amber-400">exercise</span>
+                {modal.editId ? t('edit') : t('new_exercise').split(' ')[0]} <span className="text-amber-400">{t('exercises').toLowerCase()}</span>
               </h3>
 
               <button
@@ -275,7 +277,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
             <div className="p-6 space-y-5">
               <div className="space-y-2">
                 <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
-                  Exercise name
+                  {t('exercise_name')}
                 </label>
                 <input
                   value={modal.data.name}
@@ -284,13 +286,13 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
                     w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-white
                     focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
                   "
-                  placeholder="e.g. Bench Press"
+                  placeholder={t('bench_press')}
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
-                  Description
+                  {t('description')}
                 </label>
                 <textarea
                   value={modal.data.description || ""}
@@ -299,14 +301,14 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
                     w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-white min-h-[110px]
                     focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
                   "
-                  placeholder="Technique cues..."
+                  placeholder={t('technique_cues')}
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
-                    Muscle
+                    {t('muscle')}
                   </label>
                   <select
                     value={modal.data.muscleGroup}
@@ -315,7 +317,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
                   >
                     {groups.map((g) => (
                       <option key={g} value={g}>
-                        {g.replace("_", " ")}
+                        {t(g)}
                       </option>
                     ))}
                   </select>
@@ -323,7 +325,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
-                    Equipment
+                    {t('equipment')}
                   </label>
                   <select
                     value={modal.data.equipment || "none"}
@@ -332,7 +334,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
                   >
                     {equipments.map((g) => (
                       <option key={g} value={g}>
-                        {g}
+                        {t(g)}
                       </option>
                     ))}
                   </select>
@@ -340,7 +342,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
-                    Level
+                    {t('level')}
                   </label>
                   <select
                     value={modal.data.level || "beginner"}
@@ -349,7 +351,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
                   >
                     {levels.map((l) => (
                       <option key={l} value={l}>
-                        {l}
+                        {t(l)}
                       </option>
                     ))}
                   </select>
@@ -358,7 +360,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
 
               <div className="space-y-2">
                 <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
-                  <Video className="w-3.5 h-3.5" /> Video URL
+                  <Video className="w-3.5 h-3.5" /> {t('video_url')}
                 </label>
                 <input
                   value={modal.data.videoUrl || ""}
@@ -382,7 +384,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
                 "
               >
                 <Save className="w-4 h-4" />
-                SAVE EXERCISE
+                {t('save_exercise').toUpperCase()}
               </button>
             </div>
           </div>

@@ -10,10 +10,12 @@ import { toDate } from "../../helpers/client/toDate";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
 import { Activity, Clock, Users, Star } from "lucide-react";
 import toast from "react-hot-toast";
+import { useSettings } from "../../context/SettingsContext";
 
 interface TrainerDashboardPageProps { trainerApi: ITrainerAPIService; }
 
 export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPageProps) {
+  const { t } = useSettings();
   const [weekStart, setWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<{ totalTerms: number; scheduledHours: number; avgRating: number | null; enrolledThisWeek: number } | null>(null);
@@ -131,154 +133,154 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
       <div className="fixed top-0 left-0 right-0 h-[420px] bg-gradient-to-b from-amber-400/5 via-amber-400/0 to-transparent pointer-events-none" />
 
       <div className="pb-12">
-            {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10 opacity-0 animate-fade-in-up">
-              <div>
-                <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
-                  TRAINER <span className="text-amber-400">DASHBOARD</span>
-                </h1>
-                <p className="text-slate-400 text-sm tracking-wide uppercase">
-                  Manage your sessions
-                </p>
-              </div>
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10 opacity-0 animate-fade-in-up">
+          <div>
+            <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
+              {t('trainer_dashboard').split(' ')[0].toUpperCase()} <span className="text-amber-400">{t('trainer_dashboard').split(' ').slice(1).join(' ').toUpperCase()}</span>
+            </h1>
+            <p className="text-slate-400 text-sm tracking-wide uppercase">
+              {t('manage_sessions')}
+            </p>
+          </div>
 
-              <WeekSwitcher weekStart={weekStart} onChange={setWeekStart} />
+          <WeekSwitcher weekStart={weekStart} onChange={setWeekStart} />
+        </div>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-64 space-y-4">
+            <div className="w-10 h-10 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
+            <p className="text-slate-500 uppercase tracking-wide text-sm font-semibold">{t('loading')}...</p>
+          </div>
+        ) : (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+              {[
+                {
+                  label: t('sessions').toUpperCase(),
+                  value: stats?.totalTerms ?? 0,
+                  sub: t('this_week'),
+                  icon: Activity,
+                  iconColor: "text-amber-400",
+                  card: "stat-card-1",
+                  stagger: "stagger-1",
+                },
+                {
+                  label: t('work_hours').toUpperCase(),
+                  value: Number(stats?.scheduledHours ?? 0).toFixed(1),
+                  sub: t('total_scheduled'),
+                  icon: Clock,
+                  iconColor: "text-cyan-400",
+                  card: "stat-card-2",
+                  stagger: "stagger-2",
+                },
+                {
+                  label: t('clients').toUpperCase(),
+                  value: stats?.enrolledThisWeek ?? 0,
+                  sub: t('active_participants'),
+                  icon: Users,
+                  iconColor: "text-violet-400",
+                  card: "stat-card-3",
+                  stagger: "stagger-3",
+                },
+              ].map((s, idx) => {
+                const Icon = s.icon;
+                return (
+                  <div
+                    key={idx}
+                    className={`${s.card} rounded-2xl p-6 card-hover opacity-0 animate-fade-in-up ${s.stagger}`}
+                    style={{ animationFillMode: "forwards" }}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`w-12 h-12 rounded-xl bg-[#0a0a0f]/50 flex items-center justify-center ${s.iconColor}`}>
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">{s.label}</p>
+                        <p className="text-4xl font-bold text-white">{s.value}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wide">{s.sub}</p>
+                  </div>
+                );
+              })}
             </div>
 
-            {loading ? (
-              <div className="flex flex-col items-center justify-center h-64 space-y-4">
-                <div className="w-10 h-10 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
-                <p className="text-slate-500 uppercase tracking-wide text-sm font-semibold">Loading...</p>
+            {/* Two columns */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+              {/* Schedule */}
+              <div
+                className="lg:col-span-3 opacity-0 animate-fade-in-up stagger-4"
+                style={{ animationFillMode: "forwards" }}
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-1 h-6 bg-gradient-to-b from-amber-400 to-amber-500 rounded-full" />
+                  <h2 className="text-xl font-bold text-white">{t('weekly_schedule').toUpperCase()}</h2>
+                </div>
+
+                <div className="bg-[#0a0a0f]">
+                  <WeeklyCards
+                    weekStart={weekStart}
+                    items={events}
+                    onCancel={cancelTerm}
+                    onDetails={openDetails}
+                    isTrainer={true}
+                  />
+                </div>
               </div>
-            ) : (
-              <>
-                {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
-                  {[
-                    {
-                      label: "SESSIONS",
-                      value: stats?.totalTerms ?? 0,
-                      sub: "This week",
-                      icon: Activity,
-                      iconColor: "text-amber-400",
-                      card: "stat-card-1",
-                      stagger: "stagger-1",
-                    },
-                    {
-                      label: "WORK HOURS",
-                      value: Number(stats?.scheduledHours ?? 0).toFixed(1),
-                      sub: "Total scheduled",
-                      icon: Clock,
-                      iconColor: "text-cyan-400",
-                      card: "stat-card-2",
-                      stagger: "stagger-2",
-                    },
-                    {
-                      label: "CLIENTS",
-                      value: stats?.enrolledThisWeek ?? 0,
-                      sub: "Active participants",
-                      icon: Users,
-                      iconColor: "text-violet-400",
-                      card: "stat-card-3",
-                      stagger: "stagger-3",
-                    },
-                  ].map((s, idx) => {
-                    const Icon = s.icon;
-                    return (
+
+              {/* Pending ratings */}
+              <div
+                className="lg:col-span-2 opacity-0 animate-fade-in-up stagger-5"
+                style={{ animationFillMode: "forwards" }}
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-1 h-6 bg-gradient-to-b from-cyan-400 to-cyan-500 rounded-full" />
+                  <h2 className="text-xl font-bold text-white">{t('to_rate').toUpperCase()}</h2>
+                </div>
+
+                <div className="space-y-4">
+                  {pending.length === 0 ? (
+                    <div className="bg-[#111118] rounded-xl p-8 border border-[#27273a] text-center">
+                      <Star className="w-12 h-12 mx-auto mb-4 text-slate-600" />
+                      <p className="text-sm text-slate-400 uppercase tracking-wide font-semibold">
+                        {t('nothing_to_rate')}
+                      </p>
+                    </div>
+                  ) : (
+                    pending.map((p) => (
                       <div
-                        key={idx}
-                        className={`${s.card} rounded-2xl p-6 card-hover opacity-0 animate-fade-in-up ${s.stagger}`}
-                        style={{ animationFillMode: "forwards" }}
+                        key={p.termId}
+                        className="bg-[#111118] rounded-xl p-5 border border-[#27273a] card-hover"
                       >
                         <div className="flex items-start justify-between mb-4">
-                          <div className={`w-12 h-12 rounded-xl bg-[#0a0a0f]/50 flex items-center justify-center ${s.iconColor}`}>
-                            <Icon className="w-6 h-6" />
+                          <div>
+                            <h3 className="text-lg font-semibold text-white mb-1">{p.programTitle}</h3>
+                            <p className="text-sm text-slate-400">
+                              {format(new Date(p.startAt), "HH:mm")} • {p.count} participant{p.count !== 1 ? "s" : ""}
+                            </p>
                           </div>
-                          <div className="text-right">
-                            <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">{s.label}</p>
-                            <p className="text-4xl font-bold text-white">{s.value}</p>
+                          <div className="w-10 h-10 rounded-xl bg-amber-400/10 flex items-center justify-center">
+                            <Star className="w-5 h-5 text-amber-400" />
                           </div>
                         </div>
-                        <p className="text-xs text-slate-500 uppercase tracking-wide">{s.sub}</p>
+
+                        <button
+                          onClick={() => openRate(p.termId)}
+                          className="w-full btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-[#0a0a0f] font-semibold rounded-xl py-4 transition-all active:scale-[0.99]"
+                        >
+                          {t('rate_participants').toUpperCase()}
+                        </button>
                       </div>
-                    );
-                  })}
+                    ))
+                  )}
                 </div>
-
-                {/* Two columns */}
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                  {/* Schedule */}
-                  <div
-                    className="lg:col-span-3 opacity-0 animate-fade-in-up stagger-4"
-                    style={{ animationFillMode: "forwards" }}
-                  >
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-1 h-6 bg-gradient-to-b from-amber-400 to-amber-500 rounded-full" />
-                      <h2 className="text-xl font-bold text-white">WEEKLY SCHEDULE</h2>
-                    </div>
-
-                    <div className="bg-[#0a0a0f]">
-                      <WeeklyCards
-                        weekStart={weekStart}
-                        items={events}
-                        onCancel={cancelTerm}
-                        onDetails={openDetails}
-                        isTrainer={true}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Pending ratings */}
-                  <div
-                    className="lg:col-span-2 opacity-0 animate-fade-in-up stagger-5"
-                    style={{ animationFillMode: "forwards" }}
-                  >
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-1 h-6 bg-gradient-to-b from-cyan-400 to-cyan-500 rounded-full" />
-                      <h2 className="text-xl font-bold text-white">TO RATE</h2>
-                    </div>
-
-                    <div className="space-y-4">
-                      {pending.length === 0 ? (
-                        <div className="bg-[#111118] rounded-xl p-8 border border-[#27273a] text-center">
-                          <Star className="w-12 h-12 mx-auto mb-4 text-slate-600" />
-                          <p className="text-sm text-slate-400 uppercase tracking-wide font-semibold">
-                            Nothing to rate
-                          </p>
-                        </div>
-                      ) : (
-                        pending.map((p) => (
-                          <div
-                            key={p.termId}
-                            className="bg-[#111118] rounded-xl p-5 border border-[#27273a] card-hover"
-                          >
-                            <div className="flex items-start justify-between mb-4">
-                              <div>
-                                <h3 className="text-lg font-semibold text-white mb-1">{p.programTitle}</h3>
-                                <p className="text-sm text-slate-400">
-                                  {format(new Date(p.startAt), "HH:mm")} • {p.count} participant{p.count !== 1 ? "s" : ""}
-                                </p>
-                              </div>
-                              <div className="w-10 h-10 rounded-xl bg-amber-400/10 flex items-center justify-center">
-                                <Star className="w-5 h-5 text-amber-400" />
-                              </div>
-                            </div>
-
-                            <button
-                              onClick={() => openRate(p.termId)}
-                              className="w-full btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-[#0a0a0f] font-semibold rounded-xl py-4 transition-all active:scale-[0.99]"
-                            >
-                              RATE PARTICIPANTS
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
       <RateTermModal
         open={rateModal.open}

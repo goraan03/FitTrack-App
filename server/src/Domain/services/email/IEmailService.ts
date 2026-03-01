@@ -21,4 +21,10 @@ export interface IEmailService {
     startAt: Date,
     clientName: string
   ): Promise<void>;
+  sendEmail(options: {
+    to: string;
+    subject: string;
+    text: string;
+    attachments?: Array<{ filename: string; content: Buffer }>;
+  }): Promise<void>;
 }
