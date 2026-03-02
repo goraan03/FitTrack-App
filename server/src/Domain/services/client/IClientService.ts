@@ -3,7 +3,7 @@ export type TrainingType = 'individual' | 'group' | 'INDIVIDUAL' | 'GROUP';
 export interface WeeklyEvent {
   termId: number;
   title: string;
-  day: number; 
+  day: number;
   start: string;
   end: string;
   startAt?: string;
@@ -12,7 +12,7 @@ export interface WeeklyEvent {
   programTitle: string;
   trainerName: string;
   cancellable: boolean;
-   completed?: boolean;
+  completed?: boolean;
 }
 
 export interface AvailableTermProgram {
@@ -28,7 +28,7 @@ export interface AvailableTermTrainer {
 
 export interface AvailableTerm {
   id: number;
-  startAt: string; 
+  startAt: string;
   durationMin: number;
   type: TrainingType;
   capacity: number;
@@ -41,7 +41,7 @@ export interface AvailableTerm {
 
 export interface HistoryItem {
   id: number;
-  date: string; 
+  date: string;
   programTitle: string;
   trainerName: string;
   status: string;
@@ -60,8 +60,8 @@ export interface HistoryData {
 }
 
 export interface RatingsPoint {
-  date: string; 
-  avg: number; 
+  date: string;
+  avg: number;
 }
 
 export interface UpcomingSession {
@@ -81,8 +81,8 @@ export interface ClientProfile {
   lastName: string;
   email: string;
   gender?: string | null;
-  age?: number | null;     
-  address?: string | null;  
+  age?: number | null;
+  address?: string | null;
   avatarUrl?: string | null;
   isBlocked: boolean;
   assignedTrainerId: number | null;
@@ -105,4 +105,5 @@ export interface IClientService {
   getHistory(userId: number): Promise<HistoryData>;
   getMyProfile(userId: number): Promise<ClientProfile>;
   updateMyProfile(userId: number, dto: { ime: string; prezime: string; pol: 'musko' | 'zensko'; datumRodjenja: Date | null }): Promise<void>;
+  generateWorkoutPdf(clientId: number, sessionId: number): Promise<{ pdfBuffer: Buffer, filename: string }>;
 }

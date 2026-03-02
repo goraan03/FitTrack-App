@@ -42,6 +42,7 @@ export class TrainerController {
 
 
     this.router.post("/trainer/workout/finish", authenticate, authorize("trener"), this.finishWorkout.bind(this));
+    this.router.get("/trainer/workouts/:sessionId/pdf", authenticate, authorize("trener"), this.downloadWorkoutPdf.bind(this));
   }
 
   private async dashboard(req: Request, res: Response) {
@@ -278,7 +279,7 @@ export class TrainerController {
     try {
       const user = req.user!;
       const { programId, type, startAtISO, durationMin, capacity } = req.body || {};
-      if (!['individual','group'].includes(type) || !startAtISO || !Number.isFinite(durationMin) || !Number.isFinite(capacity)) {
+      if (!['individual', 'group'].includes(type) || !startAtISO || !Number.isFinite(durationMin) || !Number.isFinite(capacity)) {
         return res.status(400).json({ success: false, message: 'Bad input' });
       }
       const id = await this.trainer.createTerm(user.id, {
@@ -323,11 +324,11 @@ export class TrainerController {
 
   private async finishWorkout(req: Request, res: Response) {
     try {
-        const trainerId = req.user!.id;
-        const result = await this.trainer.finishWorkout(trainerId, req.body);
-        res.json({ success: true, message: "Trening uspešno sačuvan", sessionId: result });
+      const trainerId = req.user!.id;
+      const result = await this.trainer.finishWorkout(trainerId, req.body);
+      res.json({ success: true, message: "Trening uspešno sačuvan", sessionId: result });
     } catch (err) {
-        res.status(400).json({ success: false, message: (err as Error).message || 'Bad request' });
+      res.status(400).json({ success: false, message: (err as Error).message || 'Bad request' });
     }
   }
 
@@ -338,7 +339,7 @@ export class TrainerController {
         res.status(400).json({ success: false, message: 'Neispravan ID' });
         return;
       }
-      
+
       const data = await this.trainer.getTermParticipants(termId);
       res.status(200).json({ success: true, data });
     } catch {
@@ -377,6 +378,22 @@ export class TrainerController {
     } catch (err) {
       console.error(err);
       res.status(500).json({ success: false, message: (err as Error)?.message || "Server error" });
+    }
+  }
+
+  private async downloadWorkoutPdf(req: Request, res: Response) {
+    try {
+      const user = req.user!;
+      const sessionId = Number(req.params.sessionId);
+      if (!Number.isFinite(sessionId)) return res.status(400).json({ success: false, message: 'Bad sessionId' });
+
+      const { pdfBuffer, filename } = await this.trainer.generateWorkoutPdf(user.id, sessionId);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(pdfBuffer);
+    } catch (err) {
+      res.status(500).json({ success: false, message: (err as Error)?.message || 'Server error' });
     }
   }
 

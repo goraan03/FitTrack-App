@@ -27,7 +27,7 @@ export type TrainerDashboard = {
     day: number;
     start: string;
     end: string;
-    type: 'individual'|'group';
+    type: 'individual' | 'group';
     cancellable: boolean;
     startable?: boolean;
     completed?: boolean | number;
@@ -65,9 +65,9 @@ export type TrainerProfile = {
 export type ExerciseInput = {
   name: string;
   description?: string | null;
-  muscleGroup: 'full_body'|'chest'|'back'|'legs'|'shoulders'|'arms'|'core'|'cardio'|'mobility';
-  equipment?: 'none'|'bodyweight'|'dumbbells'|'barbell'|'kettlebell'|'machine'|'bands'|'other';
-  level?: 'beginner'|'intermediate'|'advanced';
+  muscleGroup: 'full_body' | 'chest' | 'back' | 'legs' | 'shoulders' | 'arms' | 'core' | 'cardio' | 'mobility';
+  equipment?: 'none' | 'bodyweight' | 'dumbbells' | 'barbell' | 'kettlebell' | 'machine' | 'bands' | 'other';
+  level?: 'beginner' | 'intermediate' | 'advanced';
   videoUrl?: string | null;
 };
 
@@ -79,14 +79,14 @@ export type ExerciseItem = ExerciseInput & {
 export type ProgramInput = {
   title: string;
   description?: string | null;
-  level: 'beginner'|'intermediate'|'advanced';
+  level: 'beginner' | 'intermediate' | 'advanced';
   isPublic?: boolean;
 };
 
 export type ProgramLite = {
   id: number;
   title: string;
-  level: 'beginner'|'intermediate'|'advanced';
+  level: 'beginner' | 'intermediate' | 'advanced';
   isPublic: boolean;
   assignedClientIds?: number[];
 };
@@ -114,7 +114,7 @@ export type ProgramDetails = {
   id: number;
   title: string;
   description: string | null;
-  level: 'beginner'|'intermediate'|'advanced';
+  level: 'beginner' | 'intermediate' | 'advanced';
   exercises: (ProgramExerciseSet & { name: string })[];
   assignedClients: AssignedClient[];
 };
@@ -123,7 +123,7 @@ export type TrainerTermDetails = {
   id: number;
   startAt: Date;
   durationMin: number;
-  type: 'individual'|'group';
+  type: 'individual' | 'group';
   capacity: number;
   enrolledCount: number;
   canceled: boolean;
@@ -163,8 +163,9 @@ export interface ITrainerService {
 
   // Terms
   listTerms(trainerId: number, from?: Date, to?: Date): Promise<TrainerTermDetails[]>;
-  createTerm(trainerId: number, dto: { programId?: number | null; type: 'individual'|'group'; startAt: Date; durationMin: number; capacity: number }): Promise<number>;
+  createTerm(trainerId: number, dto: { programId?: number | null; type: 'individual' | 'group'; startAt: Date; durationMin: number; capacity: number }): Promise<number>;
   setTermProgram(trainerId: number, termId: number, programId: number): Promise<void>;
-  getTermParticipants(termId: number): Promise<Array<{userId: number; userName: string}>>;
+  getTermParticipants(termId: number): Promise<Array<{ userId: number; userName: string }>>;
   finishWorkout(trainerId: number, payload: any): Promise<number>;
+  generateWorkoutPdf(trainerId: number, sessionId: number): Promise<{ pdfBuffer: Buffer, filename: string }>;
 }

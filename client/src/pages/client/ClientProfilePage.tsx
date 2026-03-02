@@ -26,7 +26,7 @@ interface ClientProfilePageProps {
 
 export default function ClientProfilePage({ clientApi }: ClientProfilePageProps) {
   const navigate = useNavigate();
-  const { t } = useSettings();
+  const { t, theme, setTheme, language, setLanguage } = useSettings();
 
   const [data, setData] = useState<ClientProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,7 +95,6 @@ export default function ClientProfilePage({ clientApi }: ClientProfilePageProps)
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white selection:bg-amber-400 selection:text-black">
-      <div className="absolute top-0 left-0 w-full h-[420px] bg-gradient-to-b from-white/5 via-white/0 to-transparent pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-24 sm:pb-12">
         {/* HERO */}
@@ -137,8 +136,26 @@ export default function ClientProfilePage({ clientApi }: ClientProfilePageProps)
                 )}
               </div>
 
-              {/* Edit */}
-              <div className="w-full sm:w-auto">
+              {/* Actions */}
+              <div className="w-full sm:w-auto flex flex-col gap-3 sm:items-end">
+                <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
+                  <button
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-white text-sm font-semibold transition-all"
+                  >
+                    {theme === 'dark' ? t('light') : t('dark')}
+                  </button>
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value as any)}
+                    className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-white text-sm font-semibold transition-all"
+                  >
+                    {['English', 'Serbian', 'Russian', 'German', 'Hungarian'].map((l) => (
+                      <option key={l} value={l}>{l}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <button
                   onClick={() => {
                     setEditErr(null);

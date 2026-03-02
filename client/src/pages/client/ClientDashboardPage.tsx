@@ -208,7 +208,6 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white">
-      <div className="absolute top-0 left-0 w-full h-[420px] bg-gradient-to-b from-white/5 via-white/0 to-transparent pointer-events-none" />
 
       <div className="pt-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 space-y-6">
@@ -328,8 +327,8 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
                     <button
                       onClick={() => setTab("progress")}
                       className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${tab === "progress"
-                          ? "bg-white/5 text-amber-400 border border-amber-400/20"
-                          : "text-slate-400 hover:text-white"
+                        ? "bg-white/5 text-amber-400 border border-amber-400/20"
+                        : "text-slate-400 hover:text-white"
                         }`}
                     >
                       {t('progress')}
@@ -337,8 +336,8 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
                     <button
                       onClick={() => setTab("recent")}
                       className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${tab === "recent"
-                          ? "bg-white/5 text-amber-400 border border-amber-400/20"
-                          : "text-slate-400 hover:text-white"
+                        ? "bg-white/5 text-amber-400 border border-amber-400/20"
+                        : "text-slate-400 hover:text-white"
                         }`}
                     >
                       {t('recent_sessions').split(' ')[0]}
@@ -395,7 +394,7 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
                                 </div>
                               </div>
                               <div className="text-xs text-slate-400 whitespace-nowrap">
-                                {h.rating != null ? `${t('rating')}: ${h.rating}/10` : "—"}
+                                {h.exercises?.length || 0} {t('exercises')}
                               </div>
                             </div>
                           );

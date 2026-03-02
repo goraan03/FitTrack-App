@@ -591,6 +591,115 @@ export class TrainerService implements ITrainerService {
     try { await this.audit.log('Informacija', 'TRAINER_PROFILE_UPDATE', trainerId, null, {}); } catch { }
   }
 
+  async generateWorkoutPdf(trainerId: number, sessionId: number): Promise<{ pdfBuffer: Buffer, filename: string }> {
+    const trainer = await this.getMyProfile(trainerId);
+
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT 
+        ws.id as sessionId,
+        ws.start_time,
+        ws.end_time,
+        ws.client_id,
+        tt.program_id as programId,
+        p.title as programTitle,
+        e.name as exerciseName,
+        wel.exercise_id,
+        wel.set_number,
+        wel.actual_reps,
+        wel.actual_weight
+      FROM workout_sessions ws
+      LEFT JOIN training_terms tt ON ws.term_id = tt.id
+      LEFT JOIN programs p ON tt.program_id = p.id
+      LEFT JOIN workout_exercise_logs wel ON ws.id = wel.session_id
+      LEFT JOIN exercises e ON wel.exercise_id = e.id
+      WHERE ws.id = ? AND ws.trainer_id = ?
+      ORDER BY wel.exercise_id, wel.set_number`,
+      [sessionId, trainerId]
+    );
+
+    if (!rows || rows.length === 0) throw new Error('Session not found');
+
+    const clientId = rows[0].client_id;
+    const client = await this.userRepo.getById(clientId);
+    const startTime = new Date(rows[0].start_time);
+    const endTime = new Date(rows[0].end_time);
+    const duration = Math.round((endTime.getTime() - startTime.getTime()) / 60000);
+    const programTitle = rows[0].programTitle || "Individual Workout";
+
+    let totalVolume = 0;
+    const exMap = new Map<number, { name: string, sets: any[] }>();
+
+    for (const r of rows as any[]) {
+      if (!r.exercise_id) continue;
+      totalVolume += (Number(r.actual_reps) || 0) * (Number(r.actual_weight) || 0);
+
+      if (!exMap.has(r.exercise_id)) {
+        exMap.set(r.exercise_id, { name: r.exerciseName, sets: [] });
+      }
+      exMap.get(r.exercise_id)!.sets.push({
+        setNumber: r.set_number,
+        actualReps: r.actual_reps,
+        actualWeight: r.actual_weight
+      });
+    }
+
+    let exerciseLogsHtml = '';
+    for (const [exId, exData] of exMap.entries()) {
+      let setsRows = '';
+      exData.sets.forEach((s: any) => {
+        setsRows += `
+          <tr>
+            <td>Set ${s.setNumber}</td>
+            <td>${s.actualReps}</td>
+            <td>${s.actualWeight} kg</td>
+          </tr>
+        `;
+      });
+
+      exerciseLogsHtml += `
+        <div class="exercise-item">
+          <div class="exercise-header">${exData.name}</div>
+          <table class="set-table">
+            <thead>
+              <tr>
+                <th>Set</th>
+                <th>Reps</th>
+                <th>Weight</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${setsRows}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    const templatePath = path.join(__dirname, '..', '..', 'templates', 'workout_report.html');
+    let html = fs.readFileSync(templatePath, 'utf8');
+
+    const replacements: Record<string, string | number> = {
+      '{{workoutDate}}': startTime.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      '{{clientName}}': `${client.ime} ${client.prezime}`,
+      '{{trainerName}}': `${trainer.firstName} ${trainer.lastName}`,
+      '{{duration}}': duration,
+      '{{totalVolume}}': totalVolume.toLocaleString(),
+      '{{exerciseCount}}': exMap.size,
+      '{{exerciseLogs}}': exerciseLogsHtml,
+      '{{programTitle}}': programTitle,
+      '{{currentYear}}': new Date().getFullYear()
+    };
+
+    for (const [key, value] of Object.entries(replacements)) {
+      html = html.replace(new RegExp(key, 'g'), String(value));
+    }
+
+    const pdfBuffer = await htmlToPdfBuffer(html);
+    const filename = `WorkoutReport_${startTime.toISOString().split('T')[0]}.pdf`;
+
+    return { pdfBuffer, filename };
+  }
+
   async getClientProgressStats(trainerId: number, clientId: number): Promise<any> {
     // Verify client belongs to trainer
     const client = await this.userRepo.getById(clientId);
@@ -610,10 +719,10 @@ export class TrainerService implements ITrainerService {
         wel.actual_reps,
         wel.actual_weight
       FROM workout_sessions ws
-      INNER JOIN training_terms tt ON ws.term_id = tt.id
-      INNER JOIN programs p ON tt.program_id = p.id
-      INNER JOIN workout_exercise_logs wel ON ws.id = wel.session_id
-      INNER JOIN exercises e ON wel.exercise_id = e.id
+      LEFT JOIN training_terms tt ON ws.term_id = tt.id
+      LEFT JOIN programs p ON tt.program_id = p.id
+      LEFT JOIN workout_exercise_logs wel ON ws.id = wel.session_id
+      LEFT JOIN exercises e ON wel.exercise_id = e.id
       WHERE ws.trainer_id = ? AND ws.client_id = ?
       ORDER BY ws.start_time DESC, wel.exercise_id, wel.set_number`,
       [trainerId, clientId]

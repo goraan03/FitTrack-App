@@ -9,7 +9,7 @@ import { useSettings } from "../../context/SettingsContext";
 
 export default function TrainerProfilePage({ trainerApi }: { trainerApi: ITrainerAPIService }) {
   const navigate = useNavigate();
-  const { t } = useSettings();
+  const { t, theme, setTheme, language, setLanguage } = useSettings();
 
   const [data, setData] = useState<TrainerProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -74,22 +74,42 @@ export default function TrainerProfilePage({ trainerApi }: { trainerApi: ITraine
                 </div>
               </div>
 
-              {/* Edit button */}
-              <button
-                onClick={() => {
-                  setEditErr(null);
-                  setEditOpen(true);
-                }}
-                className="
-                w-full sm:w-auto px-6 py-3 rounded-xl
-                bg-white/5 hover:bg-white/10 border border-white/5
-                text-white text-sm font-semibold
-                transition-all flex items-center justify-center gap-2
-              "
-              >
-                <Edit3 className="w-4 h-4" />
-                {t('edit')}
-              </button>
+              {/* Actions */}
+              <div className="w-full sm:w-auto flex flex-col gap-3 sm:items-end">
+                <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
+                  <button
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-white text-sm font-semibold transition-all"
+                  >
+                    {theme === 'dark' ? t('light') : t('dark')}
+                  </button>
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value as any)}
+                    className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-white text-sm font-semibold transition-all"
+                  >
+                    {['English', 'Serbian', 'Russian', 'German', 'Hungarian'].map((l) => (
+                      <option key={l} value={l}>{l}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setEditErr(null);
+                    setEditOpen(true);
+                  }}
+                  className="
+                  w-full sm:w-auto px-6 py-3 rounded-xl
+                  bg-white/5 hover:bg-white/10 border border-white/5
+                  text-white text-sm font-semibold
+                  transition-all flex items-center justify-center gap-2
+                "
+                >
+                  <Edit3 className="w-4 h-4" />
+                  {t('edit')}
+                </button>
+              </div>
             </div>
           </div>
         </div>

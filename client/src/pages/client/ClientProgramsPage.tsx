@@ -130,7 +130,6 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white selection:bg-amber-400 selection:text-black">
-      <div className="absolute top-0 left-0 w-full h-[420px] bg-gradient-to-b from-white/5 via-white/0 to-transparent pointer-events-none" />
 
       <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-10 pb-20 space-y-8">
         {/* HEADER */}

@@ -23,6 +23,7 @@ export class ClientController {
     this.router.post('/client/cancel', this.cancel.bind(this));
 
     this.router.get('/client/history', this.history.bind(this));
+    this.router.get("/client/workouts/:sessionId/pdf", this.downloadWorkoutPdf.bind(this));
 
     this.router.get('/client/me/profile', this.myProfile.bind(this));
 
@@ -32,8 +33,8 @@ export class ClientController {
   private getUserId(req: Request) { return (req as any).user?.id; }
 
   private async listTrainers(_req: Request, res: Response) {
-    try { const data = await this.client.listTrainers(); res.json({ success:true, message:'OK', data }); }
-    catch (e:any) { console.error(e); res.status(500).json({ success:false, message:'Greška na serveru' }); }
+    try { const data = await this.client.listTrainers(); res.json({ success: true, message: 'OK', data }); }
+    catch (e: any) { console.error(e); res.status(500).json({ success: false, message: 'Greška na serveru' }); }
   }
 
   private async chooseTrainer(req: Request, res: Response) {
@@ -41,13 +42,13 @@ export class ClientController {
       const userId = this.getUserId(req);
       const { trainerId } = req.body;
       await this.client.chooseTrainer(userId, Number(trainerId));
-      res.json({ success:true, message:'Trener izabran' });
-    } catch (e:any) {
+      res.json({ success: true, message: 'Trener izabran' });
+    } catch (e: any) {
       const msg = String(e?.message || '');
-      if (msg==='Trainer not found') return res.status(404).json({ success:false, message:'Trener nije pronađen' });
-      if (msg==='Already assigned') return res.status(400).json({ success:false, message:'Trener je već izabran' });
+      if (msg === 'Trainer not found') return res.status(404).json({ success: false, message: 'Trener nije pronađen' });
+      if (msg === 'Already assigned') return res.status(400).json({ success: false, message: 'Trener je već izabran' });
       console.error(e);
-      res.status(500).json({ success:false, message:'Greška na serveru' });
+      res.status(500).json({ success: false, message: 'Greška na serveru' });
     }
   }
 
@@ -56,10 +57,10 @@ export class ClientController {
       const userId = this.getUserId(req);
       const weekStart = String(req.query.weekStart || '');
       const data = await this.client.getWeeklySchedule(userId, weekStart);
-      res.json({ success:true, message:'OK', data });
-    } catch (e:any) {
+      res.json({ success: true, message: 'OK', data });
+    } catch (e: any) {
       console.error(e);
-      res.status(400).json({ success:false, message: e?.message || 'Bad request' });
+      res.status(400).json({ success: false, message: e?.message || 'Bad request' });
     }
   }
 
@@ -73,12 +74,12 @@ export class ClientController {
         programId: req.query.programId ? Number(req.query.programId) : undefined,
         status: req.query.status as any
       });
-      res.json({ success:true, message:'OK', data });
-    } catch (e:any) {
-      const msg = String(e?.message||'');
-      if (msg==='NO_TRAINER_SELECTED') return res.status(400).json({ success:false, message:'Izaberite trenera pre pretrage termina.' });
+      res.json({ success: true, message: 'OK', data });
+    } catch (e: any) {
+      const msg = String(e?.message || '');
+      if (msg === 'NO_TRAINER_SELECTED') return res.status(400).json({ success: false, message: 'Izaberite trenera pre pretrage termina.' });
       console.error(e);
-      res.status(500).json({ success:false, message:'Greška na serveru' });
+      res.status(500).json({ success: false, message: 'Greška na serveru' });
     }
   }
 
@@ -87,14 +88,14 @@ export class ClientController {
       const userId = this.getUserId(req);
       const { termId } = req.body;
       await this.client.bookTerm(userId, Number(termId));
-      res.json({ success:true, message:'Prijava uspešna' });
-    } catch (e:any) {
-      const msg = String(e?.message||'');
-      if (['TERM_NOT_FOUND','CANCELED'].includes(msg)) return res.status(404).json({ success:false, message:'Termin nije dostupan' });
-      if (['FULL','TOO_LATE','ALREADY_ENROLLED','NO_TRAINER_SELECTED','DIFFERENT_TRAINER'].includes(msg))
-        return res.status(400).json({ success:false, message: msg==='FULL'?'Termin je popunjen': msg==='TOO_LATE'?'Rok za prijavu je istekao': msg==='ALREADY_ENROLLED'?'Već ste prijavljeni na ovaj termin': msg==='NO_TRAINER_SELECTED'?'Izaberite trenera pre prijave': 'Termin pripada drugom treneru' });
+      res.json({ success: true, message: 'Prijava uspešna' });
+    } catch (e: any) {
+      const msg = String(e?.message || '');
+      if (['TERM_NOT_FOUND', 'CANCELED'].includes(msg)) return res.status(404).json({ success: false, message: 'Termin nije dostupan' });
+      if (['FULL', 'TOO_LATE', 'ALREADY_ENROLLED', 'NO_TRAINER_SELECTED', 'DIFFERENT_TRAINER'].includes(msg))
+        return res.status(400).json({ success: false, message: msg === 'FULL' ? 'Termin je popunjen' : msg === 'TOO_LATE' ? 'Rok za prijavu je istekao' : msg === 'ALREADY_ENROLLED' ? 'Već ste prijavljeni na ovaj termin' : msg === 'NO_TRAINER_SELECTED' ? 'Izaberite trenera pre prijave' : 'Termin pripada drugom treneru' });
       console.error(e);
-      res.status(500).json({ success:false, message:'Greška na serveru' });
+      res.status(500).json({ success: false, message: 'Greška na serveru' });
     }
   }
 
@@ -103,13 +104,13 @@ export class ClientController {
       const userId = this.getUserId(req);
       const { termId } = req.body;
       await this.client.cancelTerm(userId, Number(termId));
-      res.json({ success:true, message:'Prijava otkazana' });
-    } catch (e:any) {
-      const msg = String(e?.message||'');
-      if (msg==='NOT_ENROLLED') return res.status(400).json({ success:false, message:'Niste prijavljeni na ovaj termin' });
-      if (msg==='TOO_LATE') return res.status(400).json({ success:false, message:'Rok za otkazivanje je istekao' });
+      res.json({ success: true, message: 'Prijava otkazana' });
+    } catch (e: any) {
+      const msg = String(e?.message || '');
+      if (msg === 'NOT_ENROLLED') return res.status(400).json({ success: false, message: 'Niste prijavljeni na ovaj termin' });
+      if (msg === 'TOO_LATE') return res.status(400).json({ success: false, message: 'Rok za otkazivanje je istekao' });
       console.error(e);
-      res.status(500).json({ success:false, message:'Greška na serveru' });
+      res.status(500).json({ success: false, message: 'Greška na serveru' });
     }
   }
 
@@ -117,10 +118,26 @@ export class ClientController {
     try {
       const userId = this.getUserId(req);
       const data = await this.client.getHistory(userId);
-      res.json({ success:true, message:'OK', data });
-    } catch (e:any) {
+      res.json({ success: true, message: 'OK', data });
+    } catch (e: any) {
       console.error(e);
-      res.status(500).json({ success:false, message:'Greška na serveru' });
+      res.status(500).json({ success: false, message: 'Greška na serveru' });
+    }
+  }
+
+  private async downloadWorkoutPdf(req: Request, res: Response) {
+    try {
+      const user = req.user!;
+      const sessionId = Number(req.params.sessionId);
+      if (!Number.isFinite(sessionId)) return res.status(400).json({ success: false, message: 'Bad sessionId' });
+
+      const { pdfBuffer, filename } = await this.client.generateWorkoutPdf(user.id, sessionId);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(pdfBuffer);
+    } catch (err) {
+      res.status(500).json({ success: false, message: (err as Error)?.message || 'Server error' });
     }
   }
 
@@ -129,46 +146,46 @@ export class ClientController {
       const userId = this.getUserId(req);
       const data = await this.client.getMyProfile(userId);
       res.json({ success: true, message: 'OK', data });
-    } catch (e:any) {
+    } catch (e: any) {
       console.error(e);
       res.status(500).json({ success: false, message: e?.message || 'Greška na serveru' });
     }
   }
 
   private async updateMyProfile(req: Request, res: Response) {
-  try {
-    const userId = this.getUserId(req);
-    const body = req.body || {};
+    try {
+      const userId = this.getUserId(req);
+      const body = req.body || {};
 
-    const ime = String(body.ime ?? body.firstName ?? '').trim();
-    const prezime = String(body.prezime ?? body.lastName ?? '').trim();
+      const ime = String(body.ime ?? body.firstName ?? '').trim();
+      const prezime = String(body.prezime ?? body.lastName ?? '').trim();
 
-    const polRaw = body.pol ?? body.gender;
-    const pol = polRaw === 'musko' || polRaw === 'zensko' ? polRaw : null;
+      const polRaw = body.pol ?? body.gender;
+      const pol = polRaw === 'musko' || polRaw === 'zensko' ? polRaw : null;
 
-    const datumRodjenjaISO = body.datumRodjenjaISO ?? body.dateOfBirthISO ?? null;
-    const datumRodjenja =
-      datumRodjenjaISO && String(datumRodjenjaISO).trim()
-        ? new Date(String(datumRodjenjaISO))
-        : null;
+      const datumRodjenjaISO = body.datumRodjenjaISO ?? body.dateOfBirthISO ?? null;
+      const datumRodjenja =
+        datumRodjenjaISO && String(datumRodjenjaISO).trim()
+          ? new Date(String(datumRodjenjaISO))
+          : null;
 
-    if (!ime || ime.length < 2) return res.status(400).json({ success: false, message: 'Ime je obavezno (min 2)' });
-    if (!prezime || prezime.length < 2) return res.status(400).json({ success: false, message: 'Prezime je obavezno (min 2)' });
+      if (!ime || ime.length < 2) return res.status(400).json({ success: false, message: 'Ime je obavezno (min 2)' });
+      if (!prezime || prezime.length < 2) return res.status(400).json({ success: false, message: 'Prezime je obavezno (min 2)' });
 
-    if (!pol) return res.status(400).json({ success: false, message: 'Pol je obavezan (musko/zensko)' });
+      if (!pol) return res.status(400).json({ success: false, message: 'Pol je obavezan (musko/zensko)' });
 
-    if (datumRodjenja && Number.isNaN(datumRodjenja.getTime())) {
-      return res.status(400).json({ success: false, message: 'Neispravan datum rođenja' });
+      if (datumRodjenja && Number.isNaN(datumRodjenja.getTime())) {
+        return res.status(400).json({ success: false, message: 'Neispravan datum rođenja' });
+      }
+
+      await this.client.updateMyProfile(userId, { ime, prezime, pol, datumRodjenja });
+
+      res.json({ success: true, message: 'Profil ažuriran' });
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).json({ success: false, message: e?.message || 'Greška na serveru' });
     }
-
-    await this.client.updateMyProfile(userId, { ime, prezime, pol, datumRodjenja });
-
-    res.json({ success: true, message: 'Profil ažuriran' });
-  } catch (e: any) {
-    console.error(e);
-    res.status(500).json({ success: false, message: e?.message || 'Greška na serveru' });
   }
-}
 
   public getRouter(): Router { return this.router; }
 }

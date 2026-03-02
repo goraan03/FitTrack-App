@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { TrainerClient } from "../../types/trainer/TrainerClient";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
 import type { ProgramListItem } from "../../types/trainer/Program";
-import { Users, User, Search, ChevronRight, X } from "lucide-react";
+import { Users, User, Search, ChevronRight, X, FileText, Download } from "lucide-react";
 import ClientStatsModal from "../../components/trainer/ClientStatsModal";
 import toast from "react-hot-toast";
 import { useSettings } from "../../context/SettingsContext";
@@ -44,24 +44,35 @@ export default function TrainerClientsPage({ trainerApi }: { trainerApi: ITraine
           toast.error(res.message || "Failed to load stats");
           return;
         }
+        const stats = res.data;
         const map: Record<number, { sessionId: number; date: string }[]> = {};
-        const seen = new Set<number>();
-        (res.data?.exercises || []).forEach((ex: any) => {
-          (ex.sessions || []).forEach((s: any) => {
-            if (!s.sessionId || seen.has(s.sessionId)) return;
-            seen.add(s.sessionId);
-            const pid = s.programId;
-            if (!pid) return;
-            map[pid] = map[pid] || [];
-            map[pid].push({ sessionId: s.sessionId, date: s.date });
+
+        if (stats.programHistory) {
+          stats.programHistory.forEach((ph: any) => {
+            if (ph.programId) {
+              map[ph.programId] = ph.recentSessions.map((s: any) => ({ sessionId: s.sessionId, date: s.date }));
+            }
           });
-        });
-        Object.keys(map).forEach((k) => {
-          const pid = Number(k);
-          map[pid] = map[pid]
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            .slice(0, 3);
-        });
+        } else {
+          const seen = new Set<number>();
+          (stats.exercises || []).forEach((ex: any) => {
+            (ex.sessions || []).forEach((s: any) => {
+              if (!s.sessionId || seen.has(s.sessionId)) return;
+              seen.add(s.sessionId);
+              const pid = s.programId;
+              if (!pid) return;
+              map[pid] = map[pid] || [];
+              map[pid].push({ sessionId: s.sessionId, date: s.date });
+            });
+          });
+          Object.keys(map).forEach((k) => {
+            const pid = Number(k);
+            map[pid] = map[pid]
+              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+              .slice(0, 3);
+          });
+        }
+
         setProgramSessions(map);
       } catch (e: any) {
         toast.error(e?.response?.data?.message || "Error loading stats");
@@ -86,6 +97,29 @@ export default function TrainerClientsPage({ trainerApi }: { trainerApi: ITraine
       hour: "2-digit",
       minute: "2-digit",
     });
+
+  const handleDownloadPdf = async (sessionId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const toastId = toast.loading(t('downloading') || 'Downloading...');
+      const blob = await trainerApi.downloadWorkoutPdf(sessionId);
+      const url = URL.createObjectURL(blob);
+      const newWin = window.open(url, '_blank');
+      // If popup blocker prevents opening, fallback to direct download
+      if (!newWin) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Workout_${sessionId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      toast.dismiss(toastId);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || t('error') || 'Error downloading PDF');
+    }
+  };
 
   useEffect(() => { load(); }, []);
 
@@ -316,13 +350,24 @@ export default function TrainerClientsPage({ trainerApi }: { trainerApi: ITraine
                             <div className="mt-3 space-y-2">
                               {sessions.length ? (
                                 sessions.map((s) => (
-                                  <div
+                                  <button
                                     key={s.sessionId}
-                                    className="rounded-lg border border-white/5 bg-white/5 px-3 py-2 text-sm text-slate-200 flex items-center justify-between"
+                                    onClick={(e) => handleDownloadPdf(s.sessionId, e)}
+                                    className="w-full text-left rounded-xl border border-white/5 bg-white/5 p-3 text-sm flex items-center justify-between hover:bg-white/10 hover:border-white/10 transition-all group cursor-pointer"
                                   >
-                                    <span>Session #{s.sessionId}</span>
-                                    <span className="text-slate-400 text-xs">{formatDate(s.date)}</span>
-                                  </div>
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center border border-red-500/20 group-hover:border-red-500/40 transition-colors">
+                                        <FileText className="w-5 h-5 text-red-400 group-hover:scale-110 transition-transform" />
+                                      </div>
+                                      <div>
+                                        <span className="text-white font-bold block mb-0.5">Trening #{s.sessionId}</span>
+                                        <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider">{formatDate(s.date)}</span>
+                                      </div>
+                                    </div>
+                                    <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-amber-400/20 transition-colors">
+                                      <Download className="w-5 h-5 text-slate-500 group-hover:text-amber-400 transition-colors" />
+                                    </div>
+                                  </button>
                                 ))
                               ) : (
                                 <p className="text-slate-500 text-sm">{t('no_sessions_found')}</p>

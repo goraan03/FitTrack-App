@@ -18,4 +18,5 @@ export interface IClientAPIService {
   getHistory(): Promise<HistoryResponse>;
   getMyProfile(): Promise<MyProfileResponse>;
   updateMyProfile(payload: UpdateMyProfileRequest): Promise<BasicResponse>;
+  downloadWorkoutPdf(sessionId: number): Promise<Blob>;
 }

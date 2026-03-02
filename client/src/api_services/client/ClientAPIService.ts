@@ -56,8 +56,13 @@ export const clientApi: IClientAPIService = {
     return res.data;
   },
 
-async updateMyProfile(payload) {
-  const res = await instance.put<MyProfileResponse>("/me/profile", payload, { headers: authHeaders() });
-  return res.data;
-}
+  async updateMyProfile(payload) {
+    const res = await instance.put<MyProfileResponse>("/me/profile", payload, { headers: authHeaders() });
+    return res.data;
+  },
+
+  async downloadWorkoutPdf(sessionId: number) {
+    const res = await instance.get<Blob>(`/workouts/${sessionId}/pdf`, { responseType: 'blob', headers: authHeaders() });
+    return res.data;
+  }
 };

@@ -1,9 +1,12 @@
 export interface HistoryItem {
   id: number;
-  date: string;                
+  date: string;
+  programId: number | null;
   programTitle: string;
   trainerName: string;
-  status: string;
-  rating: number | null;
-  feedback: string | null;
+  exercises: {
+    exerciseId: number;
+    name: string;
+    sets: { setNumber: number; reps: number; weight: number }[];
+  }[];
 }

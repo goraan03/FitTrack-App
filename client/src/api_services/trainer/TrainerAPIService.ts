@@ -125,8 +125,8 @@ export const trainerApi: ITrainerAPIService = {
       actualWeight: number;
     }[];
   }) {
-    const res = await axios.post<BasicResponse>(`${baseURL}/workout/finish`, payload, { 
-      headers: authHeaders() 
+    const res = await axios.post<BasicResponse>(`${baseURL}/workout/finish`, payload, {
+      headers: authHeaders()
     });
     return res.data;
   },
@@ -137,7 +137,7 @@ export const trainerApi: ITrainerAPIService = {
   },
 
   async getTermParticipants(termId: number) {
-    const res = await axios.get<{ success: boolean; data: Array<{userId: number; userName: string}> }>(
+    const res = await axios.get<{ success: boolean; data: Array<{ userId: number; userName: string }> }>(
       `${baseURL}/terms/${termId}/participants`,
       { headers: authHeaders() }
     );
@@ -169,12 +169,20 @@ export const trainerApi: ITrainerAPIService = {
     return res.data;
   },
 
-async updateMyProfile(payload: UpdateMyProfileRequest) {
-  const res = await axios.put<BasicResponse>(
-    `${baseURL}/me/profile`,
-    payload,
-    { headers: authHeaders() }
-  );
-  return res.data;
-},
+  async updateMyProfile(payload: UpdateMyProfileRequest) {
+    const res = await axios.put<BasicResponse>(
+      `${baseURL}/me/profile`,
+      payload,
+      { headers: authHeaders() }
+    );
+    return res.data;
+  },
+
+  async downloadWorkoutPdf(sessionId: number) {
+    const res = await axios.get(`${baseURL}/workouts/${sessionId}/pdf`, {
+      headers: authHeaders(),
+      responseType: 'blob'
+    });
+    return res.data as Blob;
+  },
 };
