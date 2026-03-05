@@ -32,6 +32,7 @@ import { ExercisesRepository } from './Database/repositories/exercises/Exercises
 import { TrainerProgramsRepository } from './Database/repositories/trainer_programs/TrainerProgramsRepository';
 import { InvoicesRepository } from './Database/repositories/invoice/InvoicesRepository';
 import { WorkoutRepository } from './Database/repositories/workout/WorkoutRepository';
+import { BackofficeController } from './WebAPI/controllers/BackofficeController'
 
 const app = express();
 
@@ -93,6 +94,7 @@ const authController = new AuthController(authService, auditService);
 const adminController = new AdminController(adminService);
 const clientController = new ClientController(clientService, trainingService);
 const programsController = new ProgramsController(programsService);
+const backofficeCtrl = new BackofficeController()
 
 // Mount
 app.use('/api', authController.getRouter());     // /api/auth/*
@@ -101,5 +103,10 @@ app.use('/api', clientController.getRouter());   // /api/client/*
 app.use('/api', programsController.getRouter()); // /api/programs/public
 app.use('/api', trainerController.getRouter());   // /api/trainer/*
 app.use('/api', publicContactController.getRouter()); // /api/public/contact
+// Backoffice integration routes (secured by API key, ne JWT)
+app.get ('/api/backoffice/trainers',          (req, res) => backofficeCtrl.getTrainers(req, res))
+app.post('/api/backoffice/block',             (req, res) => backofficeCtrl.setBlock(req, res))
+app.get ('/api/backoffice/trainer/:id/status',(req, res) => backofficeCtrl.getTrainerStatus(req, res))
+app.get('/api/backoffice/metrics', (req, res) => backofficeCtrl.getMetrics(req, res))
 
 export default app;

@@ -4,6 +4,7 @@ import { EmailService } from "../email/EmailService";
 import cron from "node-cron";
 import { InvoicesRepository } from "../../Database/repositories/invoice/InvoicesRepository";
 
+import db from "../../Database/connection/DbConnectionPool";
 
 export function setupMonthlyBillingJob() {
     cron.schedule("0 3 1 * *", async () => {
@@ -32,14 +33,12 @@ export function setupMonthlyBillingJob() {
                 const html = renderInvoiceHtml(trainer, meta);
                 const pdfBuffer = await htmlToPdfBuffer(html);
 
-                // Cuvanje fakture na disku
                 const filepath = await savePdfToDisk(
                     pdfBuffer,
                     meta,
                     trainer.trainerName
                 );
 
-                // Upis fakture u bazu
                 const invoiceId = await invoiceRepo.createInvoice({
                     trainerId: trainer.trainerId,
                     period: meta.period,
@@ -48,7 +47,6 @@ export function setupMonthlyBillingJob() {
                     pdfPath: filepath,
                 });
 
-                // Slanje maaila
                 const filename = `Racun_${meta.period.replace("/", "-")}_${
                     trainer.trainerId
                 }.pdf`;
@@ -62,10 +60,44 @@ export function setupMonthlyBillingJob() {
                 );
 
                 console.log(`[Billing] Poslat račun #${invoiceId} treneru ID=${trainer.trainerId}, klijenata=${trainer.clientCount}`);
+
             }catch(error){
                 console.error(`Greška pri slanju računa treneru ID=${trainer.trainerId}`, error);
             };
         }
+
+        // NOVO — push metrika u Backoffice jednom mesečno, posle billing joba
+        try {
+            const [[trainersRow]] = await db.query<any[]>(
+                `SELECT COUNT(*) as cnt FROM users WHERE uloga='trener' AND blokiran=0`
+            );
+            const [[clientsRow]] = await db.query<any[]>(
+                `SELECT COUNT(*) as cnt FROM users WHERE uloga='klijent'`
+            );
+
+            await fetch(`${process.env.BACKOFFICE_URL}/api/integrations/metrics`, {
+                method:  "POST",
+                headers: {
+                    "Content-Type":    "application/json",
+                    "x-backoffice-key": process.env.BACKOFFICE_API_KEY ?? "",
+                },
+                body: JSON.stringify({
+                    date:        new Date().toISOString().slice(0, 10),
+                    activeUsers: trainersRow.cnt + clientsRow.cnt,
+                    usersByRole: {
+                        trener:  trainersRow.cnt,
+                        klijent: clientsRow.cnt,
+                    },
+                    notes: `Automatski push uz mesečni billing job — ${meta.period}`,
+                }),
+            });
+
+            console.log("[Billing] Metrike pushnuté u Backoffice.");
+        } catch (metricError) {
+            // Ne prekidamo execution ako metrike ne uspeju
+            console.error("[Billing] Greška pri push metrika:", metricError);
+        }
+
         console.log("[Billing] Mesečni billing job završen.");
     });
 }
