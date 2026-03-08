@@ -16,9 +16,9 @@ export default function Brand({
   className = "",
 }: Props) {
   const sizes = {
-    sm: { img: "/images/fittrack-brand-32.png", box: "h-8 w-8", text: "text-lg" },
-    md: { img: "/images/fittrack-brand-36.png", box: "h-9 w-9", text: "text-xl" },
-    lg: { img: "/images/fittrack-brand-48.png", box: "h-12 w-12", text: "text-2xl" },
+    sm: { img: "/images/trainorax-icon.svg", box: "h-8 w-8", text: "text-lg" },
+    md: { img: "/images/trainorax-icon.svg", box: "h-9 w-9", text: "text-xl" },
+    lg: { img: "/images/trainorax-icon.svg", box: "h-12 w-12", text: "text-2xl" },
   }[size];
 
   const content = (

@@ -40,7 +40,7 @@ export function Footer() {
             <a href="#top" onClick={handleAnchor('#top')} className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-[#0a0a0f] border border-[#27273a] flex items-center justify-center shadow-inner">
                 <img
-                  src="/images/fittrack-logo-transparent.png"
+                  src="/images/trainorax-logo-light.svg"
                   alt="TrainoraX logo"
                   className="h-7 w-7 object-contain"
                   loading="lazy"

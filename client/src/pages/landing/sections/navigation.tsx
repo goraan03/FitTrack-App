@@ -14,17 +14,26 @@ export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleNavClick = (href: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!href.startsWith('#')) return; // external links
-    e.preventDefault();
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setIsMobileMenuOpen(false);
-  };
+  const handleNavClick =
+    (href: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (!href.startsWith('#')) {
+        setIsMobileMenuOpen(false);
+        return;
+      }
+
+      e.preventDefault();
+      const el = document.querySelector(href);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      setIsMobileMenuOpen(false);
+    };
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
+    handleScroll();
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -38,16 +47,32 @@ export function Navigation() {
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
-          <a href="#top" onClick={handleNavClick('#top')} className="flex items-center gap-3 group" aria-label="TrainoraX - Go to homepage">
-            <div className="w-10 h-10 rounded-xl bg-[#0a0a0f] border border-[#27273a] flex items-center justify-center shadow-inner">
+          <a
+            href="#top"
+            onClick={handleNavClick('#top')}
+            className="flex items-center shrink-0"
+            aria-label="TrainoraX - Go to homepage"
+          >
+            {/* Mobile: icon only */}
+            <div className="flex lg:hidden items-center gap-2">
               <img
-                src="/images/fittrack-logo-transparent.png"
-                alt="TrainoraX logo"
-                className="h-7 w-7 object-contain"
-                loading="lazy"
+                src="/images/trainorax-icon.svg"
+                alt="TrainoraX"
+                className="h-8 w-8 object-contain"
+                loading="eager"
               />
+              <span className="text-base font-bold text-white tracking-wide">
+                TrainoraX
+              </span>
             </div>
-            <span className="text-xl font-bold text-white tracking-tight">TrainoraX</span>
+
+            {/* Desktop: full logo */}
+            <img
+              src="/images/trainorax-logo.svg"
+              alt="TrainoraX"
+              className="hidden lg:block h-10 w-auto object-contain"
+              loading="eager"
+            />
           </a>
 
           <div className="hidden lg:flex items-center gap-8">
@@ -63,10 +88,15 @@ export function Navigation() {
             ))}
           </div>
 
-          <div className="hidden lg:flex items-center gap-4">
-            <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-white/5" asChild>
+          <div className="hidden lg:flex items-center gap-3">
+            <Button
+              variant="ghost"
+              className="text-slate-300 hover:text-white hover:bg-white/5"
+              asChild
+            >
               <a href="/login">Log in</a>
             </Button>
+
             <Button
               variant="ghost"
               className="text-slate-300 hover:text-white hover:bg-white/5"
@@ -74,22 +104,35 @@ export function Navigation() {
             >
               <a href="/register">Sign up</a>
             </Button>
+
             <Button
               className="bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-[#0a0a0f] border-0 shadow-lg shadow-amber-500/25 font-semibold"
               asChild
             >
-              <a href="#contact">Get Started</a>
+              <a href="#contact" onClick={handleNavClick('#contact')}>
+                Get Started
+              </a>
             </Button>
           </div>
 
-          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden p-2 text-slate-400 hover:text-white">
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            className="lg:hidden inline-flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+            aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMobileMenuOpen}
+          >
+            {isMobileMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
           </button>
         </div>
 
         {isMobileMenuOpen && (
           <div className="lg:hidden absolute top-full left-0 right-0 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-[#27273a] p-4 animate-fade-in">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <a
                   key={link.href}
@@ -100,19 +143,35 @@ export function Navigation() {
                   {link.label}
                 </a>
               ))}
-              <div className="flex flex-col gap-3 pt-4 border-t border-[#27273a]">
-                <Button variant="ghost" className="w-full justify-center text-slate-300" asChild>
-                  <a href="/login">Log in</a>
-                </Button>
+
+              <div className="flex flex-col gap-3 pt-4 mt-2 border-t border-[#27273a]">
                 <Button
                   variant="ghost"
-                  className="w-full justify-center text-slate-300"
+                  className="w-full justify-center text-slate-300 hover:text-white hover:bg-white/5"
                   asChild
                 >
-                  <a href="/register">Sign up</a>
+                  <a href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                    Log in
+                  </a>
                 </Button>
-                <Button className="w-full bg-gradient-to-r from-amber-400 to-amber-600 text-[#0a0a0f] border-0 font-semibold" asChild>
-                  <a href="#contact">Get Started</a>
+
+                <Button
+                  variant="ghost"
+                  className="w-full justify-center text-slate-300 hover:text-white hover:bg-white/5"
+                  asChild
+                >
+                  <a href="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                    Sign up
+                  </a>
+                </Button>
+
+                <Button
+                  className="w-full bg-gradient-to-r from-amber-400 to-amber-600 text-[#0a0a0f] border-0 font-semibold"
+                  asChild
+                >
+                  <a href="#contact" onClick={handleNavClick('#contact')}>
+                    Get Started
+                  </a>
                 </Button>
               </div>
             </div>

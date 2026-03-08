@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="TrainoraX icon">
+  <!-- Blue X -->
+  <path d="M48 184 L108 124 L132 124 L72 184 Z" fill="#2563EB"/>
+  <path d="M108 124 L168 184 L144 184 L84 124 Z" fill="#2563EB"/>
+  <path d="M48 72 L72 72 L132 132 L108 132 Z" fill="#2563EB"/>
+
+  <!-- Orange arrow -->
+  <path d="M118 54 L178 54 Q186 54 186 62 L186 114 Q186 122 178 122 L166 122 Q158 122 158 114 L158 93 L126 125 L106 105 L138 73 L126 73 Q118 73 118 65 Z" fill="#F59E0B"/>
+</svg>

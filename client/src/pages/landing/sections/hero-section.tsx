@@ -24,7 +24,7 @@ export function HeroSection() {
       <div className="relative z-10 max-w-7xl mx-auto">
         <div className="text-center">
           <div className="inline-flex items-center gap-3 rounded-full border border-amber-400/30 bg-[#0a0a0f]/80 px-4 py-2 mb-8 backdrop-blur-sm animate-fade-in-up shadow-[0_0_20px_rgba(251,191,36,0.12)]">
-            <img src="/images/fittrack-brand-36.png" alt="TrainoraX badge" className="h-7 w-7 rounded-lg" loading="lazy" />
+            <img src="/images/trainorax-icon.svg" alt="TrainoraX badge" className="h-7 w-7 rounded-lg" loading="lazy" />
             <span className="text-xs font-semibold text-amber-400 tracking-wide">#1 Personal Trainer Software</span>
           </div>
 
