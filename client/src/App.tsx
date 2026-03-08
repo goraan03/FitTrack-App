@@ -41,8 +41,6 @@ import TrainerClientsPage from "./pages/trainer/TrainerClientsPage";
 import AdminInvoicesPage from "./pages/admin/AdminInvoicesPage";
 
 import PublicLayout from "./layouts/PublicLayout";
-import AboutPage from "./pages/landing/AboutPage";
-import GuidePage from "./pages/landing/GuidePage";
 import ContactPage from "./pages/landing/ContactPage";
 import LiveWorkoutPage from "./pages/trainer/LiveWorkoutPage";
 
@@ -59,8 +57,6 @@ export default function App() {
         {/* PUBLIC: landing + info stranice */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/guide" element={<GuidePage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsOfServicePage />} />

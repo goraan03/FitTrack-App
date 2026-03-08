@@ -1,103 +1,143 @@
 import { useEffect, useState } from "react";
+import { Users, Search, Send, Clock } from "lucide-react";
+import toast from "react-hot-toast";
 import type { IClientAPIService } from "../../api_services/client/IClientAPIService";
-import { useSettings } from "../../context/SettingsContext";
 
-interface ChooseTrainerPageProps {
+interface Props {
   clientApi: IClientAPIService;
   onTrainerChosen: () => void;
 }
 
-// Assuming User type is similar to Trainer or defined elsewhere, as per the edit's useState change
-type User = { id: number; name: string; email: string };
+interface TrainerOption {
+  id: number;
+  name: string;
+  email: string;
+}
 
+export default function ChooseTrainerPage({ clientApi }: Props) {
+  const [trainers, setTrainers] = useState<TrainerOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [sentIds, setSentIds] = useState<Set<number>>(new Set());
+  const [actionId, setActionId] = useState<number | null>(null);
 
-export default function ChooseTrainerPage({ clientApi, onTrainerChosen }: ChooseTrainerPageProps) {
-  const { t } = useSettings();
-  const [trainers, setTrainers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await clientApi.listTrainers();
+        if (res.success) setTrainers(res.data ?? []);
+      } catch {
+        toast.error("Greška pri učitavanju trenera");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [clientApi]);
 
-  const load = async () => {
-    setLoading(true);
-    setError(null);
+  const sendRequest = async (trainerId: number) => {
+    setActionId(trainerId);
     try {
-      const resp = await clientApi.listTrainers();
-      if (resp.success && Array.isArray(resp.data)) setTrainers(resp.data);
-      else setError(resp.message || t("failed_to_load_trainers"));
+      const res = await clientApi.sendTrainerRequest(trainerId);
+      if (res.success) {
+        toast.success("Zahtjev poslat treneru!");
+        setSentIds(prev => new Set([...prev, trainerId]));
+      } else {
+        const msg = res.message || "Greška";
+        if (msg === "REQUEST_ALREADY_PENDING") toast("Zahtjev je već poslan ovom treneru", { icon: "ℹ️" });
+        else if (msg === "ALREADY_ASSIGNED") toast("Već ste dodijeljeni ovom treneru", { icon: "ℹ️" });
+        else toast.error(msg);
+      }
     } catch (e: any) {
-      setError(e?.response?.data?.message || e?.message || t("error_loading_trainers"));
+      toast.error(e?.response?.data?.message || e?.message || "Greška");
     } finally {
-      setLoading(false);
+      setActionId(null);
     }
   };
 
-  const choose = async (id: number) => {
-    setActionLoading(id);
-    try {
-      const r = await clientApi.chooseTrainer(id);
-      if (r.success) onTrainerChosen();
-      else alert(r.message || t("failed_to_choose_trainer"));
-    } catch (e: any) {
-      alert(e?.response?.data?.message || e?.message || t("error_choosing_trainer"));
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  useEffect(() => { load(); }, []);
+  const filtered = trainers.filter(t =>
+    !search ||
+    t.name.toLowerCase().includes(search.toLowerCase()) ||
+    t.email.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold tracking-tight text-yellow-500">
-          {t('choose_trainer')}
-        </h1>
-        <p className="text-gray-400">
-          {t('pick_trainer_subtitle')}
-        </p>
-      </header>
+    <div className="min-h-screen bg-[#0a0a0f] text-white">
+      <div className="fixed top-0 left-0 right-0 h-[420px] bg-gradient-to-b from-amber-400/5 via-amber-400/0 to-transparent pointer-events-none" />
 
-      {loading && (
-        <div className="flex items-center justify-center p-12 text-gray-400">
-          {t('loading')}...
+      <div className="pb-12">
+        <div className="flex flex-col gap-4 mb-10 opacity-0 animate-fade-in-up" style={{ animationFillMode: "forwards" }}>
+          <h1 className="text-3xl lg:text-4xl font-bold text-white">
+            ODABERI <span className="text-amber-400">TRENERA</span>
+          </h1>
+          <p className="text-slate-400 text-sm tracking-wide uppercase">
+            Pošalji zahtjev treneru — on će te odobriti
+          </p>
         </div>
-      )}
 
-      {error && !loading && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 text-red-800 p-4 shadow">
-          {error}
+        {/* Search */}
+        <div className="relative mb-8 opacity-0 animate-fade-in-up stagger-1" style={{ animationFillMode: "forwards" }}>
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <input
+            className="w-full max-w-md bg-[#111118] border border-[#27273a] rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-400/40 transition-colors"
+            placeholder="Pretraži trenere..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
         </div>
-      )}
 
-      {!loading && !error && trainers.length === 0 && (
-        <div className="text-center p-12 text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">
-          {t('no_trainers_available')}
-        </div>
-      )}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-64 space-y-4">
+            <div className="w-10 h-10 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
+            <p className="text-slate-500 uppercase tracking-wide text-sm font-semibold">Učitavanje...</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-16 text-center">
+            <Users className="w-14 h-14 mx-auto mb-5 text-slate-600" />
+            <p className="text-slate-400 font-bold uppercase tracking-wider">Nema dostupnih trenera</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 opacity-0 animate-fade-in-up stagger-2" style={{ animationFillMode: "forwards" }}>
+            {filtered.map(trainer => {
+              const sent = sentIds.has(trainer.id);
+              return (
+                <div
+                  key={trainer.id}
+                  className="bg-[#111118] border border-[#27273a] rounded-2xl p-6 flex flex-col gap-5 hover:border-white/10 transition-all card-hover"
+                >
+                  {/* Avatar */}
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400 font-bold text-lg shrink-0">
+                      {trainer.name[0]?.toUpperCase() ?? "?"}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-white font-bold truncate">{trainer.name}</p>
+                      <p className="text-slate-500 text-xs truncate">{trainer.email}</p>
+                    </div>
+                  </div>
 
-      {!loading && !error && trainers.length > 0 && (
-        <div className="grid gap-4">
-          {trainers.map((tr) => (
-            <div
-              key={tr.id}
-              className="bg-white text-black rounded-2xl border border-gray-200 shadow p-5 flex items-center justify-between"
-            >
-              <div>
-                <div className="font-semibold text-gray-900">{tr.name}</div>
-                <div className="text-sm text-gray-600">{tr.email}</div>
-              </div>
-              <button
-                onClick={() => choose(tr.id)}
-                disabled={actionLoading === tr.id}
-                className="inline-flex items-center rounded-xl bg-yellow-400 text-black px-4 py-2.5 font-semibold hover:bg-yellow-500 transition disabled:opacity-60 shadow"
-              >
-                {actionLoading === tr.id ? `${t('selecting')}...` : t('select')}
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </section>
+                  <button
+                    disabled={sent || actionId === trainer.id}
+                    onClick={() => sendRequest(trainer.id)}
+                    className={`w-full py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                      sent
+                        ? "bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 cursor-default"
+                        : "bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-[#0a0a0f] btn-glow disabled:opacity-50"
+                    }`}
+                  >
+                    {sent ? (
+                      <><Clock className="w-4 h-4" />Zahtjev poslan</>
+                    ) : actionId === trainer.id ? (
+                      <div className="w-4 h-4 border-2 border-[#0a0a0f]/30 border-t-[#0a0a0f] rounded-full animate-spin" />
+                    ) : (
+                      <><Send className="w-4 h-4" />Pošalji zahtjev</>
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

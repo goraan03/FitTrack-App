@@ -1,4 +1,4 @@
-import { ITrainerService, TrainerDashboard, PendingParticipant, TrainerProfile, ExerciseInput, ExerciseItem, ProgramInput, ProgramLite, ProgramDetails as ProgramDetailsType, ProgramExerciseSet, TrainerTermDetails } from "../../Domain/services/trainer/ITrainerService";
+import { ITrainerService, TrainerDashboard, PendingParticipant, TrainerProfile, ExerciseInput, ExerciseItem, ProgramInput, ProgramLite, ProgramDetails as ProgramDetailsType, ProgramExerciseSet, TrainerTermDetails, PendingRequest, TrainerBillingStatus, PlanInfo } from "../../Domain/services/trainer/ITrainerService";
 import { ITrainerQueriesRepository } from "../../Domain/repositories/trainer/ITrainerQueriesRepository";
 import { ITrainingTermsRepository } from "../../Domain/repositories/training_terms/ITrainingTermsRepository";
 import { ITrainingEnrollmentsRepository } from "../../Domain/repositories/training_enrollments/ITrainingEnrollmentsRepository";
@@ -16,6 +16,8 @@ import { WorkoutRepository } from "../../Database/repositories/workout/WorkoutRe
 import { IEmailService } from "../../Domain/services/email/IEmailService";
 import { RowDataPacket } from "mysql2/typings/mysql/lib/protocol/packets/RowDataPacket";
 import db from "../../Database/connection/DbConnectionPool";
+import { IPlansRepository } from "../../Domain/repositories/plans/IPlansRepository";
+import { IClientRequestsRepository } from "../../Domain/repositories/client_requests/IClientRequestsRepository";
 
 export class TrainerService implements ITrainerService {
   constructor(
@@ -27,7 +29,9 @@ export class TrainerService implements ITrainerService {
     private exercisesRepo: IExercisesRepository,
     private programsRepo: ITrainerProgramsRepository,
     private workoutRepo: WorkoutRepository,
-    private emailService: IEmailService
+    private emailService: IEmailService,
+    private plansRepo: IPlansRepository,
+    private clientRequestsRepo: IClientRequestsRepository
   ) { }
 
   async getDashboard(trainerId: number, weekStartISO?: string): Promise<TrainerDashboard> {
@@ -849,5 +853,174 @@ export class TrainerService implements ITrainerService {
       exercises,
       programHistory
     };
+  }
+
+  // ─── Plans & Billing ─────────────────────────────────────────────────────
+
+  async listPlans(): Promise<PlanInfo[]> {
+    const plans = await this.plansRepo.getAll();
+    return plans.map(p => ({
+      id: p.id, name: p.name, max_clients: p.max_clients,
+      price_eur: p.price_eur, tier: p.tier,
+    }));
+  }
+
+  async getBillingStatus(trainerId: number): Promise<TrainerBillingStatus> {
+    const [billing, clientCount] = await Promise.all([
+      this.userRepo.getBillingInfo(trainerId),
+      this.userRepo.getClientCountForTrainer(trainerId),
+    ]);
+
+    if (!billing) throw new Error('User not found');
+
+    let current_plan: PlanInfo | null = null;
+    let pending_plan: PlanInfo | null = null;
+
+    if (billing.current_plan_id) {
+      const p = await this.plansRepo.getById(billing.current_plan_id);
+      if (p) current_plan = { id: p.id, name: p.name, max_clients: p.max_clients, price_eur: p.price_eur, tier: p.tier };
+    }
+    if (billing.pending_plan_id) {
+      const p = await this.plansRepo.getById(billing.pending_plan_id);
+      if (p) pending_plan = { id: p.id, name: p.name, max_clients: p.max_clients, price_eur: p.price_eur, tier: p.tier };
+    }
+
+    return {
+      billing_status:        billing.billing_status,
+      trial_ends_at:         billing.trial_ends_at?.toISOString() ?? null,
+      current_plan,
+      pending_plan,
+      client_count:          clientCount,
+      billing_customer_code: billing.billing_customer_code,
+    };
+  }
+
+  async selectPlan(trainerId: number, planId: number): Promise<void> {
+    const plan = await this.plansRepo.getById(planId);
+    if (!plan) throw new Error('PLAN_NOT_FOUND');
+
+    const billing = await this.userRepo.getBillingInfo(trainerId);
+    if (!billing) throw new Error('User not found');
+
+    // Može se birati plan samo ako je u trialu ili nema plan
+    if (billing.current_plan_id !== null && billing.billing_status !== 'trial') {
+      throw new Error('USE_UPGRADE_OR_DOWNGRADE');
+    }
+
+    const clientCount = await this.userRepo.getClientCountForTrainer(trainerId);
+    if (clientCount > plan.max_clients) {
+      throw new Error(`PLAN_TOO_SMALL:${plan.max_clients}:${clientCount}`);
+    }
+
+    const anchorDate = new Date();
+    await this.userRepo.setCurrentPlan(trainerId, planId, anchorDate);
+    await this.audit.log('Informacija', 'TRAINER_SELECT_PLAN', trainerId, null, { planId, planName: plan.name });
+  }
+
+  async upgradePlan(trainerId: number, planId: number): Promise<void> {
+    const billing = await this.userRepo.getBillingInfo(trainerId);
+    if (!billing) throw new Error('User not found');
+    if (!billing.current_plan_id) throw new Error('NO_CURRENT_PLAN');
+
+    const currentPlan = await this.plansRepo.getById(billing.current_plan_id);
+    const newPlan     = await this.plansRepo.getById(planId);
+    if (!currentPlan || !newPlan) throw new Error('PLAN_NOT_FOUND');
+
+    if (newPlan.tier <= currentPlan.tier) throw new Error('NOT_AN_UPGRADE');
+
+    await this.userRepo.setPendingPlan(trainerId, planId);
+    await this.audit.log('Informacija', 'TRAINER_UPGRADE_PLAN_SCHEDULED', trainerId, null, {
+      from: currentPlan.name, to: newPlan.name,
+    });
+  }
+
+  async downgradePlan(trainerId: number, planId: number): Promise<void> {
+    const billing = await this.userRepo.getBillingInfo(trainerId);
+    if (!billing) throw new Error('User not found');
+    if (!billing.current_plan_id) throw new Error('NO_CURRENT_PLAN');
+
+    const currentPlan = await this.plansRepo.getById(billing.current_plan_id);
+    const newPlan     = await this.plansRepo.getById(planId);
+    if (!currentPlan || !newPlan) throw new Error('PLAN_NOT_FOUND');
+
+    if (newPlan.tier >= currentPlan.tier) throw new Error('NOT_A_DOWNGRADE');
+
+    // Provjeri da li ima previše klijenata za novi plan
+    const clientCount = await this.userRepo.getClientCountForTrainer(trainerId);
+    if (clientCount > newPlan.max_clients) {
+      throw new Error(`DOWNGRADE_BLOCKED:${newPlan.max_clients}:${clientCount}`);
+    }
+
+    // Downgrade se primjenjuje na sljedeći billing ciklus
+    await this.userRepo.setPendingPlan(trainerId, planId);
+    await this.audit.log('Informacija', 'TRAINER_DOWNGRADE_PLAN_SCHEDULED', trainerId, null, {
+      from: currentPlan.name, to: newPlan.name,
+    });
+  }
+
+  // ─── Client Requests ─────────────────────────────────────────────────────
+
+  async listPendingRequests(trainerId: number): Promise<PendingRequest[]> {
+    const rows = await this.clientRequestsRepo.getPendingForTrainer(trainerId);
+    return rows.map(r => ({
+      id:          r.id,
+      clientId:    r.client_id,
+      clientName:  r.clientName,
+      clientEmail: r.clientEmail,
+      createdAt:   r.created_at.toISOString(),
+    }));
+  }
+
+  async approveRequest(trainerId: number, requestId: number): Promise<void> {
+    const req = await this.clientRequestsRepo.getById(requestId);
+    if (!req || req.trainer_id !== trainerId) throw new Error('NOT_FOUND');
+    if (req.status !== 'pending')             throw new Error('NOT_PENDING');
+
+    // Provjeri plan limit
+    const billing = await this.userRepo.getBillingInfo(trainerId);
+    if (billing?.current_plan_id) {
+      const plan        = await this.plansRepo.getById(billing.current_plan_id);
+      const clientCount = await this.userRepo.getClientCountForTrainer(trainerId);
+      if (plan && clientCount >= plan.max_clients) {
+        throw new Error(`PLAN_LIMIT_REACHED:${plan.max_clients}:${plan.name}`);
+      }
+    }
+
+    await this.clientRequestsRepo.approve(requestId);
+    await this.userRepo.updateAssignedTrainer(req.client_id, trainerId);
+    await this.audit.log('Informacija', 'CLIENT_REQUEST_APPROVED', trainerId, null, {
+      requestId, clientId: req.client_id,
+    });
+  }
+
+  async rejectRequest(trainerId: number, requestId: number): Promise<void> {
+    const req = await this.clientRequestsRepo.getById(requestId);
+    if (!req || req.trainer_id !== trainerId) throw new Error('NOT_FOUND');
+    if (req.status !== 'pending')             throw new Error('NOT_PENDING');
+
+    await this.clientRequestsRepo.reject(requestId);
+    await this.audit.log('Informacija', 'CLIENT_REQUEST_REJECTED', trainerId, null, {
+      requestId, clientId: req.client_id,
+    });
+  }
+
+  async sendClientRequest(clientId: number, trainerId: number): Promise<void> {
+    // Provjeri da trener postoji
+    const trainer = await this.userRepo.getById(trainerId);
+    if (!trainer || trainer.id === 0 || trainer.uloga !== 'trener') throw new Error('TRAINER_NOT_FOUND');
+
+    // Provjeri da već nije assigned ili pending
+    const existing = await this.clientRequestsRepo.getByClientAndTrainer(clientId, trainerId);
+    if (existing?.status === 'approved') throw new Error('ALREADY_ASSIGNED');
+    if (existing?.status === 'pending')  throw new Error('REQUEST_ALREADY_PENDING');
+
+    await this.clientRequestsRepo.create(clientId, trainerId);
+    await this.audit.log('Informacija', 'CLIENT_REQUEST_SENT', clientId, null, { trainerId });
+  }
+
+  async getRequestStatus(
+    clientId: number, trainerId: number
+  ): Promise<'pending' | 'approved' | 'rejected' | null> {
+    return this.clientRequestsRepo.getStatusForClient(clientId, trainerId);
   }
 }

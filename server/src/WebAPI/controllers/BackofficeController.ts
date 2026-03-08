@@ -9,7 +9,17 @@ type TrainerRow = RowDataPacket & {
   prezime: string
   blokiran: number
   uloga: string
+  billing_anchor_date: Date | null
+  trial_ends_at: Date | null
+  billing_status: string | null
+  current_plan_id: number | null
+  plan_name: string | null
+  plan_price_eur: number | string | null
+  plan_price_rsd: number | string | null
+  plan_tier: number | null
 }
+
+const EUR_TO_RSD = 117
 
 const BACKOFFICE_KEY = process.env.BACKOFFICE_API_KEY ?? ''
 
@@ -30,15 +40,24 @@ export class BackofficeController {
     try {
       const [rows] = await db.query<TrainerRow[]>(
         `SELECT 
-           id,
-           korisnickoIme,
-           ime,
-           prezime,
-           blokiran,
-           uloga
-         FROM users
-         WHERE uloga = 'trener'
-         ORDER BY id ASC`
+           u.id,
+           u.korisnickoIme,
+           u.ime,
+           u.prezime,
+           u.blokiran,
+           u.uloga,
+           u.billing_anchor_date,
+           u.trial_ends_at,
+           u.billing_status,
+           u.current_plan_id,
+           p.name  as plan_name,
+           p.price_eur  as plan_price_eur,
+           p.price_rsd  as plan_price_rsd,
+           p.tier  as plan_tier
+         FROM users u
+         LEFT JOIN plans p ON p.id = u.current_plan_id
+         WHERE u.uloga = 'trener'
+         ORDER BY u.id ASC`
       )
       const trainers = rows.map(r => ({
         id:          r.id,
@@ -48,6 +67,17 @@ export class BackofficeController {
         fullName:    `${r.ime} ${r.prezime}`,
         blocked:     Boolean(r.blokiran),
         role:        r.uloga,
+        billing_anchor_date: r.billing_anchor_date ? new Date(r.billing_anchor_date).getDate() : null,
+        trial_ends_at:       r.trial_ends_at ? new Date(r.trial_ends_at).toISOString() : null,
+        billing_status:      r.billing_status ?? null,
+        current_plan: r.current_plan_id && r.plan_name ? {
+          id:   r.current_plan_id,
+          name: r.plan_name,
+          price_rsd: Number(r.plan_price_rsd ?? 0) > 0
+            ? Number(r.plan_price_rsd)
+            : Number(r.plan_price_eur ?? 0) * EUR_TO_RSD,
+          tier: r.plan_tier ?? null,
+        } : null,
         // paymentReference koji backoffice koristi za CSV matching
         paymentReference: `FT-${r.korisnickoIme.toUpperCase()}`,
       }))

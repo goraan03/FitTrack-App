@@ -25,13 +25,13 @@ export default function Brand({
     <div className={`inline-flex items-center gap-2 ${className}`}>
       <img
         src={sizes.img}
-        alt="FitTrack"
+        alt="TrainoraX"
         className={`${sizes.box} rounded-xl`}
         draggable={false}
       />
       {showText && (
         <span className={`${sizes.text} font-extrabold tracking-wider uppercase text-amber-400`}>
-          {text || "FitTrack"}
+          {text || "TrainoraX"}
         </span>
       )}
     </div>

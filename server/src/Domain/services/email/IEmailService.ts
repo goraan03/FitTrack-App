@@ -27,4 +27,7 @@ export interface IEmailService {
     text: string;
     attachments?: Array<{ filename: string; content: Buffer }>;
   }): Promise<void>;
+
+  sendTrialReminder(to: string, trainerName: string, trialEndsAt: Date, daysLeft: number): Promise<void>;
+  sendTrialExpired(to: string, trainerName: string): Promise<void>;
 }

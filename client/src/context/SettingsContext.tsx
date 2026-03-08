@@ -130,10 +130,36 @@ const translations: Record<Language, Record<string, string>> = {
         total_hours: "Total Hours",
         total_sessions: "Total Sessions",
         total_clients: "Total Clients",
-
+        change_plan: "Change plan",
+        plan: "Plan",
+        pending: "Pending",
+        pending_requests: "Pending requests",
+        pending_msg: "Pending change to plan:",
+        price: "Price",
+        next_renewal: "Next renewal",
+        no_plan_found: "No active subscription.",
+        client_count: "Clients",
+        billing_status: "Billing status",
+        trial_end: "Trial ends",
+        month: "month",
+        activate: "Activate",
+        current: "Current",
+        downgrade: "Downgrade",
+        upgrade: "Upgrade",
+        activate_plan_note: "Renews monthly on the activation date.",
+        using_clients: "Using {current} of {max} client slots",
+        unlimited: "Unlimited",
+        your_plan: "Your Plan",
+        active_plan: "Active Plan",
+        pending_plan_change: "Pending Plan Change",
+        no_pending_requests: "No pending requests.",
+        approve: "Approve",
+        sign_up: "Sign up",
+        trainer_signup_note: "Trainers: send first name, last name, email and a social profile link (Instagram/LinkedIn) to verify you are a trainer.",
+        client_signup_note: "Only clients register here. Trainer accounts are created via the contact form and admin verification.",
         // Landing Page
         landing_badge: "Training Management Platform",
-        fittrack_dashboard: "FITTRACK DASHBOARD",
+        fittrack_dashboard: "TRAINORAX DASHBOARD",
         landing_subtitle: "Stay aligned — sessions, programs, and progress in one place.",
         landing_desc: "A clean workflow for scheduling, program delivery, and tracking performance — built for real training businesses.",
         create_client_account: "Create Client Account",
@@ -156,11 +182,11 @@ const translations: Record<Language, Record<string, string>> = {
         feat_progress_desc: "See trends over time, collect feedback, and make coaching decisions based on real signals — not guesswork.",
 
         // About Page
-        mission_badge: "The Mission Behind FitTrack",
-        about_title: "ABOUT FITTRACK",
-        about_desc: "FitTrack is a premium web platform designed for personal trainers, gyms and online coaches. Our mission is to simplify your daily workflow: from scheduling sessions to delivering structured programs — eliminating administrative clutter so you can focus on the grind.",
+        mission_badge: "The Mission Behind TrainoraX",
+        about_title: "ABOUT TRAINORAX",
+        about_desc: "TrainoraX is a premium web platform designed for personal trainers, gyms and online coaches. Our mission is to simplify your daily workflow: from scheduling sessions to delivering structured programs — eliminating administrative clutter so you can focus on the grind.",
         for_trainers: "For Trainers",
-        for_trainers_p1: "FitTrack allows you to maintain complete records of your professional work in one place. Easily create and organize training sessions, personalized programs, and specific exercises for each client, complete with video demonstrations.",
+        for_trainers_p1: "TrainoraX allows you to maintain complete records of your professional work in one place. Easily create and organize training sessions, personalized programs, and specific exercises for each client, complete with video demonstrations.",
         for_trainers_p2: "After every session, you can leave ratings and feedback, giving your clients a crystal-clear view of their progress. Our goal is to lift the administrative burden off your shoulders.",
         for_clients: "For Clients",
         for_clients_p1: "As a client, you get a clear overview of all your programs and exercises prepared by your trainer, including detailed descriptions and video guides. Book your sessions directly through the app based on your trainer's availability.",
@@ -179,7 +205,7 @@ const translations: Record<Language, Record<string, string>> = {
         terms_of_service_title: "TERMS OF SERVICE",
         terms_subtitle: "These terms define how the platform can be used and what users can expect from the service.",
         terms_sec1_title: "1. Agreement",
-        terms_sec1_desc: "By accessing or using FitTrack, you agree to these Terms of Service and any applicable laws. If you do not agree, do not use the platform.",
+        terms_sec1_desc: "By accessing or using TrainoraX, you agree to these Terms of Service and any applicable laws. If you do not agree, do not use the platform.",
         terms_sec2_title: "2. Accounts & Access",
         terms_sec2_li1: "Clients can self-register.",
         terms_sec2_li2: "Trainer accounts are created and managed by an administrator.",
@@ -190,11 +216,11 @@ const translations: Record<Language, Record<string, string>> = {
         terms_sec3_li2: "Attempt to access other accounts or restricted data.",
         terms_sec3_li3: "Upload malicious content or disrupt service availability.",
         terms_sec4_title: "4. Training Disclaimer",
-        terms_sec4_desc: "FitTrack is a management platform. Training programs and coaching decisions are the responsibility of trainers and clients. Always follow professional guidance and prioritize safety.",
+        terms_sec4_desc: "TrainoraX is a management platform. Training programs and coaching decisions are the responsibility of trainers and clients. Always follow professional guidance and prioritize safety.",
         terms_sec5_title: "5. Availability",
         terms_sec5_desc: "We aim for reliable service, but availability can be affected by maintenance, updates, or technical issues. We may modify or discontinue features to improve the platform.",
         terms_sec6_title: "6. Limitation of Liability",
-        terms_sec6_desc: "To the extent permitted by law, FitTrack is not liable for indirect damages or losses arising from the use of the platform, including business decisions or training outcomes.",
+        terms_sec6_desc: "To the extent permitted by law, TrainoraX is not liable for indirect damages or losses arising from the use of the platform, including business decisions or training outcomes.",
         terms_sec7_title: "7. Changes to Terms",
         terms_sec7_desc: "We may update these terms. Continued use after updates means you accept the revised terms.",
         terms_sec8_title: "8. Contact",
@@ -249,7 +275,7 @@ const translations: Record<Language, Record<string, string>> = {
         trainer_onboarding: "Trainer Onboarding",
         trainer_onboarding_desc: "Official trainer accounts are manually created by admins to ensure quality.",
         customization: "Customization",
-        customization_desc: "Want to adapt FitTrack to your specific gym or studio needs?",
+        customization_desc: "Want to adapt TrainoraX to your specific gym or studio needs?",
         full_name: "Full Name",
         email_address: "Email Address",
         your_message: "Your Message",
@@ -675,7 +701,36 @@ const translations: Record<Language, Record<string, string>> = {
         program_saved: "Program sačuvan",
         move_up: "Pomeri gore",
         move_down: "Pomeri dole",
-        remove: "Ukloni"
+        remove: "Ukloni",
+
+        // Billing / Plans
+        change_plan: "Promeni plan",
+        plan: "Plan",
+        pending: "Zakazano",
+        pending_requests: "Zahtevi klijenata",
+        pending_msg: "Zakazana promena na paket:",
+        price: "Cena",
+        next_renewal: "Sledeća obnova",
+        no_plan_found: "Nema aktivne pretplate.",
+        client_count: "Klijenti",
+        billing_status: "Status naplate",
+        trial_end: "Kraj trial-a",
+        month: "mesec",
+        activate: "Aktiviraj",
+        current: "Aktivan",
+        downgrade: "Downgrade",
+        upgrade: "Upgrade",
+        activate_plan_note: "Obnavlja se mesečno na datum aktivacije.",
+        using_clients: "Koristiš {current} od {max} slotova za klijente",
+        unlimited: "Neograničeno",
+        your_plan: "Tvoj plan",
+        active_plan: "Aktivan plan",
+        pending_plan_change: "Zakazana promena paketa",
+        no_pending_requests: "Nema novih zahteva.",
+        approve: "Odobri",
+        sign_up: "Registruj se",
+        trainer_signup_note: "Treneri: pošaljite ime, prezime, email i link ka profilu na mreži (Instagram/LinkedIn) radi potvrde da ste trener.",
+        client_signup_note: "Ova registracija je samo za klijente. Trenerski nalozi se otvaraju preko kontakt forme uz verifikaciju administratora."
     },
     Russian: {
         dashboard: "Панель управления",
@@ -941,7 +996,36 @@ const translations: Record<Language, Record<string, string>> = {
         program_saved: "Программа сохранена",
         move_up: "Вверх",
         move_down: "Вниз",
-        remove: "Убрать"
+        remove: "Убрать",
+
+        // Billing / Plans
+        change_plan: "Сменить план",
+        plan: "План",
+        pending: "Ожидание",
+        pending_requests: "Запросы клиентов",
+        pending_msg: "Запланирована смена на план:",
+        price: "Цена",
+        next_renewal: "Следующее продление",
+        no_plan_found: "Нет активной подписки.",
+        client_count: "Клиенты",
+        billing_status: "Статус оплаты",
+        trial_end: "Конец триала",
+        month: "месяц",
+        activate: "Активировать",
+        current: "Текущий",
+        downgrade: "Понизить",
+        upgrade: "Повысить",
+        activate_plan_note: "Продлевается ежемесячно в дату активации.",
+        using_clients: "Используете {current} из {max} слотов для клиентов",
+        unlimited: "Без ограничений",
+        your_plan: "Ваш план",
+        active_plan: "Активный план",
+        pending_plan_change: "Запланированная смена плана",
+        no_pending_requests: "Нет новых запросов.",
+        approve: "Одобрить",
+        sign_up: "Регистрация",
+        trainer_signup_note: "Тренеры: отправьте имя, фамилию, email и ссылку на соцсеть (Instagram/LinkedIn) для подтверждения, что вы тренер.",
+        client_signup_note: "Эта регистрация только для клиентов. Аккаунты тренеров создаются через контактную форму с проверкой администратора."
     },
     German: {
         dashboard: "Dashboard",
@@ -1207,7 +1291,36 @@ const translations: Record<Language, Record<string, string>> = {
         program_saved: "Programm gespeichert",
         move_up: "Nach oben",
         move_down: "Nach unten",
-        remove: "Entfernen"
+        remove: "Entfernen",
+
+        // Billing / Plans
+        change_plan: "Plan ändern",
+        plan: "Plan",
+        pending: "Geplant",
+        pending_requests: "Client-Anfragen",
+        pending_msg: "Geplanter Wechsel auf Plan:",
+        price: "Preis",
+        next_renewal: "Nächste Verlängerung",
+        no_plan_found: "Kein aktives Abonnement.",
+        client_count: "Kunden",
+        billing_status: "Abrechnungsstatus",
+        trial_end: "Ende der Testphase",
+        month: "Monat",
+        activate: "Aktivieren",
+        current: "Aktiv",
+        downgrade: "Downgrade",
+        upgrade: "Upgrade",
+        activate_plan_note: "Verlängert sich monatlich am Aktivierungsdatum.",
+        using_clients: "Genutzt {current} von {max} Kundenslots",
+        unlimited: "Unbegrenzt",
+        your_plan: "Dein Plan",
+        active_plan: "Aktiver Plan",
+        pending_plan_change: "Geplanter Paketwechsel",
+        no_pending_requests: "Keine offenen Anfragen.",
+        approve: "Genehmigen",
+        sign_up: "Registrieren",
+        trainer_signup_note: "Trainer: Senden Sie Vor- und Nachnamen, E-Mail und einen Social-Link (Instagram/LinkedIn), um zu bestätigen, dass Sie Trainer sind.",
+        client_signup_note: "Diese Registrierung ist nur für Kunden. Trainerkonten werden über das Kontaktformular mit Administratorprüfung erstellt."
     },
     Hungarian: {
         dashboard: "Vezérlőpult",
@@ -1473,21 +1586,50 @@ const translations: Record<Language, Record<string, string>> = {
         program_saved: "Program mentve",
         move_up: "Felfelé",
         move_down: "Lefelé",
-        remove: "Eltávolítás"
+        remove: "Eltávolítás",
+
+        // Billing / Plans
+        change_plan: "Csomag váltása",
+        plan: "Csomag",
+        pending: "Folyamatban",
+        pending_requests: "Ügyfélkérelmek",
+        pending_msg: "Ütemezett váltás erre a csomagra:",
+        price: "Ár",
+        next_renewal: "Következő megújítás",
+        no_plan_found: "Nincs aktív előfizetés.",
+        client_count: "Ügyfelek",
+        billing_status: "Számlázási állapot",
+        trial_end: "Próba vége",
+        month: "hónap",
+        activate: "Aktivál",
+        current: "Aktív",
+        downgrade: "Lefokozás",
+        upgrade: "Frissítés",
+        activate_plan_note: "Havonta megújul az aktiválás napján.",
+        using_clients: "{current} / {max} ügyfélhely használatban",
+        unlimited: "Korlátlan",
+        your_plan: "Saját csomagod",
+        active_plan: "Aktív csomag",
+        pending_plan_change: "Függőben lévő csomagváltás",
+        no_pending_requests: "Nincs függőben lévő kérelem.",
+        approve: "Jóváhagyás",
+        sign_up: "Regisztráció",
+        trainer_signup_note: "Edzők: küldjék el a nevüket, emailt és egy közösségi profil linket (Instagram/LinkedIn) a hitelesítéshez.",
+        client_signup_note: "Ez a regisztráció csak ügyfeleknek. Edzői fiókok a kapcsolat űrlapon, admin jóváhagyással jönnek létre."
     }
 };
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [theme, setThemeState] = useState<Theme>((localStorage.getItem('fittrack-theme') as Theme) || 'dark');
-    const [language, setLanguageState] = useState<Language>((localStorage.getItem('fittrack-lang') as Language) || 'English');
+    const [theme, setThemeState] = useState<Theme>((localStorage.getItem('trainorax-theme') as Theme) || 'dark');
+    const [language, setLanguageState] = useState<Language>((localStorage.getItem('trainorax-lang') as Language) || 'English');
 
     useEffect(() => {
         document.documentElement.className = theme;
-        localStorage.setItem('fittrack-theme', theme);
+        localStorage.setItem('trainorax-theme', theme);
     }, [theme]);
 
     useEffect(() => {
-        localStorage.setItem('fittrack-lang', language);
+        localStorage.setItem('trainorax-lang', language);
     }, [language]);
 
     const setTheme = (t: Theme) => setThemeState(t);

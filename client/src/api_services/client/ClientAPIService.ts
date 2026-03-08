@@ -8,6 +8,8 @@ import type { HistoryResponse } from "../../types/client/HistoryResponse";
 import type { MyProfileResponse } from "../../types/client/MyProfileResponse";
 import { authHeaders } from "../../helpers/client/authHeaders";
 import { instance } from "../../helpers/client/instanceClient";
+import { joinURL } from "../../helpers/programs/joinURL";
+import axios from "axios";
 
 export const clientApi: IClientAPIService = {
   async listTrainers() {
@@ -64,5 +66,22 @@ export const clientApi: IClientAPIService = {
   async downloadWorkoutPdf(sessionId: number) {
     const res = await instance.get<Blob>(`/workouts/${sessionId}/pdf`, { responseType: 'blob', headers: authHeaders() });
     return res.data;
-  }
+  },
+
+  async sendTrainerRequest(trainerId: number) {
+    const res = await axios.post(
+      `${joinURL(import.meta.env.VITE_API_URL || '', 'client')}/requests`,
+      { trainerId },
+      { headers: authHeaders() }
+    );
+    return res.data;
+  },
+
+  async getRequestStatus(trainerId: number) {
+    const res = await axios.get(
+      `${joinURL(import.meta.env.VITE_API_URL || '', 'client')}/requests/status`,
+      { headers: authHeaders(), params: { trainerId } }
+    );
+    return res.data;
+  },
 };

@@ -43,6 +43,22 @@ export class TrainerController {
 
     this.router.post("/trainer/workout/finish", authenticate, authorize("trener"), this.finishWorkout.bind(this));
     this.router.get("/trainer/workouts/:sessionId/pdf", authenticate, authorize("trener"), this.downloadWorkoutPdf.bind(this));
+
+    // Plans & Billing
+    this.router.get("/trainer/billing/status",          authenticate, authorize("trener"), this.billingStatus.bind(this));
+    this.router.get("/trainer/billing/plans",           authenticate, authorize("trener"), this.listPlans.bind(this));
+    this.router.post("/trainer/billing/select-plan",    authenticate, authorize("trener"), this.selectPlan.bind(this));
+    this.router.post("/trainer/billing/upgrade-plan",   authenticate, authorize("trener"), this.upgradePlan.bind(this));
+    this.router.post("/trainer/billing/downgrade-plan", authenticate, authorize("trener"), this.downgradePlan.bind(this));
+
+    // Client Requests
+    this.router.get("/trainer/requests",               authenticate, authorize("trener"), this.listRequests.bind(this));
+    this.router.post("/trainer/requests/:id/approve",  authenticate, authorize("trener"), this.approveRequest.bind(this));
+    this.router.post("/trainer/requests/:id/reject",   authenticate, authorize("trener"), this.rejectRequest.bind(this));
+
+    // Client može poslati zahtjev (uloga klijent)
+    this.router.post("/client/requests",               authenticate, authorize("klijent"), this.sendRequest.bind(this));
+    this.router.get("/client/requests/status",         authenticate, authorize("klijent"), this.requestStatus.bind(this));
   }
 
   private async dashboard(req: Request, res: Response) {
@@ -412,6 +428,121 @@ export class TrainerController {
     } catch (e: any) {
       console.error('getClientStats error:', e);
       res.status(500).json({ success: false, message: 'Error fetching stats' });
+    }
+  }
+
+  private async billingStatus(req: Request, res: Response) {
+    try {
+      const data = await this.trainer.getBillingStatus(req.user!.id);
+      res.json({ success: true, message: 'OK', data });
+    } catch (err) {
+      res.status(500).json({ success: false, message: (err as Error)?.message || 'Server error' });
+    }
+  }
+
+  private async listPlans(req: Request, res: Response) {
+    try {
+      const data = await this.trainer.listPlans();
+      res.json({ success: true, message: 'OK', data });
+    } catch (err) {
+      res.status(500).json({ success: false, message: (err as Error)?.message || 'Server error' });
+    }
+  }
+
+  private async selectPlan(req: Request, res: Response) {
+    try {
+      const planId = Number(req.body?.planId);
+      if (!Number.isFinite(planId)) return res.status(400).json({ success: false, message: 'Bad planId' });
+      await this.trainer.selectPlan(req.user!.id, planId);
+      res.json({ success: true, message: 'Plan aktiviran' });
+    } catch (err) {
+      const msg = (err as Error)?.message || 'Bad request';
+      if (msg.startsWith('PLAN_TOO_SMALL'))     return res.status(400).json({ success: false, message: msg });
+      if (msg === 'USE_UPGRADE_OR_DOWNGRADE')   return res.status(400).json({ success: false, message: msg });
+      res.status(400).json({ success: false, message: msg });
+    }
+  }
+
+  private async upgradePlan(req: Request, res: Response) {
+    try {
+      const planId = Number(req.body?.planId);
+      if (!Number.isFinite(planId)) return res.status(400).json({ success: false, message: 'Bad planId' });
+      await this.trainer.upgradePlan(req.user!.id, planId);
+      res.json({ success: true, message: 'Plan nadograđen' });
+    } catch (err) {
+      res.status(400).json({ success: false, message: (err as Error)?.message || 'Bad request' });
+    }
+  }
+
+  private async downgradePlan(req: Request, res: Response) {
+    try {
+      const planId = Number(req.body?.planId);
+      if (!Number.isFinite(planId)) return res.status(400).json({ success: false, message: 'Bad planId' });
+      await this.trainer.downgradePlan(req.user!.id, planId);
+      res.json({ success: true, message: 'Downgrade zakazan za sledeći period' });
+    } catch (err) {
+      const msg = (err as Error)?.message || 'Bad request';
+      if (msg.startsWith('DOWNGRADE_BLOCKED')) return res.status(400).json({ success: false, message: msg });
+      res.status(400).json({ success: false, message: msg });
+    }
+  }
+
+  private async listRequests(req: Request, res: Response) {
+    try {
+      const data = await this.trainer.listPendingRequests(req.user!.id);
+      res.json({ success: true, message: 'OK', data });
+    } catch (err) {
+      res.status(500).json({ success: false, message: (err as Error)?.message || 'Server error' });
+    }
+  }
+
+  private async approveRequest(req: Request, res: Response) {
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isFinite(id)) return res.status(400).json({ success: false, message: 'Bad id' });
+      await this.trainer.approveRequest(req.user!.id, id);
+      res.json({ success: true, message: 'Zahtjev odobren' });
+    } catch (err) {
+      const msg = (err as Error)?.message || 'Bad request';
+      if (msg.startsWith('PLAN_LIMIT_REACHED')) return res.status(403).json({ success: false, message: msg });
+      res.status(400).json({ success: false, message: msg });
+    }
+  }
+
+  private async rejectRequest(req: Request, res: Response) {
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isFinite(id)) return res.status(400).json({ success: false, message: 'Bad id' });
+      await this.trainer.rejectRequest(req.user!.id, id);
+      res.json({ success: true, message: 'Zahtjev odbijen' });
+    } catch (err) {
+      res.status(400).json({ success: false, message: (err as Error)?.message || 'Bad request' });
+    }
+  }
+
+  private async sendRequest(req: Request, res: Response) {
+    try {
+      const trainerId = Number(req.body?.trainerId);
+      if (!Number.isFinite(trainerId)) return res.status(400).json({ success: false, message: 'Bad trainerId' });
+      await this.trainer.sendClientRequest(req.user!.id, trainerId);
+      res.json({ success: true, message: 'Zahtjev poslat' });
+    } catch (err) {
+      const msg = (err as Error)?.message || 'Bad request';
+      if (msg === 'ALREADY_ASSIGNED')          return res.status(400).json({ success: false, message: 'Već ste dodijeljeni ovom treneru' });
+      if (msg === 'REQUEST_ALREADY_PENDING')   return res.status(400).json({ success: false, message: 'Zahtjev je već na čekanju' });
+      if (msg === 'TRAINER_NOT_FOUND')         return res.status(404).json({ success: false, message: 'Trener nije pronađen' });
+      res.status(400).json({ success: false, message: msg });
+    }
+  }
+
+  private async requestStatus(req: Request, res: Response) {
+    try {
+      const trainerId = Number(req.query.trainerId);
+      if (!Number.isFinite(trainerId)) return res.status(400).json({ success: false, message: 'Bad trainerId' });
+      const status = await this.trainer.getRequestStatus(req.user!.id, trainerId);
+      res.json({ success: true, message: 'OK', data: { status } });
+    } catch (err) {
+      res.status(500).json({ success: false, message: (err as Error)?.message || 'Server error' });
     }
   }
 

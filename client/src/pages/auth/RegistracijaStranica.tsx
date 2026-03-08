@@ -26,13 +26,16 @@ export default function RegistracijaStranica({ authApi }: Props) {
             {/* Header */}
             <div className="text-center mb-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                FitTrack
+                TrainoraX
               </div>
               <h1 className="mt-2 text-2xl font-bold uppercase tracking-wide text-white">
                 Create Account
               </h1>
               <p className="text-slate-400 mt-2 text-sm">
                 Create your account and start tracking progress
+              </p>
+              <p className="mt-3 text-amber-200 text-xs bg-amber-400/10 border border-amber-400/20 rounded-lg px-3 py-2">
+                Note: This form is only for client sign-ups. Trainer accounts are created exclusively via the contact form and verified by an administrator.
               </p>
             </div>
 

@@ -48,6 +48,7 @@ export default function TrainerLayout() {
     { to: "/trainer/terms", label: t('nav_sessions') || "Sessions", icon: CalendarDays },
     { to: "/trainer/clients", label: t('nav_clients') || "Clients", icon: Users },
     { to: "/trainer/profile", label: t('nav_profile') || "Profile", icon: User },
+
   ];
 
   return (
@@ -56,7 +57,7 @@ export default function TrainerLayout() {
       {/* HEADER */}
       <header className="fixed top-0 left-0 right-0 z-[100] bg-[#0a0a0f]/80 backdrop-blur-md border-b border-[#27273a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Brand text="FitTrack" />
+          <Brand text="TrainoraX" />
 
           {/* DESKTOP NAV */}
           <nav className="hidden lg:flex items-center gap-1">

@@ -13,6 +13,7 @@ import {
   Title,
 } from "chart.js";
 import { Avatar } from "../../components/client/Avatar";
+import { LanguageSelect } from "../../components/common/LanguageSelect";
 import EditProfileModal from "../../components/profile/EditProfileModal";
 import type { IClientAPIService } from "../../api_services/client/IClientAPIService";
 import type { ClientProfile } from "../../types/users/ClientProfile";
@@ -98,7 +99,7 @@ export default function ClientProfilePage({ clientApi }: ClientProfilePageProps)
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-24 sm:pb-12">
         {/* HERO */}
-        <div className="bg-[#111118] border border-[#27273a] rounded-2xl shadow-[0_18px_60px_rgba(0,0,0,0.40)] overflow-hidden opacity-0 animate-fade-in-up">
+        <div className="relative z-20 bg-[#111118] border border-[#27273a] rounded-2xl shadow-[0_18px_60px_rgba(0,0,0,0.40)] overflow-visible opacity-0 animate-fade-in-up">
           <div className="p-6 sm:p-8">
             <div className="flex flex-col sm:flex-row sm:items-center gap-6">
               {/* Avatar */}
@@ -145,15 +146,18 @@ export default function ClientProfilePage({ clientApi }: ClientProfilePageProps)
                   >
                     {theme === 'dark' ? t('light') : t('dark')}
                   </button>
-                  <select
+                  <LanguageSelect
                     value={language}
-                    onChange={(e) => setLanguage(e.target.value as any)}
-                    className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-white text-sm font-semibold transition-all"
-                  >
-                    {['English', 'Serbian', 'Russian', 'German', 'Hungarian'].map((l) => (
-                      <option key={l} value={l}>{l}</option>
-                    ))}
-                  </select>
+                    onChange={l => setLanguage(l as any)}
+                    options={[
+                      { value: "English", label: "English" },
+                      { value: "Serbian", label: "Srpski" },
+                      { value: "Russian", label: "Русский" },
+                      { value: "German", label: "Deutsch" },
+                      { value: "Hungarian", label: "Magyar" },
+                    ]}
+                    className="w-full sm:w-48"
+                  />
                 </div>
 
                 <button

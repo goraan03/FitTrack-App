@@ -5,6 +5,7 @@ import type { ProgramListItem, UpsertProgram, ProgramDetails, ProgramExerciseIte
 import type { TrainerClient } from "../../types/trainer/TrainerClient";
 import type { TrainerTerm, CreateTermDto } from "../../types/trainer/Term";
 import type { UpdateMyProfileRequest } from "../../types/profile/UpdateMyProfileRequest";
+import type { BillingStatus, PendingRequest, PlanInfo } from "../../types/trainer/Billing";
 
 export interface ITrainerAPIService {
   getDashboard(weekStartISO?: string): Promise<TrainerDashboardResponse>;
@@ -47,4 +48,14 @@ export interface ITrainerAPIService {
   setTermProgram(termId: number, programId: number): Promise<BasicResponse>;
   listProgramsForClient(clientId: number): Promise<{ success: boolean; message: string; data: ProgramListItem[] }>;
   downloadWorkoutPdf(sessionId: number): Promise<Blob>;
+  // Billing
+  getBillingStatus(): Promise<{ success: boolean; data: BillingStatus }>;
+  listPlans(): Promise<{ success: boolean; data: PlanInfo[] }>;
+  selectPlan(planId: number): Promise<BasicResponse>;
+  upgradePlan(planId: number): Promise<BasicResponse>;
+  downgradePlan(planId: number): Promise<BasicResponse>;
+  // Client requests
+  listPendingRequests(): Promise<{ success: boolean; data: PendingRequest[] }>;
+  approveRequest(id: number): Promise<BasicResponse>;
+  rejectRequest(id: number): Promise<BasicResponse>;
 }

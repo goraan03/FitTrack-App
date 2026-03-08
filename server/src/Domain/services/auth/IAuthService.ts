@@ -20,4 +20,5 @@ export interface IAuthService {
   startChangePassword(userId: number): Promise<{ challengeId: string; expiresAt: string; maskedEmail: string }>;
   verifyChangePasswordOtp(userId: number, challengeId: string, code: string): Promise<void>;
   finishChangePassword(userId: number, challengeId: string, newPassword: string): Promise<void>;
+  maybeStartTrial(userId: number): Promise<void>;
 }

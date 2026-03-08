@@ -19,4 +19,6 @@ export interface IClientAPIService {
   getMyProfile(): Promise<MyProfileResponse>;
   updateMyProfile(payload: UpdateMyProfileRequest): Promise<BasicResponse>;
   downloadWorkoutPdf(sessionId: number): Promise<Blob>;
+  sendTrainerRequest(trainerId: number): Promise<{ success: boolean; message: string }>;
+  getRequestStatus(trainerId: number): Promise<{ success: boolean; data: { status: 'pending' | 'approved' | 'rejected' | null } }>;
 }

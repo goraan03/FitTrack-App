@@ -10,6 +10,7 @@ import type { TrainerClient } from "../../types/trainer/TrainerClient";
 import type { TrainerTerm, CreateTermDto } from "../../types/trainer/Term";
 import type { UpdateMyProfileRequest } from "../../types/profile/UpdateMyProfileRequest";
 import type { AxiosResponse } from "axios";
+import type { BillingStatus, PlanInfo, PendingRequest } from "../../types/trainer/Billing";
 
 const baseURL = joinURL(import.meta.env.VITE_API_URL || '', 'trainer');
 
@@ -110,24 +111,8 @@ export const trainerApi: ITrainerAPIService = {
     return res.data;
   },
 
-  async finishWorkout(payload: {
-    termId: number;
-    clientId: number;
-    startTime: string;
-    endTime: string;
-    notes?: string;
-    logs: {
-      exerciseId: number;
-      setNumber: number;
-      plannedReps?: string;
-      actualReps: number;
-      plannedWeight?: number;
-      actualWeight: number;
-    }[];
-  }) {
-    const res = await axios.post<BasicResponse>(`${baseURL}/workout/finish`, payload, {
-      headers: authHeaders()
-    });
+  async finishWorkout(payload) {
+    const res = await axios.post<BasicResponse>(`${baseURL}/workout/finish`, payload, { headers: authHeaders() });
     return res.data;
   },
 
@@ -170,19 +155,88 @@ export const trainerApi: ITrainerAPIService = {
   },
 
   async updateMyProfile(payload: UpdateMyProfileRequest) {
-    const res = await axios.put<BasicResponse>(
-      `${baseURL}/me/profile`,
-      payload,
-      { headers: authHeaders() }
-    );
+    const res = await axios.put<BasicResponse>(`${baseURL}/me/profile`, payload, { headers: authHeaders() });
     return res.data;
   },
 
   async downloadWorkoutPdf(sessionId: number) {
     const res = await axios.get(`${baseURL}/workouts/${sessionId}/pdf`, {
       headers: authHeaders(),
-      responseType: 'blob'
+      responseType: 'blob',
     });
     return res.data as Blob;
+  },
+
+  // ── Billing ───────────────────────────────────────────────────────────────
+
+  async getBillingStatus() {
+    const res = await axios.get<{ success: boolean; data: BillingStatus }>(
+      `${baseURL}/billing/status`,
+      { headers: authHeaders() }
+    );
+    return res.data;
+  },
+
+  async listPlans() {
+    const res = await axios.get<{ success: boolean; data: PlanInfo[] }>(
+      `${baseURL}/billing/plans`,
+      { headers: authHeaders() }
+    );
+    return res.data;
+  },
+
+  async selectPlan(planId: number) {
+    const res = await axios.post<BasicResponse>(
+      `${baseURL}/billing/select-plan`,
+      { planId },
+      { headers: authHeaders() }
+    );
+    return res.data;
+  },
+
+  async upgradePlan(planId: number) {
+    const res = await axios.post<BasicResponse>(
+      `${baseURL}/billing/upgrade-plan`,
+      { planId },
+      { headers: authHeaders() }
+    );
+    return res.data;
+  },
+
+  async downgradePlan(planId: number) {
+    const res = await axios.post<BasicResponse>(
+      `${baseURL}/billing/downgrade-plan`,
+      { planId },
+      { headers: authHeaders() }
+    );
+    return res.data;
+  },
+
+  // ── Client Requests ───────────────────────────────────────────────────────
+
+  async listPendingRequests() {
+    const res = await axios.get<{ success: boolean; data: PendingRequest[] }>(
+      `${baseURL}/requests`,
+      { headers: authHeaders() }
+    );
+    return res.data;
+  },
+
+  async approveRequest(id: number) {
+    const res = await axios.post<BasicResponse>(
+      `${baseURL}/requests/${id}/approve`,
+      {},
+      { headers: authHeaders() }
+    );
+    return res.data;
+  },
+
+  async rejectRequest(id: number) {
+    const res = await axios.post<BasicResponse>(
+      `${baseURL}/requests/${id}/reject`,
+      {},
+      { headers: authHeaders() }
+    );
+    return res.data;
   },
 };

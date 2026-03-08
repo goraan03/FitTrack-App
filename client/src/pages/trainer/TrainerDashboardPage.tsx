@@ -8,9 +8,10 @@ import TermDetailsModal from "../../components/client/TermDetailsModal";
 import type { TermDetails } from "../../models/client/TermDetails";
 import { toDate } from "../../helpers/client/toDate";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
-import { Activity, Clock, Users, Star } from "lucide-react";
+import { Activity, Clock, Users, Star, UserCheck, XCircle, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSettings } from "../../context/SettingsContext";
+import type { PendingRequest } from "../../types/trainer/Billing";
 
 interface TrainerDashboardPageProps { trainerApi: ITrainerAPIService; }
 
@@ -23,6 +24,8 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
   const [pending, setPending] = useState<{ termId: number; startAt: string; programTitle: string; count: number }[]>([]);
   const [rateModal, setRateModal] = useState<{ open: boolean; termId?: number; programTitle?: string; participants: { userId: number; userName: string }[] }>({ open: false, participants: [] });
   const [details, setDetails] = useState<{ open: boolean; data?: TermDetails }>({ open: false });
+  const [reqModal, setReqModal] = useState<{ open: boolean; loading: boolean; items: PendingRequest[]; actionId: number | null }>({ open: false, loading: false, items: [], actionId: null });
+  const [reqCount, setReqCount] = useState(0);
 
   const weekStartISO = useMemo(() => {
     const d = new Date(weekStart);
@@ -34,6 +37,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
     setLoading(true);
     try {
       const res = await trainerApi.getDashboard(weekStartISO);
+      const reqs = await trainerApi.listPendingRequests();
       if (res.success) {
         setStats(res.data.stats);
         setPending(res.data.pendingRatings);
@@ -71,6 +75,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
           });
         setEvents(items);
       }
+      if (reqs.success) setReqCount(reqs.data.length);
     } finally { setLoading(false); }
   };
 
@@ -128,6 +133,59 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
     }
   };
 
+  const openRequests = async () => {
+    setReqModal(m => ({ ...m, open: true, loading: true }));
+    try {
+      const res = await trainerApi.listPendingRequests();
+      if (res.success) {
+        setReqModal({ open: true, loading: false, items: res.data, actionId: null });
+        setReqCount(res.data.length);
+      } else {
+        toast.error("Greška pri učitavanju zahtjeva");
+        setReqModal(m => ({ ...m, loading: false }));
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Greška pri učitavanju zahtjeva");
+      setReqModal(m => ({ ...m, loading: false }));
+    }
+  };
+
+  const approveReq = async (id: number) => {
+    setReqModal(m => ({ ...m, actionId: id }));
+    try {
+      const res = await trainerApi.approveRequest(id);
+      if (res.success) {
+        toast.success("Klijent odobren");
+        await openRequests();
+      } else {
+        toast.error(res.message || "Greška");
+      }
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || e?.message || "Greška";
+      if (msg.startsWith("PLAN_LIMIT_REACHED")) toast.error("Dostignut limit paketa — uradi upgrade");
+      else toast.error(msg);
+    } finally {
+      setReqModal(m => ({ ...m, actionId: null }));
+    }
+  };
+
+  const rejectReq = async (id: number) => {
+    setReqModal(m => ({ ...m, actionId: id }));
+    try {
+      const res = await trainerApi.rejectRequest(id);
+      if (res.success) {
+        toast.success("Zahtjev odbijen");
+        await openRequests();
+      } else {
+        toast.error(res.message || "Greška");
+      }
+    } catch {
+      toast.error("Greška");
+    } finally {
+      setReqModal(m => ({ ...m, actionId: null }));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white">
       <div className="fixed top-0 left-0 right-0 h-[420px] bg-gradient-to-b from-amber-400/5 via-amber-400/0 to-transparent pointer-events-none" />
@@ -144,7 +202,19 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
             </p>
           </div>
 
-          <WeekSwitcher weekStart={weekStart} onChange={setWeekStart} />
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <button
+              onClick={openRequests}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-white text-sm font-semibold transition-all"
+            >
+              <UserCheck className="w-4 h-4 text-amber-400" />
+              {t('pending_requests') || 'Zahtevi'}
+              <span className="inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-full bg-amber-400/15 text-amber-300 text-xs font-bold">
+                {reqCount}
+              </span>
+            </button>
+            <WeekSwitcher weekStart={weekStart} onChange={setWeekStart} />
+          </div>
         </div>
 
         {loading ? (
@@ -281,6 +351,77 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
           </>
         )}
       </div>
+
+      {/* CLIENT REQUESTS MODAL */}
+      {reqModal.open && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setReqModal(m => ({ ...m, open: false }))} />
+          <div className="relative w-full max-w-2xl bg-[#0a0a0f] border border-[#27273a] rounded-2xl shadow-2xl p-6 sm:p-8 overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-1 h-6 bg-gradient-to-b from-amber-400 to-amber-500 rounded-full" />
+                <h3 className="text-lg font-bold text-white uppercase tracking-wide">
+                  {t('pending_requests') || 'Zahtevi klijenata'}
+                </h3>
+              </div>
+              <button
+                className="text-slate-400 hover:text-white text-sm"
+                onClick={() => setReqModal(m => ({ ...m, open: false }))}
+              >
+                {t('close') || 'Zatvori'}
+              </button>
+            </div>
+
+            {reqModal.loading ? (
+              <div className="flex justify-center py-12">
+                <div className="w-10 h-10 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
+              </div>
+            ) : reqModal.items.length === 0 ? (
+              <div className="text-center py-10 text-slate-400 text-sm">
+                {t('no_pending_requests') || 'Nema novih zahteva.'}
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+                {reqModal.items.map((req) => (
+                  <div
+                    key={req.id}
+                    className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl bg-[#111118] border border-[#27273a]"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400 font-bold text-lg shrink-0">
+                      {req.clientName[0]?.toUpperCase() ?? "?"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-semibold">{req.clientName}</p>
+                      <p className="text-slate-400 text-sm break-all">{req.clientEmail}</p>
+                      <p className="text-slate-600 text-xs mt-1 uppercase tracking-wider">
+                        {new Date(req.createdAt).toLocaleDateString('sr-RS')}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <button
+                        disabled={reqModal.actionId === req.id}
+                        onClick={() => rejectReq(req.id)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-400/5 hover:bg-red-400/10 border border-red-400/15 text-red-400 text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50"
+                      >
+                        <XCircle className="w-4 h-4" />
+                        {t('reject') || 'Odbij'}
+                      </button>
+                      <button
+                        disabled={reqModal.actionId === req.id}
+                        onClick={() => approveReq(req.id)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-[#0a0a0f] text-xs font-bold uppercase tracking-wider transition-all btn-glow disabled:opacity-50"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        {t('approve') || 'Odobri'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <RateTermModal
         open={rateModal.open}

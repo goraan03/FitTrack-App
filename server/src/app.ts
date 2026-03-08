@@ -33,6 +33,9 @@ import { TrainerProgramsRepository } from './Database/repositories/trainer_progr
 import { InvoicesRepository } from './Database/repositories/invoice/InvoicesRepository';
 import { WorkoutRepository } from './Database/repositories/workout/WorkoutRepository';
 import { BackofficeController } from './WebAPI/controllers/BackofficeController'
+import { ClientRequestsRepository } from './Database/repositories/client_requests/ClientRequestsRepository';
+import { PlansRepository } from './Database/repositories/plans/PlansRepository';
+import { BillingJob } from './Services/billing_job/BillingJob';
 
 const app = express();
 
@@ -68,6 +71,8 @@ const emailService = new EmailService();
 const auditService = new AuditService(auditLogRepo);
 const trainerQueriesRepo = new TrainerQueriesRepository();
 const workoutRepo = new WorkoutRepository();
+const clientRequestsRepo = new ClientRequestsRepository();
+const plansRepo = new PlansRepository();
 const trainerService = new TrainerService(
   trainerQueriesRepo,
   trainingTermsRepo,
@@ -77,7 +82,9 @@ const trainerService = new TrainerService(
   exercisesRepo,
   trainerProgramsRepo,
   workoutRepo,
-  emailService
+  emailService,
+  plansRepo,
+  clientRequestsRepo
 );
 const trainerController = new TrainerController(trainerService);
 const publicContactController = new PublicContactController(emailService);
@@ -108,5 +115,14 @@ app.get ('/api/backoffice/trainers',          (req, res) => backofficeCtrl.getTr
 app.post('/api/backoffice/block',             (req, res) => backofficeCtrl.setBlock(req, res))
 app.get ('/api/backoffice/trainer/:id/status',(req, res) => backofficeCtrl.getTrainerStatus(req, res))
 app.get('/api/backoffice/metrics', (req, res) => backofficeCtrl.getMetrics(req, res))
+
+// ── Billing Cron ─────────────────────────────────────────────────────────────
+const billingJob = new BillingJob(emailService);
+billingJob.start();
+
+app.get('/api/dev/billing-job', async (req, res) => {
+  await billingJob.runTrialReminders();
+  res.json({ ok: true });
+});
 
 export default app;

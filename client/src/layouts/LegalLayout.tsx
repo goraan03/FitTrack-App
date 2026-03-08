@@ -9,7 +9,7 @@ type Props = {
 };
 
 export default function LegalLayout({
-  badge = "FitTrack Policies",
+  badge = "TrainoraX Policies",
   title,
   subtitle,
   children,

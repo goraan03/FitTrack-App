@@ -134,6 +134,31 @@ export type TrainerTermDetails = {
   enrolledClientName: string | null;
 };
 
+export interface PlanInfo {
+  id: number;
+  name: string;
+  max_clients: number;
+  price_eur: number;
+  tier: number;
+}
+
+export interface TrainerBillingStatus {
+  billing_status: 'trial' | 'active' | 'past_due' | 'suspended' | 'none';
+  trial_ends_at: string | null;
+  current_plan: PlanInfo | null;
+  pending_plan: PlanInfo | null;
+  client_count: number;
+  billing_customer_code: number | null;
+}
+
+export interface PendingRequest {
+  id: number;
+  clientId: number;
+  clientName: string;
+  clientEmail: string;
+  createdAt: string;
+}
+
 export interface ITrainerService {
   getDashboard(trainerId: number, weekStartISO?: string): Promise<TrainerDashboard>;
   getUnratedParticipants(trainerId: number, termId: number): Promise<{ termId: number; programTitle: string; participants: PendingParticipant[] }>;
@@ -168,4 +193,18 @@ export interface ITrainerService {
   getTermParticipants(termId: number): Promise<Array<{ userId: number; userName: string }>>;
   finishWorkout(trainerId: number, payload: any): Promise<number>;
   generateWorkoutPdf(trainerId: number, sessionId: number): Promise<{ pdfBuffer: Buffer, filename: string }>;
+
+  // --- Billing / Plans ---
+  listPlans(): Promise<PlanInfo[]>;
+  getBillingStatus(trainerId: number): Promise<TrainerBillingStatus>;
+  selectPlan(trainerId: number, planId: number): Promise<void>;
+  upgradePlan(trainerId: number, planId: number): Promise<void>;
+  downgradePlan(trainerId: number, planId: number): Promise<void>;
+
+  // --- Client Requests ---
+  listPendingRequests(trainerId: number): Promise<PendingRequest[]>;
+  approveRequest(trainerId: number, requestId: number): Promise<void>;
+  rejectRequest(trainerId: number, requestId: number): Promise<void>;
+  sendClientRequest(clientId: number, trainerId: number): Promise<void>;
+  getRequestStatus(clientId: number, trainerId: number): Promise<'pending' | 'approved' | 'rejected' | null>;
 }

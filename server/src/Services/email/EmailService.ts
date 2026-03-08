@@ -293,4 +293,72 @@ export class EmailService implements IEmailService {
       attachments: options.attachments,
     });
   }
+
+  async sendTrialReminder(
+    to: string, trainerName: string, trialEndsAt: Date, daysLeft: number
+  ): Promise<void> {
+    const subject = daysLeft === 1
+      ? 'FitTrack — Trial period ističe SUTRA'
+      : `FitTrack — Trial period ističe za ${daysLeft} dana`;
+
+    const endDateStr = trialEndsAt.toLocaleDateString('sr-RS');
+
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+        <div style="background:linear-gradient(135deg,#0a0a0a,#1a1a1a);padding:30px;text-align:center;">
+          <h1 style="color:#EAB308;margin:0;">⏳ Trial Period</h1>
+        </div>
+        <div style="background:#fff;padding:30px;border:1px solid #e5e5e5;">
+          <p style="color:#333;font-size:16px;">Pozdrav, <strong>${trainerName}</strong>!</p>
+          <p style="color:#666;">
+            Vaš besplatni trial period za <strong>FitTrack</strong> ističe
+            ${daysLeft === 1 ? '<strong>sutra</strong>' : `za <strong>${daysLeft} dana</strong>`}
+            — <strong>${endDateStr}</strong>.
+          </p>
+          <div style="background:#fefce8;border-left:4px solid #EAB308;padding:20px;margin:25px 0;">
+            <p style="color:#333;margin:0;">
+              Da biste nastavili da koristite FitTrack bez prekida, izaberite paket u aplikaciji.
+            </p>
+          </div>
+          <p style="color:#666;font-size:14px;">
+            Nakon isteka trial perioda, nećete moći da koristite platformu dok ne izaberete plan.
+          </p>
+        </div>
+        <div style="background:#f5f5f5;padding:20px;text-align:center;">
+          <p style="color:#999;font-size:12px;margin:0;">© ${new Date().getFullYear()} FitTrack</p>
+        </div>
+      </div>
+    `;
+
+    await this.transporter.sendMail({ from: this.from, to, subject, html });
+  }
+
+  async sendTrialExpired(to: string, trainerName: string): Promise<void> {
+    const subject = 'FitTrack — Vaš trial period je istekao';
+
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+        <div style="background:linear-gradient(135deg,#0a0a0a,#1a1a1a);padding:30px;text-align:center;">
+          <h1 style="color:#ef4444;margin:0;">🔒 Trial Istekao</h1>
+        </div>
+        <div style="background:#fff;padding:30px;border:1px solid #e5e5e5;">
+          <p style="color:#333;font-size:16px;">Pozdrav, <strong>${trainerName}</strong>!</p>
+          <p style="color:#666;">
+            Vaš besplatni trial period za <strong>FitTrack</strong> je istekao.
+          </p>
+          <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:20px;margin:25px 0;">
+            <p style="color:#333;margin:0;">
+              Da biste ponovo koristili platformu, prijavite se i izaberite odgovarajući paket.
+            </p>
+          </div>
+          <p style="color:#666;font-size:14px;">Vaši podaci i klijenti su sačuvani i čekaju vas.</p>
+        </div>
+        <div style="background:#f5f5f5;padding:20px;text-align:center;">
+          <p style="color:#999;font-size:12px;margin:0;">© ${new Date().getFullYear()} FitTrack</p>
+        </div>
+      </div>
+    `;
+
+    await this.transporter.sendMail({ from: this.from, to, subject, html });
+  }
 }

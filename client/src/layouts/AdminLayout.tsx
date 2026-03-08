@@ -53,7 +53,7 @@ export default function AdminLayout() {
               <div className="h-9 w-9 rounded-xl bg-yellow-500 text-black grid place-items-center shadow">
                 <ShieldCheck className="h-5 w-5" />
               </div>
-              <span className="text-xl font-bold text-yellow-300">FitTrack Admin</span>
+              <span className="text-xl font-bold text-yellow-300">TrainoraX Admin</span>
             </div>
           </div>
 
