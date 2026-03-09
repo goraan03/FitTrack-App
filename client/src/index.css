@@ -4,6 +4,14 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Prevent white flash before React mounts */
+body,
+#root {
+  background: #0a0a0f;
+  color: #fff;
+  min-height: 100vh;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -177,6 +185,28 @@ html {
 
 .stagger-5 {
   animation-delay: 0.5s;
+}
+
+/* Mobile perf tweaks: soften heavy blur/backdrop effects */
+@media (max-width: 768px) {
+  /* reduce expensive backdrops on nav/dialogs */
+  .backdrop-blur-xl,
+  .backdrop-blur-lg,
+  .backdrop-blur-md,
+  .backdrop-blur-sm {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  /* dial down giant glow blobs */
+  .blur-\[200px\] { filter: blur(120px) !important; }
+  .blur-\[180px\] { filter: blur(110px) !important; }
+  .blur-\[150px\] { filter: blur(90px) !important; }
+  .blur-\[120px\] { filter: blur(80px) !important; }
+  .blur-\[100px\] { filter: blur(70px) !important; }
+
+  /* smoother anchor jumps on low-end devices */
+  html { scroll-behavior: auto; }
 }
 
 /* ═══════════════════════════════════════════════
