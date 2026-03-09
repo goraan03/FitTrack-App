@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 320" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="120" y1="30" x2="300" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F6D85A"/>
+      <stop offset="55%" stop-color="#E8B91E"/>
+      <stop offset="100%" stop-color="#D59B08"/>
+    </linearGradient>
+
+    <linearGradient id="steel" x1="210" y1="130" x2="210" y2="260" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#B8C0CC"/>
+      <stop offset="55%" stop-color="#667085"/>
+      <stop offset="100%" stop-color="#273142"/>
+    </linearGradient>
+
+    <linearGradient id="bar" x1="70" y1="190" x2="350" y2="190" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#243041"/>
+      <stop offset="50%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#243041"/>
+    </linearGradient>
+
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- arc -->
+  <path d="M64 152C88 89 145 45 214 35" stroke="url(#gold)" stroke-width="30" stroke-linecap="butt" stroke-dasharray="70 16 42 12" filter="url(#glow)"/>
+  <path d="M222 34C245 31 269 32 291 36" stroke="url(#gold)" stroke-width="30" stroke-linecap="butt" filter="url(#glow)"/>
+  <path d="M332 66L354 88" stroke="url(#gold)" stroke-width="24" stroke-linecap="butt" filter="url(#glow)"/>
+
+  <!-- dark arc pieces -->
+  <path d="M58 160C81 104 130 62 187 42" stroke="#253142" stroke-width="30" stroke-linecap="butt" stroke-dasharray="64 18 38 18"/>
+
+  <!-- dumbbell -->
+  <rect x="108" y="182" width="204" height="14" rx="3" fill="url(#bar)"/>
+
+  <rect x="90" y="170" width="14" height="40" rx="2" fill="url(#steel)"/>
+  <rect x="108" y="142" width="20" height="96" rx="2" fill="url(#steel)"/>
+  <rect x="130" y="126" width="30" height="126" rx="2" fill="url(#steel)"/>
+
+  <rect x="316" y="170" width="14" height="40" rx="2" fill="url(#steel)"/>
+  <rect x="292" y="142" width="20" height="96" rx="2" fill="url(#steel)"/>
+  <rect x="260" y="126" width="30" height="126" rx="2" fill="url(#steel)"/>
+
+  <!-- T -->
+  <path d="M156 132H296L233 153L218 225L189 206L201 157H149L156 132Z" fill="url(#gold)" filter="url(#glow)"/>
+</svg>

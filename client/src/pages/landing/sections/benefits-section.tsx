@@ -27,7 +27,7 @@ export function BenefitsSection() {
           </h2>
 
           <p className="max-w-2xl mx-auto text-lg text-slate-400 text-pretty">
-            TrainoraX isn&apos;t just fitness trainer software—it&apos;s your competitive advantage. Here&apos;s what trainers experience when they switch to our client
+            TrainMeter isn&apos;t just fitness trainer software—it&apos;s your competitive advantage. Here&apos;s what trainers experience when they switch to our client
             tracking software.
           </p>
         </div>

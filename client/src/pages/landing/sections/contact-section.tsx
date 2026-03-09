@@ -70,8 +70,8 @@ export function ContactSection() {
 
           <div className="mt-8 flex items-center justify-center gap-3 px-6 py-3 rounded-2xl bg-[#111118] border border-[#27273a] text-sm w-fit mx-auto">
             <Mail className="h-4 w-4 text-amber-400" />
-            <a href="mailto:trainoraxappsupp@gmail.com" className="font-bold text-slate-300 hover:text-amber-400 transition-colors">
-              trainoraxappsupp@gmail.com
+            <a href="mailto:trainmeterappsupp@gmail.com" className="font-bold text-slate-300 hover:text-amber-400 transition-colors">
+              trainmeterappsupp@gmail.com
             </a>
           </div>
         </div>
@@ -91,7 +91,7 @@ export function ContactSection() {
             />
             <InfoCard
               title="Customization"
-              desc="Want to adapt TrainoraX to your specific gym or studio needs?"
+              desc="Want to adapt TrainMeter to your specific gym or studio needs?"
               icon={<Activity className="w-5 h-5 text-cyan-400" />}
               borderColor="border-cyan-400/20"
             />

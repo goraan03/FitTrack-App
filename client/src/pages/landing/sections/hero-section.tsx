@@ -24,7 +24,7 @@ export function HeroSection() {
       <div className="relative z-10 max-w-7xl mx-auto">
         <div className="text-center">
           <div className="inline-flex items-center gap-3 rounded-full border border-amber-400/30 bg-[#0a0a0f]/80 px-4 py-2 mb-8 backdrop-blur-sm animate-fade-in-up shadow-[0_0_20px_rgba(251,191,36,0.12)]">
-            <img src="/images/trainorax-icon.svg" alt="TrainoraX badge" className="h-7 w-7 rounded-lg" loading="lazy" />
+            <img src="/images/trainmeter-icon.svg" alt="TrainMeter badge" className="h-7 w-7 rounded-lg" loading="lazy" />
             <span className="text-xs font-semibold text-amber-400 tracking-wide">#1 Personal Trainer Software</span>
           </div>
 
@@ -104,7 +104,7 @@ export function HeroSection() {
                 <div className="w-3 h-3 rounded-full bg-green-500/50" />
               </div>
               <div className="flex-1 flex justify-center">
-                <div className="px-4 py-1 rounded-md bg-white/5 text-xs text-slate-500 font-medium">app.trainorax.io</div>
+                <div className="px-4 py-1 rounded-md bg-white/5 text-xs text-slate-500 font-medium">app.trainmeter.io</div>
               </div>
             </div>
             <div className="p-6 bg-gradient-to-b from-[#111118] to-[#0a0a0f]">

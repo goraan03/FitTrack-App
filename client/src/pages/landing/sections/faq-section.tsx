@@ -57,7 +57,7 @@ export function FAQSection() {
           </h2>
 
           <p className="max-w-2xl mx-auto text-lg text-slate-400 text-pretty">
-            Everything you need to know about TrainoraX. Can&apos;t find what you&apos;re looking for? Contact our support team.
+            Everything you need to know about TrainMeter. Can&apos;t find what you&apos;re looking for? Contact our support team.
           </p>
         </div>
 

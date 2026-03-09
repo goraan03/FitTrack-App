@@ -9,7 +9,7 @@ export function SeoIntroSection() {
         <div className="text-center">
           <div className="prose prose-invert max-w-none">
             <p className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-8 text-pretty">
-              <strong className="text-white">TrainoraX</strong> is the leading <span className="text-amber-400">personal trainer software</span> designed to
+              <strong className="text-white">TrainMeter</strong> is the leading <span className="text-amber-400">personal trainer software</span> designed to
               help fitness professionals streamline their coaching business. Our comprehensive <span className="text-amber-400">fitness coaching platform</span> provides
               everything you need for efficient <span className="text-cyan-400">client management for trainers</span>, from organizing your workout programs to tracking client
               progress in real-time.
@@ -18,7 +18,7 @@ export function SeoIntroSection() {
             <p className="text-base sm:text-lg text-slate-400 leading-relaxed text-pretty">
               With our powerful <span className="text-cyan-400">trainer scheduling software</span>, you can automate bookings, send reminders, and manage your entire
               client roster from one intuitive dashboard. Whether you&apos;re an independent personal trainer, a fitness coach working at a gym, or running your own
-              training studio, TrainoraX&apos;s <span className="text-amber-400">coaching management platform</span> gives you the tools to save time, stay organized, and grow your
+              training studio, TrainMeter&apos;s <span className="text-amber-400">coaching management platform</span> gives you the tools to save time, stay organized, and grow your
               business. Our <span className="text-cyan-400">client tracking software for trainers</span> makes it easy to monitor progress and deliver results.
             </p>
           </div>

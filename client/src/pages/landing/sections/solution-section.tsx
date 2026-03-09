@@ -30,7 +30,7 @@ export function SolutionSection() {
           </h2>
 
           <p className="max-w-2xl mx-auto text-lg text-slate-400 text-pretty">
-            TrainoraX replaces the chaos with clarity. Everything you need to manage clients, deliver programs, and grow your business—in one
+            TrainMeter replaces the chaos with clarity. Everything you need to manage clients, deliver programs, and grow your business—in one
             beautiful platform.
           </p>
         </div>
@@ -41,7 +41,7 @@ export function SolutionSection() {
               <div className="sticky top-24">
                 <div className="inline-flex items-center gap-2 mb-6">
                   <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Before TrainoraX</span>
+                  <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Before TrainMeter</span>
                 </div>
                 <div className="space-y-4">
                   {solutions.map((item, index) => (
@@ -60,7 +60,7 @@ export function SolutionSection() {
               <div className="sticky top-24">
                 <div className="inline-flex items-center gap-2 mb-6">
                   <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                  <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider">With TrainoraX</span>
+                  <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider">With TrainMeter</span>
                 </div>
                 <div className="space-y-4">
                   {solutions.map((item, index) => (

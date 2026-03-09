@@ -175,7 +175,7 @@ export default function ForgotPasswordPage({ authApi }: Props) {
                 </div>
 
                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                  TrainoraX
+                  TrainMeter
                 </div>
 
                 <h1 className="mt-2 text-2xl font-bold uppercase tracking-wide text-white">

@@ -51,25 +51,25 @@ export function Navigation() {
             href="#top"
             onClick={handleNavClick('#top')}
             className="flex items-center shrink-0"
-            aria-label="TrainoraX - Go to homepage"
+            aria-label="TrainMeter - Go to homepage"
           >
             {/* Mobile: icon only */}
             <div className="flex lg:hidden items-center gap-2">
               <img
-                src="/images/trainorax-icon.svg"
-                alt="TrainoraX"
+                src="/images/trainmeter-icon.svg"
+                alt="TrainMeter"
                 className="h-8 w-8 object-contain"
                 loading="eager"
               />
               <span className="text-base font-bold text-white tracking-wide">
-                TrainoraX
+                TrainMeter
               </span>
             </div>
 
             {/* Desktop: full logo */}
             <img
-              src="/images/trainorax-logo.svg"
-              alt="TrainoraX"
+              src="/images/trainmeter-logo.svg"
+              alt="TrainMeter"
               className="hidden lg:block h-10 w-auto object-contain"
               loading="eager"
             />

@@ -12,7 +12,7 @@ export default function Footer() {
           
           {/* Brand & Info */}
           <div className="md:col-span-1 space-y-4">
-            <Brand text="TrainoraX" />
+            <Brand text="TrainMeter" />
             <p className="text-xs text-slate-500 font-medium leading-relaxed uppercase tracking-tight">
               Premium management platform for elite trainers and dedicated clients. 
               Built for performance.
@@ -20,7 +20,7 @@ export default function Footer() {
             <div className="flex items-center gap-3">
               <SocialLink icon={<Instagram size={16} />} href="#" />
               <SocialLink icon={<Twitter size={16} />} href="#" />
-              <SocialLink icon={<Mail size={16} />} href="mailto:trainoraxappsupp@gmail.com" />
+              <SocialLink icon={<Mail size={16} />} href="mailto:trainmeterappsupp@gmail.com" />
             </div>
           </div>
 
@@ -61,7 +61,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-[#27273a] flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-            <span>© {currentYear} TRAINORAX APP</span>
+            <span>© {currentYear} TRAINMETER APP</span>
             <span className="text-slate-800">|</span>
             <span>ALL RIGHTS RESERVED</span>
           </div>

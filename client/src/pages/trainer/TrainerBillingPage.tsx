@@ -353,7 +353,7 @@ export default function TrainerBillingPage({ trainerApi }: Props) {
           <div className="mt-8 bg-red-400/5 border border-red-400/15 rounded-2xl p-8 text-center">
             <XCircle className="w-12 h-12 mx-auto mb-4 text-red-400" />
             <p className="text-red-300 font-bold text-lg mb-2">Nalog nije aktivan</p>
-            <p className="text-slate-400 text-sm">Odaberi paket da nastaviš koristiti TrainoraX.</p>
+            <p className="text-slate-400 text-sm">Odaberi paket da nastaviš koristiti TrainMeter.</p>
           </div>
         )}
       </div>

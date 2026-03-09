@@ -9,7 +9,7 @@ type Props = {
 };
 
 export default function LegalLayout({
-  badge = "TrainoraX Policies",
+  badge = "TrainMeter Policies",
   title,
   subtitle,
   children,

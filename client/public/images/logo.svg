@@ -1,0 +1,19 @@
+<svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="yellow_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" /> <stop offset="100%" stop-color="#f59e0b" /> </linearGradient>
+    <linearGradient id="dark_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#475569" /> <stop offset="100%" stop-color="#1e293b" /> </linearGradient>
+  </defs>
+
+  <path d="M120 340C100 280 100 200 150 140C200 80 300 60 380 90C460 120 480 200 460 280" 
+        stroke="url(#dark_grad)" stroke-width="25" stroke-linecap="round" stroke-dasharray="70 25"/>
+  <path d="M160 140C200 90 300 70 380 110C450 140 460 210 440 280" 
+        stroke="url(#yellow_grad)" stroke-width="30" stroke-linecap="round" stroke-dasharray="90 30"/>
+
+  <path d="M190 200H390L370 230H290L280 360L240 360L250 230H190L190 200Z" fill="white" />
+  <path d="M290 200L390 200L320 230H290L280 360L265 360L275 230H290V200Z" fill="url(#yellow_grad)" />
+
+  <rect x="150" y="270" width="20" height="70" rx="3" fill="#64748b" /> <rect x="180" y="260" width="20" height="90" rx="3" fill="#475569" /> <rect x="300" y="260" width="20" height="90" rx="3" fill="#475569" />
+  <rect x="330" y="270" width="20" height="70" rx="3" fill="#64748b" />
+  <rect x="140" y="300" width="220" height="10" rx="2" fill="#1e293b" /> </svg>

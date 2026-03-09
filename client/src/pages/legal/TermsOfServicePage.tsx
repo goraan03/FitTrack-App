@@ -16,7 +16,7 @@ export default function TermsOfServicePage() {
       <Meta t={t} />
 
       <LegalSection title={t('terms_sec1_title') || "1. Agreement"}>
-        <p>{t('terms_sec1_desc') || "By accessing or using TrainoraX, you agree to these Terms of Service and any applicable laws. If you do not agree, do not use the platform."}</p>
+        <p>{t('terms_sec1_desc') || "By accessing or using TrainMeter, you agree to these Terms of Service and any applicable laws. If you do not agree, do not use the platform."}</p>
       </LegalSection>
 
       <LegalSection title={t('terms_sec2_title') || "2. Accounts & Access"}>
@@ -37,7 +37,7 @@ export default function TermsOfServicePage() {
       </LegalSection>
 
       <LegalSection title={t('terms_sec4_title') || "4. Training Disclaimer"}>
-        <p>{t('terms_sec4_desc') || "TrainoraX is a management platform. Training programs and coaching decisions are the responsibility of trainers and clients. Always follow professional guidance and prioritize safety."}</p>
+        <p>{t('terms_sec4_desc') || "TrainMeter is a management platform. Training programs and coaching decisions are the responsibility of trainers and clients. Always follow professional guidance and prioritize safety."}</p>
       </LegalSection>
 
       <LegalSection title={t('terms_sec5_title') || "5. Availability"}>
@@ -45,7 +45,7 @@ export default function TermsOfServicePage() {
       </LegalSection>
 
       <LegalSection title={t('terms_sec6_title') || "6. Limitation of Liability"}>
-        <p>{t('terms_sec6_desc') || "To the extent permitted by law, TrainoraX is not liable for indirect damages or losses arising from the use of the platform, including business decisions or training outcomes."}</p>
+        <p>{t('terms_sec6_desc') || "To the extent permitted by law, TrainMeter is not liable for indirect damages or losses arising from the use of the platform, including business decisions or training outcomes."}</p>
       </LegalSection>
 
       <LegalSection title={t('terms_sec7_title') || "7. Changes to Terms"}>

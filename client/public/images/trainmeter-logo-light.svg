@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 200" role="img" aria-label="TrainoraX logo light">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 200" role="img" aria-label="TrainMeter logo light">
   <g transform="translate(20,20)">
     <!-- Blue X -->
     <path d="M40 145 L102 83 L126 83 L64 145 Z" fill="#2563EB"/>
@@ -14,5 +14,5 @@
         font-size="76"
         font-weight="700"
         letter-spacing="-1.5"
-        fill="#0F172A">TrainoraX</text>
+        fill="#0F172A">TrainMeter</text>
 </svg>

@@ -159,7 +159,7 @@ const translations: Record<Language, Record<string, string>> = {
         client_signup_note: "Only clients register here. Trainer accounts are created via the contact form and admin verification.",
         // Landing Page
         landing_badge: "Training Management Platform",
-        fittrack_dashboard: "TRAINORAX DASHBOARD",
+        fittrack_dashboard: "TRAINMETER DASHBOARD",
         landing_subtitle: "Stay aligned — sessions, programs, and progress in one place.",
         landing_desc: "A clean workflow for scheduling, program delivery, and tracking performance — built for real training businesses.",
         create_client_account: "Create Client Account",
@@ -182,11 +182,11 @@ const translations: Record<Language, Record<string, string>> = {
         feat_progress_desc: "See trends over time, collect feedback, and make coaching decisions based on real signals — not guesswork.",
 
         // About Page
-        mission_badge: "The Mission Behind TrainoraX",
-        about_title: "ABOUT TRAINORAX",
-        about_desc: "TrainoraX is a premium web platform designed for personal trainers, gyms and online coaches. Our mission is to simplify your daily workflow: from scheduling sessions to delivering structured programs — eliminating administrative clutter so you can focus on the grind.",
+        mission_badge: "The Mission Behind TrainMeter",
+        about_title: "ABOUT TRAINMETER",
+        about_desc: "TrainMeter is a premium web platform designed for personal trainers, gyms and online coaches. Our mission is to simplify your daily workflow: from scheduling sessions to delivering structured programs — eliminating administrative clutter so you can focus on the grind.",
         for_trainers: "For Trainers",
-        for_trainers_p1: "TrainoraX allows you to maintain complete records of your professional work in one place. Easily create and organize training sessions, personalized programs, and specific exercises for each client, complete with video demonstrations.",
+        for_trainers_p1: "TrainMeter allows you to maintain complete records of your professional work in one place. Easily create and organize training sessions, personalized programs, and specific exercises for each client, complete with video demonstrations.",
         for_trainers_p2: "After every session, you can leave ratings and feedback, giving your clients a crystal-clear view of their progress. Our goal is to lift the administrative burden off your shoulders.",
         for_clients: "For Clients",
         for_clients_p1: "As a client, you get a clear overview of all your programs and exercises prepared by your trainer, including detailed descriptions and video guides. Book your sessions directly through the app based on your trainer's availability.",
@@ -205,7 +205,7 @@ const translations: Record<Language, Record<string, string>> = {
         terms_of_service_title: "TERMS OF SERVICE",
         terms_subtitle: "These terms define how the platform can be used and what users can expect from the service.",
         terms_sec1_title: "1. Agreement",
-        terms_sec1_desc: "By accessing or using TrainoraX, you agree to these Terms of Service and any applicable laws. If you do not agree, do not use the platform.",
+        terms_sec1_desc: "By accessing or using TrainMeter, you agree to these Terms of Service and any applicable laws. If you do not agree, do not use the platform.",
         terms_sec2_title: "2. Accounts & Access",
         terms_sec2_li1: "Clients can self-register.",
         terms_sec2_li2: "Trainer accounts are created and managed by an administrator.",
@@ -216,11 +216,11 @@ const translations: Record<Language, Record<string, string>> = {
         terms_sec3_li2: "Attempt to access other accounts or restricted data.",
         terms_sec3_li3: "Upload malicious content or disrupt service availability.",
         terms_sec4_title: "4. Training Disclaimer",
-        terms_sec4_desc: "TrainoraX is a management platform. Training programs and coaching decisions are the responsibility of trainers and clients. Always follow professional guidance and prioritize safety.",
+        terms_sec4_desc: "TrainMeter is a management platform. Training programs and coaching decisions are the responsibility of trainers and clients. Always follow professional guidance and prioritize safety.",
         terms_sec5_title: "5. Availability",
         terms_sec5_desc: "We aim for reliable service, but availability can be affected by maintenance, updates, or technical issues. We may modify or discontinue features to improve the platform.",
         terms_sec6_title: "6. Limitation of Liability",
-        terms_sec6_desc: "To the extent permitted by law, TrainoraX is not liable for indirect damages or losses arising from the use of the platform, including business decisions or training outcomes.",
+        terms_sec6_desc: "To the extent permitted by law, TrainMeter is not liable for indirect damages or losses arising from the use of the platform, including business decisions or training outcomes.",
         terms_sec7_title: "7. Changes to Terms",
         terms_sec7_desc: "We may update these terms. Continued use after updates means you accept the revised terms.",
         terms_sec8_title: "8. Contact",
@@ -275,7 +275,7 @@ const translations: Record<Language, Record<string, string>> = {
         trainer_onboarding: "Trainer Onboarding",
         trainer_onboarding_desc: "Official trainer accounts are manually created by admins to ensure quality.",
         customization: "Customization",
-        customization_desc: "Want to adapt TrainoraX to your specific gym or studio needs?",
+        customization_desc: "Want to adapt TrainMeter to your specific gym or studio needs?",
         full_name: "Full Name",
         email_address: "Email Address",
         your_message: "Your Message",
@@ -1620,16 +1620,16 @@ const translations: Record<Language, Record<string, string>> = {
 };
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [theme, setThemeState] = useState<Theme>((localStorage.getItem('trainorax-theme') as Theme) || 'dark');
-    const [language, setLanguageState] = useState<Language>((localStorage.getItem('trainorax-lang') as Language) || 'English');
+    const [theme, setThemeState] = useState<Theme>((localStorage.getItem('trainmeter-theme') as Theme) || 'dark');
+    const [language, setLanguageState] = useState<Language>((localStorage.getItem('trainmeter-lang') as Language) || 'English');
 
     useEffect(() => {
         document.documentElement.className = theme;
-        localStorage.setItem('trainorax-theme', theme);
+        localStorage.setItem('trainmeter-theme', theme);
     }, [theme]);
 
     useEffect(() => {
-        localStorage.setItem('trainorax-lang', language);
+        localStorage.setItem('trainmeter-lang', language);
     }, [language]);
 
     const setTheme = (t: Theme) => setThemeState(t);
