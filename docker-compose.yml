@@ -6,7 +6,7 @@ services:
   # =========================
   mysql:
     image: mysql:8.0
-    container_name: fittrack-mysql
+    container_name: trainmeter-db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -18,7 +18,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - fittrack-network
+      - trainmeter-network
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 10s
@@ -33,7 +33,7 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
-    container_name: fittrack-server
+    container_name: trainmeter-api
     restart: unless-stopped
     ports:
       - "4000:4000"
@@ -51,14 +51,17 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       SALT_ROUNDS: ${SALT_ROUNDS}
 
-      SMTP_HOST: smtp.gmail.com
-      SMTP_PORT: 465
-      SMTP_SECURE: "true"
-      SMTP_USER: fittrackappsupp@gmail.com
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
-      EMAIL_FROM: "Fitness App <fittrackappsupp@gmail.com>"
-      TEST_EMAIL: fittrackappsupp@mail.com
-      CONTACT_EMAIL: fittrackappsupp@gmail.com
+      EMAIL_FROM: ${EMAIL_FROM}
+      TEST_EMAIL: ${EMAIL_TEST}
+      CONTACT_EMAIL: ${CONTACT_EMAIL}
+      BACKOFFICE_API_KEY: ${BACKOFFICE_API_KEY}
+      BACKOFFICE_URL: ${BACKOFFICE_URL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
     depends_on:
       mysql:
         condition: service_healthy
@@ -66,7 +69,7 @@ services:
       - ./server/invoices:/app/invoices
       - ./server/logs:/app/logs
     networks:
-      - fittrack-network
+      - trainmeter-network
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:4000/health || exit 1"]
       interval: 30s
@@ -91,11 +94,11 @@ services:
       server:
         condition: service_started
     networks:
-      - fittrack-network
+      - trainmeter-network
 
 volumes:
   mysql_data:
 
 networks:
-  fittrack-network:
+  trainmeter-network:
     driver: bridge
