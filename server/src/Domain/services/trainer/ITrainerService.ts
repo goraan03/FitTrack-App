@@ -188,7 +188,7 @@ export interface ITrainerService {
 
   // Terms
   listTerms(trainerId: number, from?: Date, to?: Date): Promise<TrainerTermDetails[]>;
-  createTerm(trainerId: number, dto: { programId?: number | null; type: 'individual' | 'group'; startAt: Date; durationMin: number; capacity: number }): Promise<number>;
+  createTerm(trainerId: number, dto: { programId?: number | null; clientId?: number | null; type: 'individual' | 'group'; startAt: Date; durationMin: number; capacity: number }): Promise<number>;
   setTermProgram(trainerId: number, termId: number, programId: number): Promise<void>;
   getTermParticipants(termId: number): Promise<Array<{ userId: number; userName: string }>>;
   finishWorkout(trainerId: number, payload: any): Promise<number>;

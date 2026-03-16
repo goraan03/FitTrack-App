@@ -6,7 +6,6 @@ export type ProgramListItem = {
   level: Level;
   isPublic: boolean;
   assignedClientIds?: number[];
-  
 };
 
 export type ProgramExerciseItem = {

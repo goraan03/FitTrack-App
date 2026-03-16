@@ -157,7 +157,7 @@ export default function TrainerClientsPage({ trainerApi }: { trainerApi: ITraine
             </div>
             <div>
               <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
-                {t('clients').toUpperCase()} <span className="text-amber-400">{t('all_clients').split(' ')[0].toUpperCase()}</span>
+                <span className="text-amber-400">{t('all_clients').split(' ')[0].toUpperCase()}</span> {t('clients').toUpperCase()}
               </h1>
               <p className="text-slate-400 text-sm tracking-wide uppercase">
                 {t('search_clients').replace('...', '')}

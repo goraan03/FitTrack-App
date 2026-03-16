@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import type { ProgramListItem, ProgramDetails, ProgramExerciseItem, UpsertProgram } from "../../types/trainer/Program";
-import type { Exercise } from "../../types/trainer/Exercise";
+import type { Exercise, MuscleGroup } from "../../types/trainer/Exercise";
 import type { TrainerClient } from "../../types/trainer/TrainerClient";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
 import {
@@ -24,6 +24,7 @@ interface TrainerProgramsPageProps { trainerApi: ITrainerAPIService; }
 
 type DraftItem = Omit<ProgramExerciseItem, "name">;
 const emptyProgram: UpsertProgram = { title: "", description: "", level: "beginner", isPublic: false };
+const groups: MuscleGroup[] = ['full_body', 'chest', 'back', 'legs', 'shoulders', 'arms', 'core', 'cardio', 'mobility'];
 
 export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageProps) {
   const { t } = useSettings();
@@ -42,6 +43,8 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
 
   const [draft, setDraft] = useState<DraftItem[]>([]);
   const [chosenExercise, setChosenExercise] = useState<number | "">("");
+  const [exerciseSearch,] = useState("");
+  const [exerciseGroup, setExerciseGroup] = useState<MuscleGroup | "">("");
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignClientId, setAssignClientId] = useState<number | "">("");
@@ -87,6 +90,15 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
     if (selected) { loadDetails(selected); }
     else { setDetails(null); setDraft([]); setForm(emptyProgram); }
   }, [selected]);
+
+  const filteredExercises = useMemo(() => {
+    const q = exerciseSearch.trim().toLowerCase();
+    return exercises.filter((e) => {
+      const matchesSearch = !q || e.name.toLowerCase().includes(q);
+      const matchesGroup = !exerciseGroup || e.muscleGroup === exerciseGroup;
+      return matchesSearch && matchesGroup;
+    });
+  }, [exercises, exerciseSearch, exerciseGroup]);
 
   // Client Filter & Search Logic
   const filteredPrograms = useMemo(() => {
@@ -192,7 +204,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
 
       <div className="max-w-7xl mx-auto opacity-0 animate-fade-in-up">
         {/* HEADER */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10 opacity-0 animate-fade-in-up">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-10 opacity-0 animate-fade-in-up">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-[#111118] border border-[#27273a] flex items-center justify-center">
               <Layout className="w-6 h-6 text-amber-400" />
@@ -207,61 +219,37 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
             </div>
           </div>
 
-          {/* Desktop only: assign button stays up here */}
-          {selected && (
-            <button
-              onClick={() => setShowAssignModal(true)}
-              className="
-              hidden lg:flex
-              px-5 py-3 rounded-xl
-              bg-cyan-500/10 hover:bg-cyan-500/15
-              border border-cyan-500/20
-              text-cyan-300 hover:text-white
-              font-semibold text-sm
-              transition-all
-              items-center justify-center gap-2
-            "
-            >
-              <Users className="w-4 h-4" />
-              {t('assign_to_client').toUpperCase()}
-            </button>
-          )}
-        </div>
-
-        {/* ========================= */}
-        {/* MOBILE (default list only) */}
-        {/* ========================= */}
-        <div className="lg:hidden space-y-4">
-          {/* Search & Filter + Create */}
-          <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-4 shadow-[0_18px_60px_rgba(0,0,0,0.35)] space-y-3 opacity-0 animate-fade-in-up stagger-1">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+            {/* Search */}
+            <div className="relative w-full sm:w-[240px]">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 type="text"
-                placeholder={t('search_programs')}
+                placeholder={t('Search Programs')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="
-                w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl
-                py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-500
-                focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-              "
+                  w-full bg-[#111118] border border-[#27273a] rounded-xl
+                  py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-500
+                  focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                "
               />
             </div>
 
-            <div className="relative">
+            {/* Filter */}
+            <div className="relative w-full sm:w-[180px]">
               <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <select
                 value={filterClientId}
                 onChange={(e) => setFilterClientId(e.target.value as any)}
                 className="
-                w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl
-                py-3 pl-11 pr-4 text-sm text-white
-                focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                appearance-none cursor-pointer
-              "
+                  w-full bg-[#111118] border border-[#27273a] rounded-xl
+                  py-3 pl-11 pr-4 text-sm text-white
+                  focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                  appearance-none cursor-pointer
+                "
               >
-                <option value="">{t('all_clients')}</option>
+                <option value="">{t('All Clients')}</option>
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.firstName} {c.lastName}
@@ -270,23 +258,30 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
               </select>
             </div>
 
+            {/* Create Button (Desktop/Mobile unified) */}
             <button
               onClick={() => {
                 setSelected(null);
-                setMobileEditorOpen(true);
+                if (window.innerWidth < 1024) setMobileEditorOpen(true);
               }}
               className="
-              w-full py-3 rounded-xl
-              btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600
-              text-[#0a0a0f] font-semibold
-              transition-all active:scale-[0.99]
-              flex items-center justify-center gap-2
-            "
+                w-full sm:w-auto px-5 py-3 rounded-xl
+                btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600
+                text-[#0a0a0f] font-bold text-sm
+                transition-all active:scale-[0.99]
+                flex items-center justify-center gap-2
+              "
             >
               <Plus className="w-4 h-4" />
               {t('create_program').toUpperCase()}
             </button>
           </div>
+        </div>
+
+        {/* ========================= */}
+        {/* MOBILE (default list only) */}
+        {/* ========================= */}
+        <div className="lg:hidden space-y-4">
 
           {/* Programs list */}
           <div className="bg-[#111118] border border-[#27273a] rounded-2xl shadow-[0_18px_60px_rgba(0,0,0,0.35)] p-3 custom-scrollbar space-y-2 opacity-0 animate-fade-in-up stagger-2">
@@ -323,46 +318,31 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
 
           {/* Mobile editor modal (opens on + or program click) */}
           {mobileEditorOpen && (
-            <div className="fixed inset-0 z-[120]">
-              {/* overlay */}
-              <div
-                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-                onMouseDown={() => setMobileEditorOpen(false)}
-              />
-              {/* sheet */}
-              <div
-                className="
-                absolute inset-x-0 bottom-0
-                max-h-[92vh] overflow-y-auto
-                rounded-t-3xl
-                border-t border-[#27273a]
-                bg-[#0a0a0f]
-                shadow-[0_-30px_80px_rgba(0,0,0,0.8)]
-                opacity-0 animate-fade-in-up
-              "
-                onMouseDown={(e) => e.stopPropagation()}
-              >
-                {/* sheet header */}
-                <div className="sticky top-0 z-10 bg-[#0a0a0f] border-b border-white/5 px-5 py-4 flex items-center justify-between">
+            <div className="fixed inset-0 z-[150] flex items-start justify-center p-0 sm:p-4 overflow-y-auto">
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setMobileEditorOpen(false)} />
+
+              <div className="relative w-full max-w-xl max-h-screen sm:max-h-[92vh] mt-0 sm:mt-[2vh] mb-0 sm:mb-8 overflow-y-auto rounded-none sm:rounded-3xl border-0 sm:border border-[#27273a] bg-[#0a0a0f] shadow-[0_30px_100px_rgba(0,0,0,0.9)] opacity-0 animate-scale-in">
+                {/* modal header */}
+                <div className="sticky top-0 z-10 bg-[#0a0a0f]/80 backdrop-blur-md border-b border-white/5 px-6 py-5 flex items-center justify-between">
                   <div>
-                    <div className="text-xs uppercase tracking-widest text-slate-500 font-semibold">
-                      {selected ? t('edit') + " " + t('program').toLowerCase() : t('create_program')}
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-amber-400/80 font-bold mb-1">
+                      {selected ? t('edit_program').toUpperCase() : t('create_program').toUpperCase()}
                     </div>
-                    <div className="text-base font-semibold text-white">
-                      {form.title?.trim() ? form.title : selected ? t('program') : t('new_program')}
+                    <div className="text-lg font-bold text-white truncate max-w-[200px] sm:max-w-md">
+                      {form.title?.trim() ? form.title : selected ? t('program') : t('New Program')}
                     </div>
                   </div>
 
                   <button
-                    className="w-10 h-10 rounded-xl border border-[#27273a] text-slate-400 hover:text-white hover:bg-white/5 transition"
+                    className="w-10 h-10 rounded-xl bg-white/5 border border-[#27273a] text-slate-400 hover:text-white hover:bg-white/10 transition flex items-center justify-center"
                     onClick={() => setMobileEditorOpen(false)}
                     aria-label="Close editor"
                   >
-                    <X className="w-5 h-5 mx-auto" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="p-5 space-y-6">
+                <div className="p-6 space-y-8">
                   {/* Assigned Clients (mobile too) */}
                   {selected && details && (
                     <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-2xl p-5 flex items-start justify-between gap-4">
@@ -371,7 +351,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                           <UserCheck className="w-5 h-5 text-cyan-300" />
                         </div>
                         <div>
-                          <h3 className="text-xs font-semibold uppercase tracking-widest text-cyan-300">
+                          <h3 className="text-[10px] font-bold uppercase tracking-widest text-cyan-300">
                             {t('assigned_to')}
                           </h3>
                           <p className="text-sm font-semibold text-white mt-1">
@@ -384,124 +364,145 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
 
                       <button
                         onClick={() => setShowAssignModal(true)}
-                        className="text-xs font-semibold uppercase tracking-widest text-cyan-300 hover:text-white transition-colors whitespace-nowrap"
+                        className="text-xs font-bold uppercase tracking-widest text-cyan-400 hover:text-cyan-300 transition-colors whitespace-nowrap"
                       >
-                        + {t('add_more')}
+                        + {t('Add More')}
                       </button>
                     </div>
                   )}
 
-                  {/* Editor card */}
-                  <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-5 shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
-                    <div className="space-y-5">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
-                            {t('title')}
-                          </label>
-                          <input
-                            value={form.title}
-                            onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                            className="
-                            w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-white
-                            focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                          "
-                          />
-                        </div>
+                  {/* Editor Details */}
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">
+                          {t('title')}
+                        </label>
+                        <input
+                          value={form.title}
+                          onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                          className="
+                          w-full bg-[#111118] border border-[#27273a] rounded-xl px-4 py-3.5 text-white
+                          focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                          transition-all
+                        "
+                        />
+                      </div>
 
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
-                            {t('difficulty')}
-                          </label>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">
+                          {t('difficulty')}
+                        </label>
+                        <div className="relative">
                           <select
                             value={form.level}
                             onChange={(e) => setForm((f) => ({ ...f, level: e.target.value as any }))}
                             className="
-                            w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-white
+                            w-full bg-[#111118] border border-[#27273a] rounded-xl px-4 py-3.5 text-white
                             focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                            appearance-none cursor-pointer
+                            appearance-none cursor-pointer text-sm
                           "
                           >
                             <option value="beginner">{t('beginner')}</option>
                             <option value="intermediate">{t('intermediate')}</option>
                             <option value="advanced">{t('advanced')}</option>
                           </select>
+                          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">
+                        {t('description')}
+                      </label>
+                      <textarea
+                        value={form.description || ""}
+                        onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                        className="
+                        w-full bg-[#111118] border border-[#27273a] rounded-xl px-4 py-3.5 text-white min-h-[110px] text-sm
+                        focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                        transition-all resize-none
+                      "
+                      />
+                    </div>
+
+                    <button
+                      onClick={saveProgram}
+                      disabled={saving}
+                      className="
+                      w-full py-4 rounded-xl
+                      btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600
+                      text-[#111118] font-bold text-sm uppercase tracking-wider
+                      transition-all disabled:opacity-40 active:scale-[0.98]
+                      flex items-center justify-center gap-2
+                    "
+                    >
+                      <Save className="w-5 h-5" />
+                      {saving ? `${t('saving')}...` : selected ? t('update_program') : t('create_program')}
+                    </button>
+                  </div>
+
+                  {/* Exercises section */}
+                  <div className="space-y-6 pt-4 border-t border-white/5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-1 h-6 bg-gradient-to-b from-cyan-400 to-cyan-500 rounded-full" />
+                        <h2 className="text-lg font-bold text-white uppercase tracking-tight">
+                          {t('exercises')} <span className="text-slate-500 ml-1">({draft.length})</span>
+                        </h2>
+                      </div>
+                    </div>
+
+                    <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-5 space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="relative">
+                          <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+                          <select
+                            value={exerciseGroup}
+                            onChange={(e) => setExerciseGroup(e.target.value as any)}
+                            className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-amber-400/20 appearance-none"
+                          >
+                            <option value="">{t('All Groups')}</option>
+                            {groups.map((g) => (
+                              <option key={g} value={g}>{t(g)}</option>
+                            ))}
+                          </select>
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
-                          {t('description')}
-                        </label>
-                        <textarea
-                          value={form.description || ""}
-                          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                      <div className="relative">
+                        <Dumbbell className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+                        <select
+                          value={chosenExercise}
+                          onChange={(e) => setChosenExercise(e.target.value as any)}
                           className="
-                          w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-white min-h-[110px]
-                          focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                        "
-                        />
-                      </div>
-
-                      <div className="pt-4 border-t border-white/5 flex items-center justify-end">
-                        <button
-                          onClick={saveProgram}
-                          disabled={saving}
-                          className="
-                          w-full py-3 rounded-xl
-                          btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600
-                          text-[#0a0a0f] font-semibold
-                          transition-all disabled:opacity-40 active:scale-[0.99]
-                          flex items-center justify-center gap-2
+                          w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-3.5 pl-11 pr-4 text-sm text-white
+                          focus:outline-none focus:ring-1 focus:ring-amber-400/20 appearance-none
                         "
                         >
-                          <Save className="w-4 h-4" />
-                          {saving ? `${t('saving')}...` : selected ? t('update').toUpperCase() : t('create_program').toUpperCase()}
-                        </button>
+                          <option value="">{t('pick_exercise')}</option>
+                          {filteredExercises.map((e) => (
+                            <option key={e.id} value={e.id}>
+                              {e.name}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none" />
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Exercises editor */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3 px-1">
-                      <div className="w-1 h-6 bg-gradient-to-b from-cyan-400 to-cyan-500 rounded-full" />
-                      <h2 className="text-lg font-bold text-white">
-                        {t('exercises').toUpperCase()} <span className="text-slate-400 font-semibold">({draft.length})</span>
-                      </h2>
-                    </div>
-
-                    <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-4 shadow-[0_18px_60px_rgba(0,0,0,0.35)] flex flex-col gap-3">
-                      <select
-                        value={chosenExercise}
-                        onChange={(e) => setChosenExercise(e.target.value as any)}
-                        className="
-                        w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-white
-                        focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                        appearance-none cursor-pointer
-                      "
-                      >
-                        <option value="">{t('pick_exercise')}</option>
-                        {exercises.map((e) => (
-                          <option key={e.id} value={e.id}>
-                            {e.name}
-                          </option>
-                        ))}
-                      </select>
 
                       <button
                         onClick={addDraft}
                         className="
                         w-full py-3 rounded-xl
-                        bg-white/5 hover:bg-white/10
-                        border border-white/10 hover:border-white/20
-                        text-white font-semibold
-                        transition-all
-                        flex items-center justify-center gap-2
+                        bg-cyan-500/5 hover:bg-cyan-500/10
+                        border border-cyan-500/20 hover:border-cyan-500/30
+                        text-cyan-400 font-bold text-xs uppercase tracking-widest
+                        transition-all flex items-center justify-center gap-2
                       "
                       >
-                        <Plus className="w-4 h-4 text-amber-400" />
-                        {t('add_more').toUpperCase()}
+                        <Plus className="w-4 h-4" />
+                        {t('Add to Program').toUpperCase()}
                       </button>
                     </div>
 
@@ -510,55 +511,51 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                         <div
                           key={idx}
                           className="
-                          group bg-[#111118] border border-[#27273a] rounded-2xl p-5
-                          shadow-[0_18px_60px_rgba(0,0,0,0.30)]
-                          hover:border-white/15 transition-all
+                          bg-[#111118] border border-[#27273a] rounded-2xl p-5
+                          shadow-[0_8px_30px_rgba(0,0,0,0.2)]
+                          hover:border-white/10 transition-all
                         "
                         >
                           <div className="flex flex-col gap-5">
-                            <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start justify-between">
                               <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-xl bg-[#0a0a0f] border border-[#27273a] flex items-center justify-center">
-                                  <span className="text-base font-bold text-white">{item.position}</span>
+                                <div className="w-10 h-10 rounded-xl bg-[#0a0a0f] border border-[#27273a] flex items-center justify-center font-bold text-amber-400">
+                                  {item.position}
                                 </div>
-
-                                <div className="flex gap-2">
+                                <div className="flex gap-1.5">
                                   <button
                                     onClick={() => move(idx, -1)}
                                     disabled={idx === 0}
-                                    className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-20 transition flex items-center justify-center"
-                                    title={t('move_up')}
+                                    className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-20 flex items-center justify-center transition"
                                   >
-                                    <ChevronUp className="w-4 h-4" />
+                                    <ChevronUp className="w-3.5 h-3.5" />
                                   </button>
                                   <button
                                     onClick={() => move(idx, 1)}
                                     disabled={idx === draft.length - 1}
-                                    className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-20 transition flex items-center justify-center"
-                                    title={t('move_down')}
+                                    className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-20 flex items-center justify-center transition"
                                   >
-                                    <ChevronDown className="w-4 h-4" />
+                                    <ChevronDown className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
                               </div>
 
                               <button
                                 onClick={() => remove(idx)}
-                                className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white transition flex items-center justify-center"
-                                title={t('remove')}
+                                className="w-10 h-10 rounded-xl bg-rose-500/5 border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white transition flex items-center justify-center"
                               >
                                 <Trash2 className="w-5 h-5" />
                               </button>
                             </div>
 
-                            <h4 className="text-base font-semibold text-white group-hover:text-amber-400 transition-colors">
+                            <h4 className="text-base font-bold text-white uppercase tracking-tight">
                               {exerciseName(item.exerciseId)}
                             </h4>
 
                             <div className="grid grid-cols-2 gap-4">
                               {(["sets", "reps", "tempo", "restSec"] as const).map((field) => (
-                                <div key={field} className="space-y-1">
-                                  <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 ml-1">
+                                <div key={field} className="space-y-1.5">
+                                  <label className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500 ml-1">
                                     {field === "restSec" ? t('rest_s') : t(field)}
                                   </label>
                                   <input
@@ -573,30 +570,32 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                                       )
                                     }
                                     className="
-                                    w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-sm text-white
-                                    focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                                    w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-sm text-white font-medium
+                                    focus:outline-none focus:ring-1 focus:ring-amber-400/30
                                   "
                                   />
                                 </div>
                               ))}
                             </div>
 
-                            <input
-                              placeholder={`${t('notes')}...`}
-                              value={item.notes || ""}
-                              onChange={(e) => updateDraftItem(idx, "notes", e.target.value)}
-                              className="
-                              w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-sm text-white
-                              focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                            "
-                            />
+                            <div className="space-y-1.5">
+                              <label className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500 ml-1">{t('notes')}</label>
+                              <input
+                                placeholder={`${t('Add Notes')}...`}
+                                value={item.notes || ""}
+                                onChange={(e) => updateDraftItem(idx, "notes", e.target.value)}
+                                className="
+                                 w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-sm text-white
+                                 focus:outline-none focus:ring-1 focus:ring-amber-400/30
+                               "
+                              />
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
 
-                    {/* bottom padding so it doesn't fight the mobile dock */}
-                    <div className="h-24" />
+                    <div className="h-4" />
                   </div>
                 </div>
               </div>
@@ -610,43 +609,6 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
         <div className="hidden lg:grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* SIDEBAR */}
           <div className="lg:col-span-4 space-y-4 opacity-0 animate-fade-in-up stagger-1">
-            <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-4 shadow-[0_18px_60px_rgba(0,0,0,0.35)] space-y-3">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input
-                  type="text"
-                  placeholder={t('search_programs')}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="
-                  w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl
-                  py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-500
-                  focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                "
-                />
-              </div>
-
-              <div className="relative">
-                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <select
-                  value={filterClientId}
-                  onChange={(e) => setFilterClientId(e.target.value as any)}
-                  className="
-                  w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl
-                  py-3 pl-11 pr-4 text-sm text-white
-                  focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                  appearance-none cursor-pointer
-                "
-                >
-                  <option value="">{t('all_clients')}</option>
-                  {clients.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.firstName} {c.lastName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
 
             <div className="flex items-center justify-between px-1">
               <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500">
@@ -723,7 +685,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                   onClick={() => setShowAssignModal(true)}
                   className="text-xs font-semibold uppercase tracking-widest text-cyan-300 hover:text-white transition-colors"
                 >
-                  + {t('add_more')}
+                  + {t('ADD')}
                 </button>
               </div>
             )}
@@ -808,36 +770,54 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                 </h2>
               </div>
 
-              <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-4 shadow-[0_18px_60px_rgba(0,0,0,0.35)] flex flex-col sm:flex-row gap-3">
-                <select
-                  value={chosenExercise}
-                  onChange={(e) => setChosenExercise(e.target.value as any)}
-                  className="
-                  flex-1 bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-white
-                  focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                  appearance-none cursor-pointer
-                "
-                >
-                  <option value="">{t('pick_exercise')}</option>
-                  {exercises.map((e) => (
-                    <option key={e.id} value={e.id}>{e.name}</option>
-                  ))}
-                </select>
+              <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-6 shadow-[0_18px_60px_rgba(0,0,0,0.35)] space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-white/5">
+                  <div className="relative">
+                    <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <select
+                      value={exerciseGroup}
+                      onChange={(e) => setExerciseGroup(e.target.value as any)}
+                      className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-400/20 appearance-none cursor-pointer"
+                    >
+                      <option value="">{t('All Groups')}</option>
+                      {groups.map((g) => (
+                        <option key={g} value={g}>{t(g)}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-                <button
-                  onClick={addDraft}
-                  className="
-                  px-5 py-3 rounded-xl
-                  bg-white/5 hover:bg-white/10
-                  border border-white/10 hover:border-white/20
-                  text-white font-semibold
-                  transition-all
-                  flex items-center justify-center gap-2
-                "
-                >
-                  <Plus className="w-4 h-4 text-amber-400" />
-                  {t('add_more').toUpperCase()}
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <select
+                    value={chosenExercise}
+                    onChange={(e) => setChosenExercise(e.target.value as any)}
+                    className="
+                    flex-1 bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-white
+                    focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+                    appearance-none cursor-pointer
+                  "
+                  >
+                    <option value="">{t('pick_exercise')}</option>
+                    {filteredExercises.map((e) => (
+                      <option key={e.id} value={e.id}>{e.name}</option>
+                    ))}
+                  </select>
+
+                  <button
+                    onClick={addDraft}
+                    className="
+                    px-5 py-3 rounded-xl
+                    bg-white/5 hover:bg-white/10
+                    border border-white/10 hover:border-white/20
+                    text-white font-semibold
+                    transition-all
+                    flex items-center justify-center gap-2
+                  "
+                  >
+                    <Plus className="w-4 h-4 text-amber-400" />
+                    {t('Add More').toUpperCase()}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-4">
