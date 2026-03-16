@@ -1,19 +1,28 @@
 #!/bin/bash
-set -e
+set -Eeuo pipefail
+
+APP_DIR="/opt/trainmeter/app"
+BRANCH="main"
 
 echo "==> Starting deploy"
-cd /opt/trainmeter/app
+cd "$APP_DIR"
 
-echo "==> Pull latest main"
+echo "==> Current branch:"
+git branch --show-current
+
+echo "==> Fetch latest changes"
 git fetch origin
-git checkout main
-git pull origin main
 
-echo "==> Rebuild backend"
-docker compose up -d --build server
+echo "==> Checkout $BRANCH"
+git checkout "$BRANCH"
 
-echo "==> Rebuild frontend"
-cd /opt/trainmeter/app/client
-docker compose -f docker-compose.prod.yml up -d --build
+echo "==> Pull latest $BRANCH"
+git pull origin "$BRANCH"
+
+echo "==> Rebuild and start containers"
+docker compose up -d --build
+
+echo "==> Current containers"
+docker compose ps
 
 echo "==> Deploy finished successfully"
