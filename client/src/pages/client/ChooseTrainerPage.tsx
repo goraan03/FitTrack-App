@@ -27,7 +27,7 @@ export default function ChooseTrainerPage({ clientApi }: Props) {
         const res = await clientApi.listTrainers();
         if (res.success) setTrainers(res.data ?? []);
       } catch {
-        toast.error("Greška pri učitavanju trenera");
+        toast.error("Error while loading trainers");
       } finally {
         setLoading(false);
       }
@@ -39,16 +39,16 @@ export default function ChooseTrainerPage({ clientApi }: Props) {
     try {
       const res = await clientApi.sendTrainerRequest(trainerId);
       if (res.success) {
-        toast.success("Zahtjev poslat treneru!");
+        toast.success("Request sent to trainer!");
         setSentIds(prev => new Set([...prev, trainerId]));
       } else {
-        const msg = res.message || "Greška";
-        if (msg === "REQUEST_ALREADY_PENDING") toast("Zahtjev je već poslan ovom treneru", { icon: "ℹ️" });
-        else if (msg === "ALREADY_ASSIGNED") toast("Već ste dodijeljeni ovom treneru", { icon: "ℹ️" });
+        const msg = res.message || "Error";
+        if (msg === "REQUEST_ALREADY_PENDING") toast("Request has been already sent to this trainer", { icon: "ℹ️" });
+        else if (msg === "ALREADY_ASSIGNED") toast("You are already assigned to this trainer", { icon: "ℹ️" });
         else toast.error(msg);
       }
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || e?.message || "Greška");
+      toast.error(e?.response?.data?.message || e?.message || "Error");
     } finally {
       setActionId(null);
     }
@@ -67,10 +67,10 @@ export default function ChooseTrainerPage({ clientApi }: Props) {
       <div className="pb-12">
         <div className="flex flex-col gap-4 mb-10 opacity-0 animate-fade-in-up" style={{ animationFillMode: "forwards" }}>
           <h1 className="text-3xl lg:text-4xl font-bold text-white">
-            ODABERI <span className="text-amber-400">TRENERA</span>
+            CHOOSE <span className="text-amber-400">TRAINER</span>
           </h1>
           <p className="text-slate-400 text-sm tracking-wide uppercase">
-            Pošalji zahtjev treneru — on će te odobriti
+            Send a request to trainer and he will accept it
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export default function ChooseTrainerPage({ clientApi }: Props) {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
             className="w-full max-w-md bg-[#111118] border border-[#27273a] rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-400/40 transition-colors"
-            placeholder="Pretraži trenere..."
+            placeholder="Search trainers..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -93,7 +93,7 @@ export default function ChooseTrainerPage({ clientApi }: Props) {
         ) : filtered.length === 0 ? (
           <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-16 text-center">
             <Users className="w-14 h-14 mx-auto mb-5 text-slate-600" />
-            <p className="text-slate-400 font-bold uppercase tracking-wider">Nema dostupnih trenera</p>
+            <p className="text-slate-400 font-bold uppercase tracking-wider">There are no available trainers</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 opacity-0 animate-fade-in-up stagger-2" style={{ animationFillMode: "forwards" }}>
@@ -125,11 +125,11 @@ export default function ChooseTrainerPage({ clientApi }: Props) {
                     }`}
                   >
                     {sent ? (
-                      <><Clock className="w-4 h-4" />Zahtjev poslan</>
+                      <><Clock className="w-4 h-4" />Request sent</>
                     ) : actionId === trainer.id ? (
                       <div className="w-4 h-4 border-2 border-[#0a0a0f]/30 border-t-[#0a0a0f] rounded-full animate-spin" />
                     ) : (
-                      <><Send className="w-4 h-4" />Pošalji zahtjev</>
+                      <><Send className="w-4 h-4" />Send requestv</>
                     )}
                   </button>
                 </div>

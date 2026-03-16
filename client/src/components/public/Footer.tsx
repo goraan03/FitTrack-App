@@ -4,6 +4,7 @@ import Brand from "../common/Brand";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'trainmetersupport@gmail.com';
 
   return (
     <footer className="mt-auto border-t border-[#27273a] bg-[#0a0a0f]">
@@ -20,7 +21,7 @@ export default function Footer() {
             <div className="flex items-center gap-3">
               <SocialLink icon={<Instagram size={16} />} href="#" />
               <SocialLink icon={<Twitter size={16} />} href="#" />
-              <SocialLink icon={<Mail size={16} />} href="mailto:trainmeterappsupp@gmail.com" />
+  	      <SocialLink icon={<Mail size={16} />} href={`mailto:${CONTACT_EMAIL}`} />
             </div>
           </div>
 
