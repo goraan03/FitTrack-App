@@ -4,7 +4,7 @@ import axios, { isAxiosError } from 'axios';
 import { Button } from '../components/Button';
 
 const API_URL = (import.meta.env.VITE_API_URL || '') + 'public';
-const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'trainmetersupport@gmail.com';
+const CONTACT_EMAIL = 'trainmetersupport@gmail.com';
 
 export function ContactSection() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
@@ -71,7 +71,10 @@ export function ContactSection() {
 
           <div className="mt-8 flex items-center justify-center gap-3 px-6 py-3 rounded-2xl bg-[#111118] border border-[#27273a] text-sm w-fit mx-auto">
             <Mail className="h-4 w-4 text-amber-400" />
-            <a href={`mailto:${CONTACT_EMAIL}`} className="font-bold text-slate-300 hover:text-amber-400 transition-colors">
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="font-bold text-slate-300 hover:text-amber-400 transition-colors"
+            >
               {CONTACT_EMAIL}
             </a>
           </div>

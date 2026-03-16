@@ -1,0 +1,9 @@
+trainmeter.app, www.trainmeter.app {
+    root * /srv
+    encode gzip zstd
+    file_server
+    try_files {path} /index.html
+}
+api.trainmeter.app {
+    reverse_proxy host.docker.internal:4000
+}
