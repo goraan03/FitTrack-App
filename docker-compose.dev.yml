@@ -1,0 +1,11 @@
+services:
+  client:
+    ports:
+      - "3000:80"
+    build:
+      args:
+        CADDYFILE: Caddyfile.dev
+        VITE_API_URL: http://localhost:4000/api/
+  server:
+    ports:
+      - "4000:4000"
