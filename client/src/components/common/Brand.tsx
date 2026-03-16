@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../../hooks/auth/useAuthHook";
 
 type Props = {
   showText?: boolean;
@@ -11,10 +12,25 @@ type Props = {
 export default function Brand({
   showText = true,
   text,
-  to = "/",
+  to,
   size = "md",
   className = "",
 }: Props) {
+  const { isAuthenticated, user } = useAuth();
+
+  const defaultTo =
+    !isAuthenticated || !user
+      ? "/"
+      : user.uloga === "trener"
+      ? "/trainer/dashboard"
+      : user.uloga === "klijent"
+      ? "/app/dashboard"
+      : user.uloga === "admin"
+      ? "/admin/users"
+      : "/";
+
+  const destination = to ?? defaultTo;
+
   const sizes = {
     sm: { img: "/images/trainmeter-icon.svg", box: "h-8 w-8", text: "text-lg" },
     md: { img: "/images/trainmeter-icon.svg", box: "h-9 w-9", text: "text-xl" },
@@ -37,5 +53,5 @@ export default function Brand({
     </div>
   );
 
-  return to ? <Link to={to}>{content}</Link> : content;
+  return destination ? <Link to={destination}>{content}</Link> : content;
 }

@@ -30,4 +30,10 @@ export interface IEmailService {
 
   sendTrialReminder(to: string, trainerName: string, trialEndsAt: Date, daysLeft: number): Promise<void>;
   sendTrialExpired(to: string, trainerName: string): Promise<void>;
+  sendTermAssignedToClient(
+    clientEmail: string,
+    trainerName: string,
+    startAt: Date,
+    programTitle?: string | null
+  ): Promise<void>;
 }

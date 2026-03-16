@@ -294,12 +294,13 @@ export class TrainerController {
   private async createTerm(req: Request, res: Response) {
     try {
       const user = req.user!;
-      const { programId, type, startAtISO, durationMin, capacity } = req.body || {};
+      const { programId, clientId, type, startAtISO, durationMin, capacity } = req.body || {};
       if (!['individual', 'group'].includes(type) || !startAtISO || !Number.isFinite(durationMin) || !Number.isFinite(capacity)) {
         return res.status(400).json({ success: false, message: 'Bad input' });
       }
       const id = await this.trainer.createTerm(user.id, {
         programId: programId ? Number(programId) : null,
+        clientId: clientId ? Number(clientId) : null,
         type,
         startAt: new Date(startAtISO),
         durationMin: Number(durationMin),

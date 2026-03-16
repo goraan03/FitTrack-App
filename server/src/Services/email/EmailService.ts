@@ -53,15 +53,15 @@ export class EmailService implements IEmailService {
 
   async sendOtp(to: string, code: string): Promise<void> {
     const minutes = 5;
-    const subject = 'Vaš verifikacioni kod (2FA)';
-    const text = `Vaš verifikacioni kod je: ${code}. Važi ${minutes} minuta.`;
+    const subject = 'Your verification code (2FA)';
+    const text = `Your verification code is: ${code}. Valid for ${minutes} minutes.`;
     const html = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <h2>Verifikacija prijave</h2>
-        <p>Vaš verifikacioni kod je:</p>
+        <h2>Verification Code</h2>
+        <p>Your verification code is:</p>
         <p style="font-size: 22px; font-weight: bold; letter-spacing: 3px;">${code}</p>
-        <p>Kod važi ${minutes} minuta.</p>
-        <p>Ako niste Vi započeli prijavu, ignorišite ovu poruku.</p>
+        <p>Code is valid for ${minutes} minutes.</p>
+        <p>If you didn't request this, please ignore this message.</p>
       </div>
     `;
 
@@ -92,7 +92,7 @@ export class EmailService implements IEmailService {
 
   async sendPasswordResetOtp(to: string, code: string): Promise<void> {
     const minutes = 5;
-    const subject = 'FitTrack - Password Reset Code';
+    const subject = 'TrainMeter - Password Reset Code';
     const text = `Your password reset code is: ${code}. Valid for ${minutes} minutes.`;
     const html = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
@@ -103,7 +103,7 @@ export class EmailService implements IEmailService {
         <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e5e5;">
           <h2 style="color: #333; margin-top: 0;">Reset Your Password</h2>
           <p style="color: #666; font-size: 16px;">
-            You requested a password reset for your FitTrack account.
+            You requested a password reset for your TrainMeter account.
           </p>
           
           <div style="background: #f9f9f9; border-left: 4px solid #EAB308; padding: 20px; margin: 25px 0;">
@@ -124,7 +124,7 @@ export class EmailService implements IEmailService {
         
         <div style="background: #f5f5f5; padding: 20px; text-align: center;">
           <p style="color: #999; font-size: 12px; margin: 0;">
-            © ${new Date().getFullYear()} FitTrack. All rights reserved.
+            © ${new Date().getFullYear()} TrainMeter. All rights reserved.
           </p>
         </div>
       </div>
@@ -146,7 +146,7 @@ export class EmailService implements IEmailService {
     startAt: Date,
     trainerName: string
   ): Promise<void> {
-    const subject = 'FitTrack - Session Canceled';
+    const subject = 'TrainMeter - Session Canceled';
     const dateStr = formatSessionDate(startAt);
 
     const html = `
@@ -172,7 +172,7 @@ export class EmailService implements IEmailService {
         </div>
         
         <div style="background: #f5f5f5; padding: 20px; text-align: center;">
-          <p style="color: #999; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} FitTrack</p>
+          <p style="color: #999; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} TrainMeter</p>
         </div>
       </div>
     `;
@@ -192,7 +192,7 @@ export class EmailService implements IEmailService {
     startAt: Date,
     clientName: string
   ): Promise<void> {
-    const subject = 'FitTrack - New Session Booking';
+    const subject = 'TrainMeter - New Session Booking';
     const dateStr = formatSessionDate(startAt);
 
     const html = `
@@ -219,7 +219,7 @@ export class EmailService implements IEmailService {
         </div>
         
         <div style="background: #f5f5f5; padding: 20px; text-align: center;">
-          <p style="color: #999; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} FitTrack</p>
+          <p style="color: #999; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} TrainMeter</p>
         </div>
       </div>
     `;
@@ -239,7 +239,7 @@ export class EmailService implements IEmailService {
     startAt: Date,
     clientName: string
   ): Promise<void> {
-    const subject = 'FitTrack - Session Canceled by Client';
+    const subject = 'TrainMeter - Session Canceled by Client';
     const dateStr = formatSessionDate(startAt);
 
     const html = `
@@ -266,7 +266,7 @@ export class EmailService implements IEmailService {
         </div>
         
         <div style="background: #f5f5f5; padding: 20px; text-align: center;">
-          <p style="color: #999; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} FitTrack</p>
+          <p style="color: #999; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} TrainMeter</p>
         </div>
       </div>
     `;
@@ -298,10 +298,10 @@ export class EmailService implements IEmailService {
     to: string, trainerName: string, trialEndsAt: Date, daysLeft: number
   ): Promise<void> {
     const subject = daysLeft === 1
-      ? 'FitTrack — Trial period ističe SUTRA'
-      : `FitTrack — Trial period ističe za ${daysLeft} dana`;
+      ? 'TrainMeter — Trial ends tomorrow'
+      : `TrainMeter — Trial ends in ${daysLeft} days`;
 
-    const endDateStr = trialEndsAt.toLocaleDateString('sr-RS');
+    const endDateStr = trialEndsAt.toLocaleDateString('en-US');
 
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
@@ -309,23 +309,23 @@ export class EmailService implements IEmailService {
           <h1 style="color:#EAB308;margin:0;">⏳ Trial Period</h1>
         </div>
         <div style="background:#fff;padding:30px;border:1px solid #e5e5e5;">
-          <p style="color:#333;font-size:16px;">Pozdrav, <strong>${trainerName}</strong>!</p>
+          <p style="color:#333;font-size:16px;">Hi <strong>${trainerName}</strong>,</p>
           <p style="color:#666;">
-            Vaš besplatni trial period za <strong>FitTrack</strong> ističe
-            ${daysLeft === 1 ? '<strong>sutra</strong>' : `za <strong>${daysLeft} dana</strong>`}
+            Your free trial for <strong>TrainMeter</strong> expires
+            ${daysLeft === 1 ? '<strong>tomorrow</strong>' : `in <strong>${daysLeft} days</strong>`}
             — <strong>${endDateStr}</strong>.
           </p>
           <div style="background:#fefce8;border-left:4px solid #EAB308;padding:20px;margin:25px 0;">
             <p style="color:#333;margin:0;">
-              Da biste nastavili da koristite FitTrack bez prekida, izaberite paket u aplikaciji.
+              To keep using TrainMeter without interruption, choose a plan in the app.
             </p>
           </div>
           <p style="color:#666;font-size:14px;">
-            Nakon isteka trial perioda, nećete moći da koristite platformu dok ne izaberete plan.
+            After the trial ends you will need an active plan to continue.
           </p>
         </div>
         <div style="background:#f5f5f5;padding:20px;text-align:center;">
-          <p style="color:#999;font-size:12px;margin:0;">© ${new Date().getFullYear()} FitTrack</p>
+          <p style="color:#999;font-size:12px;margin:0;">© ${new Date().getFullYear()} TrainMeter</p>
         </div>
       </div>
     `;
@@ -333,28 +333,56 @@ export class EmailService implements IEmailService {
     await this.transporter.sendMail({ from: this.from, to, subject, html });
   }
 
+  async sendTermAssignedToClient(
+    clientEmail: string,
+    trainerName: string,
+    startAt: Date,
+    programTitle?: string | null
+  ): Promise<void> {
+    const dateStr = formatSessionDate(startAt);
+    const subject = 'TrainMeter — Session Scheduled';
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;background:#0a0a0f;color:#f8fafc;">
+        <h2 style="color:#eab308;margin:0 0 8px 0;">Session is scheduled</h2>
+        <p style="margin:0 0 12px 0;">Trainer <strong>${trainerName}</strong> has assigned you a new session.</p>
+        <div style="background:#111118;border:1px solid #27273a;border-radius:12px;padding:16px;margin:16px 0;">
+          <p style="margin:0 0 6px 0;">📅 <strong>${dateStr}</strong></p>
+          ${programTitle ? `<p style=\"margin:0;color:#cbd5e1;\">Program: <strong>${programTitle}</strong></p>` : ''}
+        </div>
+        <p style="margin:0;color:#94a3b8;">See you at the workout!</p>
+      </div>
+    `;
+
+    await this.transporter.sendMail({
+      from: this.from,
+      to: clientEmail,
+      subject,
+      html,
+    });
+  }
+
   async sendTrialExpired(to: string, trainerName: string): Promise<void> {
-    const subject = 'FitTrack — Vaš trial period je istekao';
+    const subject = 'TrainMeter — Your trial has expired';
 
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
         <div style="background:linear-gradient(135deg,#0a0a0a,#1a1a1a);padding:30px;text-align:center;">
-          <h1 style="color:#ef4444;margin:0;">🔒 Trial Istekao</h1>
+          <h1 style="color:#ef4444;margin:0;">🔒 Trial Expired</h1>
         </div>
         <div style="background:#fff;padding:30px;border:1px solid #e5e5e5;">
-          <p style="color:#333;font-size:16px;">Pozdrav, <strong>${trainerName}</strong>!</p>
+          <p style="color:#333;font-size:16px;">Hi <strong>${trainerName}</strong>,</p>
           <p style="color:#666;">
-            Vaš besplatni trial period za <strong>FitTrack</strong> je istekao.
+            Your free trial for <strong>TrainMeter</strong> has expired.
           </p>
           <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:20px;margin:25px 0;">
             <p style="color:#333;margin:0;">
-              Da biste ponovo koristili platformu, prijavite se i izaberite odgovarajući paket.
+              To keep using the platform, log in and select a subscription plan.
             </p>
           </div>
-          <p style="color:#666;font-size:14px;">Vaši podaci i klijenti su sačuvani i čekaju vas.</p>
+          <p style="color:#666;font-size:14px;">Your data and clients are safe and waiting.</p>
         </div>
         <div style="background:#f5f5f5;padding:20px;text-align:center;">
-          <p style="color:#999;font-size:12px;margin:0;">© ${new Date().getFullYear()} FitTrack</p>
+          <p style="color:#999;font-size:12px;margin:0;">© ${new Date().getFullYear()} TrainMeter</p>
         </div>
       </div>
     `;

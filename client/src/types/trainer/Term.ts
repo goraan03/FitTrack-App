@@ -15,6 +15,7 @@ export type TrainerTerm = {
 
 export type CreateTermDto = {
   programId?: number | null;
+  clientId?: number | null;
   type: 'individual'|'group';
   startAtISO: string;
   durationMin: number;

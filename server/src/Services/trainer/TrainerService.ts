@@ -379,13 +379,22 @@ export class TrainerService implements ITrainerService {
     return rows;
   }
 
-  async createTerm(trainerId: number, dto: { programId?: number | null; type: 'individual' | 'group'; startAt: Date; durationMin: number; capacity: number }): Promise<number> {
+  async createTerm(trainerId: number, dto: { programId?: number | null; clientId?: number | null; type: 'individual' | 'group'; startAt: Date; durationMin: number; capacity: number }): Promise<number> {
     if (dto.type === 'individual') dto.capacity = 1;
     if (dto.type === 'group' && (dto.capacity < 2 || dto.capacity > 30)) throw new Error('BAD_CAPACITY');
 
+    let programTitle: string | null = null;
     if (dto.programId) {
       const program = await this.programsRepo.getById(dto.programId);
       if (!program || program.trainerId !== trainerId) throw new Error('NOT_ALLOWED');
+      programTitle = program.title;
+    }
+
+    let clientId: number | null = null;
+    if (dto.clientId) {
+      const ok = await this.queries.isClientAssignedToTrainer(dto.clientId, trainerId);
+      if (!ok) throw new Error('CLIENT_NOT_ASSIGNED');
+      clientId = dto.clientId;
     }
 
     if (dto.startAt.getTime() < Date.now()) throw new Error('PAST_NOT_ALLOWED');
@@ -398,6 +407,31 @@ export class TrainerService implements ITrainerService {
       durationMin: dto.durationMin,
       capacity: dto.capacity
     });
+
+    if (clientId) {
+      try {
+        const existing = await this.enrollRepo.findByUserAndTerm(clientId, id);
+        if (existing) await this.enrollRepo.reactivateEnrollment(existing.id);
+        else await this.enrollRepo.createEnrollment(id, clientId);
+        await this.termsRepo.incrementEnrolledCount(id);
+        if (dto.programId) {
+          try { await this.programsRepo.assignToClient(dto.programId, clientId); } catch { }
+        }
+        const client = await this.userRepo.getById(clientId);
+        const trainer = await this.userRepo.getById(trainerId);
+        if (client?.korisnickoIme) {
+          await this.emailService.sendTermAssignedToClient(
+            client.korisnickoIme,
+            `${trainer?.ime || ''} ${trainer?.prezime || ''}`.trim() || 'Trener',
+            dto.startAt,
+            programTitle
+          );
+        }
+      } catch (e) {
+        console.error('[TrainerService] Failed to auto-assign client to new term:', e);
+      }
+    }
+
     try { await this.audit.log('Informacija', 'TRAINER_CREATE_TERM', trainerId, null, { id }); } catch { }
     return id;
   }
