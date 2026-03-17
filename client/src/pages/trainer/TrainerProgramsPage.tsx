@@ -258,7 +258,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
               </select>
             </div>
 
-            {/* Create Button (Desktop/Mobile unified) */}
+            {/* Create Button */}
             <button
               onClick={() => {
                 setSelected(null);
@@ -279,11 +279,9 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
         </div>
 
         {/* ========================= */}
-        {/* MOBILE (default list only) */}
+        {/* MOBILE (list only)        */}
         {/* ========================= */}
         <div className="lg:hidden space-y-4">
-
-          {/* Programs list */}
           <div className="bg-[#111118] border border-[#27273a] rounded-2xl shadow-[0_18px_60px_rgba(0,0,0,0.35)] p-3 custom-scrollbar space-y-2 opacity-0 animate-fade-in-up stagger-2">
             {filteredPrograms.length === 0 ? (
               <div className="p-10 text-center opacity-80">
@@ -315,292 +313,6 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
               ))
             )}
           </div>
-
-          {/* Mobile editor modal (opens on + or program click) */}
-          {mobileEditorOpen && (
-            <div className="fixed inset-0 z-[150] flex items-start justify-center p-0 sm:p-4 overflow-y-auto">
-              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setMobileEditorOpen(false)} />
-
-              <div className="relative w-full max-w-xl max-h-screen sm:max-h-[92vh] mt-0 sm:mt-[2vh] mb-0 sm:mb-8 overflow-y-auto rounded-none sm:rounded-3xl border-0 sm:border border-[#27273a] bg-[#0a0a0f] shadow-[0_30px_100px_rgba(0,0,0,0.9)] opacity-0 animate-scale-in">
-                {/* modal header */}
-                <div className="sticky top-0 z-10 bg-[#0a0a0f]/80 backdrop-blur-md border-b border-white/5 px-6 py-5 flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-amber-400/80 font-bold mb-1">
-                      {selected ? t('edit_program').toUpperCase() : t('create_program').toUpperCase()}
-                    </div>
-                    <div className="text-lg font-bold text-white truncate max-w-[200px] sm:max-w-md">
-                      {form.title?.trim() ? form.title : selected ? t('program') : t('New Program')}
-                    </div>
-                  </div>
-
-                  <button
-                    className="w-10 h-10 rounded-xl bg-white/5 border border-[#27273a] text-slate-400 hover:text-white hover:bg-white/10 transition flex items-center justify-center"
-                    onClick={() => setMobileEditorOpen(false)}
-                    aria-label="Close editor"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="p-6 space-y-8">
-                  {/* Assigned Clients (mobile too) */}
-                  {selected && details && (
-                    <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-2xl p-5 flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-11 h-11 bg-cyan-500/15 border border-cyan-500/20 rounded-xl flex items-center justify-center">
-                          <UserCheck className="w-5 h-5 text-cyan-300" />
-                        </div>
-                        <div>
-                          <h3 className="text-[10px] font-bold uppercase tracking-widest text-cyan-300">
-                            {t('assigned_to')}
-                          </h3>
-                          <p className="text-sm font-semibold text-white mt-1">
-                            {details.assignedClients && details.assignedClients.length > 0
-                              ? details.assignedClients.map((c) => `${c.firstName} ${c.lastName}`).join(", ")
-                              : t('no_clients_assigned')}
-                          </p>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => setShowAssignModal(true)}
-                        className="text-xs font-bold uppercase tracking-widest text-cyan-400 hover:text-cyan-300 transition-colors whitespace-nowrap"
-                      >
-                        + {t('Add More')}
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Editor Details */}
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">
-                          {t('title')}
-                        </label>
-                        <input
-                          value={form.title}
-                          onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                          className="
-                          w-full bg-[#111118] border border-[#27273a] rounded-xl px-4 py-3.5 text-white
-                          focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                          transition-all
-                        "
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">
-                          {t('difficulty')}
-                        </label>
-                        <div className="relative">
-                          <select
-                            value={form.level}
-                            onChange={(e) => setForm((f) => ({ ...f, level: e.target.value as any }))}
-                            className="
-                            w-full bg-[#111118] border border-[#27273a] rounded-xl px-4 py-3.5 text-white
-                            focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                            appearance-none cursor-pointer text-sm
-                          "
-                          >
-                            <option value="beginner">{t('beginner')}</option>
-                            <option value="intermediate">{t('intermediate')}</option>
-                            <option value="advanced">{t('advanced')}</option>
-                          </select>
-                          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">
-                        {t('description')}
-                      </label>
-                      <textarea
-                        value={form.description || ""}
-                        onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                        className="
-                        w-full bg-[#111118] border border-[#27273a] rounded-xl px-4 py-3.5 text-white min-h-[110px] text-sm
-                        focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-                        transition-all resize-none
-                      "
-                      />
-                    </div>
-
-                    <button
-                      onClick={saveProgram}
-                      disabled={saving}
-                      className="
-                      w-full py-4 rounded-xl
-                      btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600
-                      text-[#111118] font-bold text-sm uppercase tracking-wider
-                      transition-all disabled:opacity-40 active:scale-[0.98]
-                      flex items-center justify-center gap-2
-                    "
-                    >
-                      <Save className="w-5 h-5" />
-                      {saving ? `${t('saving')}...` : selected ? t('update_program') : t('create_program')}
-                    </button>
-                  </div>
-
-                  {/* Exercises section */}
-                  <div className="space-y-6 pt-4 border-t border-white/5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-1 h-6 bg-gradient-to-b from-cyan-400 to-cyan-500 rounded-full" />
-                        <h2 className="text-lg font-bold text-white uppercase tracking-tight">
-                          {t('exercises')} <span className="text-slate-500 ml-1">({draft.length})</span>
-                        </h2>
-                      </div>
-                    </div>
-
-                    <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-5 space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="relative">
-                          <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-                          <select
-                            value={exerciseGroup}
-                            onChange={(e) => setExerciseGroup(e.target.value as any)}
-                            className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-amber-400/20 appearance-none"
-                          >
-                            <option value="">{t('All Groups')}</option>
-                            {groups.map((g) => (
-                              <option key={g} value={g}>{t(g)}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="relative">
-                        <Dumbbell className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-                        <select
-                          value={chosenExercise}
-                          onChange={(e) => setChosenExercise(e.target.value as any)}
-                          className="
-                          w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-3.5 pl-11 pr-4 text-sm text-white
-                          focus:outline-none focus:ring-1 focus:ring-amber-400/20 appearance-none
-                        "
-                        >
-                          <option value="">{t('pick_exercise')}</option>
-                          {filteredExercises.map((e) => (
-                            <option key={e.id} value={e.id}>
-                              {e.name}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none" />
-                      </div>
-
-                      <button
-                        onClick={addDraft}
-                        className="
-                        w-full py-3 rounded-xl
-                        bg-cyan-500/5 hover:bg-cyan-500/10
-                        border border-cyan-500/20 hover:border-cyan-500/30
-                        text-cyan-400 font-bold text-xs uppercase tracking-widest
-                        transition-all flex items-center justify-center gap-2
-                      "
-                      >
-                        <Plus className="w-4 h-4" />
-                        {t('Add to Program').toUpperCase()}
-                      </button>
-                    </div>
-
-                    <div className="space-y-4">
-                      {draft.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="
-                          bg-[#111118] border border-[#27273a] rounded-2xl p-5
-                          shadow-[0_8px_30px_rgba(0,0,0,0.2)]
-                          hover:border-white/10 transition-all
-                        "
-                        >
-                          <div className="flex flex-col gap-5">
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-[#0a0a0f] border border-[#27273a] flex items-center justify-center font-bold text-amber-400">
-                                  {item.position}
-                                </div>
-                                <div className="flex gap-1.5">
-                                  <button
-                                    onClick={() => move(idx, -1)}
-                                    disabled={idx === 0}
-                                    className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-20 flex items-center justify-center transition"
-                                  >
-                                    <ChevronUp className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
-                                    onClick={() => move(idx, 1)}
-                                    disabled={idx === draft.length - 1}
-                                    className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-20 flex items-center justify-center transition"
-                                  >
-                                    <ChevronDown className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              </div>
-
-                              <button
-                                onClick={() => remove(idx)}
-                                className="w-10 h-10 rounded-xl bg-rose-500/5 border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white transition flex items-center justify-center"
-                              >
-                                <Trash2 className="w-5 h-5" />
-                              </button>
-                            </div>
-
-                            <h4 className="text-base font-bold text-white uppercase tracking-tight">
-                              {exerciseName(item.exerciseId)}
-                            </h4>
-
-                            <div className="grid grid-cols-2 gap-4">
-                              {(["sets", "reps", "tempo", "restSec"] as const).map((field) => (
-                                <div key={field} className="space-y-1.5">
-                                  <label className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500 ml-1">
-                                    {field === "restSec" ? t('rest_s') : t(field)}
-                                  </label>
-                                  <input
-                                    value={(item as any)[field] || ""}
-                                    onChange={(e) =>
-                                      updateDraftItem(
-                                        idx,
-                                        field as any,
-                                        field === "sets" || field === "restSec"
-                                          ? Number(e.target.value)
-                                          : e.target.value
-                                      )
-                                    }
-                                    className="
-                                    w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-sm text-white font-medium
-                                    focus:outline-none focus:ring-1 focus:ring-amber-400/30
-                                  "
-                                  />
-                                </div>
-                              ))}
-                            </div>
-
-                            <div className="space-y-1.5">
-                              <label className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500 ml-1">{t('notes')}</label>
-                              <input
-                                placeholder={`${t('Add Notes')}...`}
-                                value={item.notes || ""}
-                                onChange={(e) => updateDraftItem(idx, "notes", e.target.value)}
-                                className="
-                                 w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-sm text-white
-                                 focus:outline-none focus:ring-1 focus:ring-amber-400/30
-                               "
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="h-4" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* ========================= */}
@@ -609,12 +321,10 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
         <div className="hidden lg:grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* SIDEBAR */}
           <div className="lg:col-span-4 space-y-4 opacity-0 animate-fade-in-up stagger-1">
-
             <div className="flex items-center justify-between px-1">
               <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500">
                 List ({filteredPrograms.length})
               </h2>
-
               <button
                 onClick={() => setSelected(null)}
                 className="
@@ -680,7 +390,6 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                     </p>
                   </div>
                 </div>
-
                 <button
                   onClick={() => setShowAssignModal(true)}
                   className="text-xs font-semibold uppercase tracking-widest text-cyan-300 hover:text-white transition-colors"
@@ -835,7 +544,6 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                         <div className="w-12 h-12 rounded-xl bg-[#0a0a0f] border border-[#27273a] flex items-center justify-center">
                           <span className="text-base font-bold text-white">{item.position}</span>
                         </div>
-
                         <div className="flex md:flex-col gap-2">
                           <button
                             onClick={() => move(idx, -1)}
@@ -861,7 +569,6 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                           <h4 className="text-lg font-semibold text-white group-hover:text-amber-400 transition-colors">
                             {exerciseName(item.exerciseId)}
                           </h4>
-
                           <button
                             onClick={() => remove(idx)}
                             className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white transition flex items-center justify-center"
@@ -918,9 +625,210 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
         </div>
       </div>
 
+      {/* MOBILE MODAL — IZVUČEN VAN SVIH WRAPPER DIVOVA */}
+      {mobileEditorOpen && (
+        <div className="fixed inset-0 z-[150]">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setMobileEditorOpen(false)} />
+          <div className="absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-3xl border-t border-[#27273a] bg-[#0a0a0f] shadow-[0_-30px_100px_rgba(0,0,0,0.9)] opacity-0 animate-fade-in-up [animation-fill-mode:forwards]">
+
+            <div className="flex items-center justify-between px-6 pt-6 pb-5">
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-amber-400/80 font-bold mb-1">
+                  {selected ? t('edit_program').toUpperCase() : t('create_program').toUpperCase()}
+                </div>
+                <div className="text-lg font-bold text-white truncate max-w-[220px]">
+                  {form.title?.trim() ? form.title : selected ? t('program') : t('New Program')}
+                </div>
+              </div>
+              <button
+                className="w-10 h-10 rounded-xl bg-white/5 border border-[#27273a] text-slate-400 hover:text-white transition flex items-center justify-center"
+                onClick={() => setMobileEditorOpen(false)}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="px-6 pb-10 space-y-8">
+              {selected && details && (
+                <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-2xl p-5 flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-11 h-11 bg-cyan-500/15 border border-cyan-500/20 rounded-xl flex items-center justify-center">
+                      <UserCheck className="w-5 h-5 text-cyan-300" />
+                    </div>
+                    <div>
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-cyan-300">{t('assigned_to')}</h3>
+                      <p className="text-sm font-semibold text-white mt-1">
+                        {details.assignedClients && details.assignedClients.length > 0
+                          ? details.assignedClients.map((c) => `${c.firstName} ${c.lastName}`).join(", ")
+                          : t('no_clients_assigned')}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowAssignModal(true)}
+                    className="text-xs font-bold uppercase tracking-widest text-cyan-400 hover:text-cyan-300 transition-colors whitespace-nowrap"
+                  >
+                    + {t('Add More')}
+                  </button>
+                </div>
+              )}
+
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">{t('title')}</label>
+                  <input
+                    value={form.title}
+                    onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                    className="w-full bg-[#111118] border border-[#27273a] rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40 transition-all"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">{t('difficulty')}</label>
+                  <div className="relative">
+                    <select
+                      value={form.level}
+                      onChange={(e) => setForm((f) => ({ ...f, level: e.target.value as any }))}
+                      className="w-full bg-[#111118] border border-[#27273a] rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40 appearance-none cursor-pointer text-sm"
+                    >
+                      <option value="beginner">{t('beginner')}</option>
+                      <option value="intermediate">{t('intermediate')}</option>
+                      <option value="advanced">{t('advanced')}</option>
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">{t('description')}</label>
+                  <textarea
+                    value={form.description || ""}
+                    onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                    className="w-full bg-[#111118] border border-[#27273a] rounded-xl px-4 py-3.5 text-white min-h-[100px] text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40 transition-all resize-none"
+                  />
+                </div>
+
+                <button
+                  onClick={saveProgram}
+                  disabled={saving}
+                  className="w-full py-3.5 rounded-xl btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-[#0a0a0f] font-bold text-sm uppercase tracking-wider transition-all disabled:opacity-40 active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  <Save className="w-5 h-5" />
+                  {saving ? `${t('saving')}...` : selected ? t('update_program') : t('create_program')}
+                </button>
+              </div>
+
+              <div className="space-y-5 pt-4 border-t border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-1 h-6 bg-gradient-to-b from-cyan-400 to-cyan-500 rounded-full" />
+                  <h2 className="text-lg font-bold text-white uppercase tracking-tight">
+                    {t('exercises')} <span className="text-slate-500 ml-1">({draft.length})</span>
+                  </h2>
+                </div>
+
+                <div className="bg-[#111118] border border-[#27273a] rounded-2xl p-5 space-y-4">
+                  <div className="relative">
+                    <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+                    <select
+                      value={exerciseGroup}
+                      onChange={(e) => setExerciseGroup(e.target.value as any)}
+                      className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-amber-400/20 appearance-none"
+                    >
+                      <option value="">{t('All Groups')}</option>
+                      {groups.map((g) => (
+                        <option key={g} value={g}>{t(g)}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="relative">
+                    <Dumbbell className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+                    <select
+                      value={chosenExercise}
+                      onChange={(e) => setChosenExercise(e.target.value as any)}
+                      className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-3.5 pl-11 pr-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-amber-400/20 appearance-none"
+                    >
+                      <option value="">{t('pick_exercise')}</option>
+                      {filteredExercises.map((e) => (
+                        <option key={e.id} value={e.id}>{e.name}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none" />
+                  </div>
+
+                  <button
+                    onClick={addDraft}
+                    className="w-full py-3 rounded-xl bg-cyan-500/5 hover:bg-cyan-500/10 border border-cyan-500/20 hover:border-cyan-500/30 text-cyan-400 font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {t('Add to Program').toUpperCase()}
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {draft.map((item, idx) => (
+                    <div key={idx} className="bg-[#111118] border border-[#27273a] rounded-2xl p-5 hover:border-white/10 transition-all">
+                      <div className="flex flex-col gap-5">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-[#0a0a0f] border border-[#27273a] flex items-center justify-center font-bold text-amber-400">
+                              {item.position}
+                            </div>
+                            <div className="flex gap-1.5">
+                              <button onClick={() => move(idx, -1)} disabled={idx === 0} className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-20 flex items-center justify-center transition">
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={() => move(idx, 1)} disabled={idx === draft.length - 1} className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-20 flex items-center justify-center transition">
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                          <button onClick={() => remove(idx)} className="w-10 h-10 rounded-xl bg-rose-500/5 border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white transition flex items-center justify-center">
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+
+                        <h4 className="text-base font-bold text-white uppercase tracking-tight">
+                          {exerciseName(item.exerciseId)}
+                        </h4>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          {(["sets", "reps", "tempo", "restSec"] as const).map((field) => (
+                            <div key={field} className="space-y-1.5">
+                              <label className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500 ml-1">
+                                {field === "restSec" ? t('rest_s') : t(field)}
+                              </label>
+                              <input
+                                value={(item as any)[field] || ""}
+                                onChange={(e) => updateDraftItem(idx, field as any, field === "sets" || field === "restSec" ? Number(e.target.value) : e.target.value)}
+                                className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-sm text-white font-medium focus:outline-none focus:ring-1 focus:ring-amber-400/30"
+                              />
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500 ml-1">{t('notes')}</label>
+                          <input
+                            placeholder={`${t('Add Notes')}...`}
+                            value={item.notes || ""}
+                            onChange={(e) => updateDraftItem(idx, "notes", e.target.value)}
+                            className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-amber-400/30"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ASSIGN MODAL */}
       {showAssignModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-[#27273a] bg-[#111118] shadow-[0_30px_100px_rgba(0,0,0,0.85)] overflow-hidden">
             <div className="p-6 border-b border-white/5 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-white flex items-center gap-3">
@@ -929,7 +837,6 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                 </span>
                 {t('assign_program')}
               </h3>
-
               <button
                 onClick={() => setShowAssignModal(false)}
                 className="w-10 h-10 rounded-xl border border-[#27273a] text-slate-400 hover:text-white hover:bg-white/5 transition"
