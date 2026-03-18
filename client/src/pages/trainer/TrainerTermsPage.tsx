@@ -92,9 +92,9 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
     if (form.clientId) {
       const client = clients.find(c => c.id === Number(form.clientId));
       const clientName = client ? `${client.firstName} ${client.lastName}`.trim() : "Client";
-      toast.success(`Appointment created and assigned to ${clientName}`);
+      toast.success(t('appointment_created_assigned').replace('{name}', clientName));
     } else {
-      toast.success("Appointment slot created! Clients can now book it.");
+      toast.success(t('appointment_slot_created'));
     }
 
     setForm((f) => ({ ...f, clientId: "", programId: "" }));
@@ -297,7 +297,7 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h2 className="text-xl font-bold text-white uppercase">{t('create_new_session')}</h2>
-                <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Fill in the details below</p>
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">{t('fill_details_below')}</p>
               </div>
               <button
                 onClick={() => setMobileFormOpen(false)}
@@ -430,6 +430,7 @@ function SessionForm({ form, setForm, clients, clientPrograms, programs, timeOpt
           </label>
           <FancyDatePicker
             value={form.startDate}
+            t={t}
             onChange={(v) => setForm((f: any) => ({ ...f, startDate: v }))}
           />
         </div>
@@ -441,6 +442,7 @@ function SessionForm({ form, setForm, clients, clientPrograms, programs, timeOpt
           <FancyTimePicker
             value={form.startTime}
             options={timeOptions}
+            t={t}
             onChange={(v) => setForm((f: any) => ({ ...f, startTime: v }))}
           />
         </div>
@@ -488,8 +490,8 @@ function SessionForm({ form, setForm, clients, clientPrograms, programs, timeOpt
   );
 }
 
-type FancyDatePickerProps = { value: string; onChange: (isoDate: string) => void };
-function FancyDatePicker({ value, onChange }: FancyDatePickerProps) {
+type FancyDatePickerProps = { value: string; t: any; onChange: (isoDate: string) => void };
+function FancyDatePicker({ value, t, onChange }: FancyDatePickerProps) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
   const today = startOfDay(new Date());
@@ -508,7 +510,7 @@ function FancyDatePicker({ value, onChange }: FancyDatePickerProps) {
     return res;
   }, [viewMonth]);
 
-  const label = value ? format(selected, "EEE, MMM d") : "Pick a date";
+  const label = value ? format(selected, "EEE, MMM d") : t('pick_date');
 
   return (
     <div className="relative" ref={anchorRef}>
@@ -578,10 +580,10 @@ function FancyDatePicker({ value, onChange }: FancyDatePickerProps) {
   );
 }
 
-type FancyTimePickerProps = { value: string; options: string[]; onChange: (v: string) => void };
-function FancyTimePicker({ value, options, onChange }: FancyTimePickerProps) {
+type FancyTimePickerProps = { value: string; options: string[]; t: any; onChange: (v: string) => void };
+function FancyTimePicker({ value, options, t, onChange }: FancyTimePickerProps) {
   const [open, setOpen] = useState(false);
-  const label = value ? value : "Pick a time";
+  const label = value ? value : t('pick_time');
   const panelRef = useRef<HTMLDivElement>(null);
 
   return (

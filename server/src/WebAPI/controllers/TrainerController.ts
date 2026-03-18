@@ -32,6 +32,7 @@ export class TrainerController {
     this.router.post("/trainer/programs/:id/assign", authenticate, authorize("trener"), this.assignProgram.bind(this));
 
     this.router.get("/trainer/clients", authenticate, authorize("trener"), this.listClients.bind(this));
+    this.router.post("/trainer/clients/create", authenticate, authorize("trener"), this.createClient.bind(this));
     this.router.get("/trainer/clients/:clientId/stats", authenticate, authorize("trener"), this.getClientStats.bind(this));
 
     this.router.get("/trainer/terms", authenticate, authorize("trener"), this.listTerms.bind(this));
@@ -45,20 +46,20 @@ export class TrainerController {
     this.router.get("/trainer/workouts/:sessionId/pdf", authenticate, authorize("trener"), this.downloadWorkoutPdf.bind(this));
 
     // Plans & Billing
-    this.router.get("/trainer/billing/status",          authenticate, authorize("trener"), this.billingStatus.bind(this));
-    this.router.get("/trainer/billing/plans",           authenticate, authorize("trener"), this.listPlans.bind(this));
-    this.router.post("/trainer/billing/select-plan",    authenticate, authorize("trener"), this.selectPlan.bind(this));
-    this.router.post("/trainer/billing/upgrade-plan",   authenticate, authorize("trener"), this.upgradePlan.bind(this));
+    this.router.get("/trainer/billing/status", authenticate, authorize("trener"), this.billingStatus.bind(this));
+    this.router.get("/trainer/billing/plans", authenticate, authorize("trener"), this.listPlans.bind(this));
+    this.router.post("/trainer/billing/select-plan", authenticate, authorize("trener"), this.selectPlan.bind(this));
+    this.router.post("/trainer/billing/upgrade-plan", authenticate, authorize("trener"), this.upgradePlan.bind(this));
     this.router.post("/trainer/billing/downgrade-plan", authenticate, authorize("trener"), this.downgradePlan.bind(this));
 
     // Client Requests
-    this.router.get("/trainer/requests",               authenticate, authorize("trener"), this.listRequests.bind(this));
-    this.router.post("/trainer/requests/:id/approve",  authenticate, authorize("trener"), this.approveRequest.bind(this));
-    this.router.post("/trainer/requests/:id/reject",   authenticate, authorize("trener"), this.rejectRequest.bind(this));
+    this.router.get("/trainer/requests", authenticate, authorize("trener"), this.listRequests.bind(this));
+    this.router.post("/trainer/requests/:id/approve", authenticate, authorize("trener"), this.approveRequest.bind(this));
+    this.router.post("/trainer/requests/:id/reject", authenticate, authorize("trener"), this.rejectRequest.bind(this));
 
     // Client može poslati zahtjev (uloga klijent)
-    this.router.post("/client/requests",               authenticate, authorize("klijent"), this.sendRequest.bind(this));
-    this.router.get("/client/requests/status",         authenticate, authorize("klijent"), this.requestStatus.bind(this));
+    this.router.post("/client/requests", authenticate, authorize("klijent"), this.sendRequest.bind(this));
+    this.router.get("/client/requests/status", authenticate, authorize("klijent"), this.requestStatus.bind(this));
   }
 
   private async dashboard(req: Request, res: Response) {
@@ -278,6 +279,28 @@ export class TrainerController {
     }
   }
 
+  private async createClient(req: Request, res: Response) {
+    try {
+      const trainerId = req.user!.id;
+      const { firstName, lastName, email, password, birthDate, gender } = req.body;
+
+      if (!firstName || !lastName || !email || !password || !gender) {
+        return res.status(400).json({ success: false, message: 'Nedostaju obavezna polja' });
+      }
+
+      await this.trainer.createClientAccount(trainerId, {
+        firstName, lastName, email, password, birthDate, gender
+      });
+
+      res.status(201).json({ success: true, message: 'Client account created successfully' });
+    } catch (err: any) {
+      if (err.message === 'EMAIL_ALREADY_EXISTS') {
+        return res.status(409).json({ success: false, message: 'Account with this email already exists' });
+      }
+      res.status(500).json({ success: false, message: err.message || 'Server error' });
+    }
+  }
+
   // ---- Terms ----
   private async listTerms(req: Request, res: Response) {
     try {
@@ -458,8 +481,8 @@ export class TrainerController {
       res.json({ success: true, message: 'Plan aktiviran' });
     } catch (err) {
       const msg = (err as Error)?.message || 'Bad request';
-      if (msg.startsWith('PLAN_TOO_SMALL'))     return res.status(400).json({ success: false, message: msg });
-      if (msg === 'USE_UPGRADE_OR_DOWNGRADE')   return res.status(400).json({ success: false, message: msg });
+      if (msg.startsWith('PLAN_TOO_SMALL')) return res.status(400).json({ success: false, message: msg });
+      if (msg === 'USE_UPGRADE_OR_DOWNGRADE') return res.status(400).json({ success: false, message: msg });
       res.status(400).json({ success: false, message: msg });
     }
   }
@@ -529,9 +552,9 @@ export class TrainerController {
       res.json({ success: true, message: 'Zahtjev poslat' });
     } catch (err) {
       const msg = (err as Error)?.message || 'Bad request';
-      if (msg === 'ALREADY_ASSIGNED')          return res.status(400).json({ success: false, message: 'Već ste dodijeljeni ovom treneru' });
-      if (msg === 'REQUEST_ALREADY_PENDING')   return res.status(400).json({ success: false, message: 'Zahtjev je već na čekanju' });
-      if (msg === 'TRAINER_NOT_FOUND')         return res.status(404).json({ success: false, message: 'Trener nije pronađen' });
+      if (msg === 'ALREADY_ASSIGNED') return res.status(400).json({ success: false, message: 'Već ste dodijeljeni ovom treneru' });
+      if (msg === 'REQUEST_ALREADY_PENDING') return res.status(400).json({ success: false, message: 'Zahtjev je već na čekanju' });
+      if (msg === 'TRAINER_NOT_FOUND') return res.status(404).json({ success: false, message: 'Trener nije pronađen' });
       res.status(400).json({ success: false, message: msg });
     }
   }

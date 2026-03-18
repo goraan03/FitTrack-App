@@ -225,7 +225,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 type="text"
-                placeholder={t('Search Programs')}
+                placeholder={t('search_programs')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="
@@ -249,7 +249,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                   appearance-none cursor-pointer
                 "
               >
-                <option value="">{t('All Clients')}</option>
+                <option value="">{t('all_clients')}</option>
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.firstName} {c.lastName}
@@ -323,7 +323,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
           <div className="lg:col-span-4 space-y-4 opacity-0 animate-fade-in-up stagger-1">
             <div className="flex items-center justify-between px-1">
               <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-                List ({filteredPrograms.length})
+                {t('list')} ({filteredPrograms.length})
               </h2>
               <button
                 onClick={() => setSelected(null)}
@@ -345,7 +345,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                 <div className="p-10 text-center opacity-80">
                   <Dumbbell className="w-12 h-12 mx-auto mb-4 text-slate-600" />
                   <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">
-                    {t('no_programs_found_msg').split(' ')[0] || "Empty"}
+                    {t('no_programs_found_msg')}
                   </p>
                 </div>
               ) : (
@@ -362,7 +362,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                   >
                     <h4 className="font-semibold text-sm text-white truncate">{p.title}</h4>
                     <span className={`text-[10px] font-semibold uppercase px-2.5 py-1 mt-2 inline-block rounded-md border ${levelStyles[p.level]}`}>
-                      {p.level}
+                      {t(p.level)}
                     </span>
                   </button>
                 ))
@@ -394,7 +394,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                   onClick={() => setShowAssignModal(true)}
                   className="text-xs font-semibold uppercase tracking-widest text-cyan-300 hover:text-white transition-colors"
                 >
-                  + {t('ADD')}
+                  + {t('add')}
                 </button>
               </div>
             )}
@@ -488,7 +488,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                       onChange={(e) => setExerciseGroup(e.target.value as any)}
                       className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-400/20 appearance-none cursor-pointer"
                     >
-                      <option value="">{t('All Groups')}</option>
+                      <option value="">{t('all_groups')}</option>
                       {groups.map((g) => (
                         <option key={g} value={g}>{t(g)}</option>
                       ))}
@@ -524,7 +524,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                   "
                   >
                     <Plus className="w-4 h-4 text-amber-400" />
-                    {t('Add More').toUpperCase()}
+                    {t('add_more').toUpperCase()}
                   </button>
                 </div>
               </div>
@@ -668,7 +668,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                     onClick={() => setShowAssignModal(true)}
                     className="text-xs font-bold uppercase tracking-widest text-cyan-400 hover:text-cyan-300 transition-colors whitespace-nowrap"
                   >
-                    + {t('Add More')}
+                    + {t('add_more')}
                   </button>
                 </div>
               )}
@@ -714,7 +714,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                   className="w-full py-3.5 rounded-xl btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-[#0a0a0f] font-bold text-sm uppercase tracking-wider transition-all disabled:opacity-40 active:scale-[0.98] flex items-center justify-center gap-2"
                 >
                   <Save className="w-5 h-5" />
-                  {saving ? `${t('saving')}...` : selected ? t('update_program') : t('create_program')}
+                  {saving ? `${t('saving')}...` : selected ? t('edit_program') : t('create_program')}
                 </button>
               </div>
 
@@ -734,7 +734,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                       onChange={(e) => setExerciseGroup(e.target.value as any)}
                       className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-amber-400/20 appearance-none"
                     >
-                      <option value="">{t('All Groups')}</option>
+                      <option value="">{t('all_groups')}</option>
                       {groups.map((g) => (
                         <option key={g} value={g}>{t(g)}</option>
                       ))}
@@ -761,7 +761,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                     className="w-full py-3 rounded-xl bg-cyan-500/5 hover:bg-cyan-500/10 border border-cyan-500/20 hover:border-cyan-500/30 text-cyan-400 font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
-                    {t('Add to Program').toUpperCase()}
+                    {t('add_to_program').toUpperCase()}
                   </button>
                 </div>
 

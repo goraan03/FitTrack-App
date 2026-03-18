@@ -184,6 +184,7 @@ export interface ITrainerService {
 
   // Clients
   listMyClients(trainerId: number): Promise<{ id: number; firstName: string | null; lastName: string | null; email: string; gender: string | null; age: number | null }[]>;
+  createClientAccount(trainerId: number, input: { firstName: string; lastName: string; email: string; password: string; birthDate: string; gender: 'musko' | 'zensko' }): Promise<number>;
   getClientProgressStats(trainerId: number, clientId: number): Promise<any>;
 
   // Terms

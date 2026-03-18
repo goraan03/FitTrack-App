@@ -99,23 +99,22 @@ export default function TrainerProfilePage({ trainerApi }: { trainerApi: ITraine
 
       if (res.success) {
         setPlanLocked(true);
-        toast.success(
-          action === 'select'
-            ? `${plan.name} aktiviran`
-            : action === 'upgrade'
-              ? `${plan.name} zakazan kao upgrade`
-              : `${plan.name} zakazan kao downgrade`
-        );
+        const actionMsg = action === 'select'
+          ? t('activated')
+          : action === 'upgrade'
+            ? t('upgrade_scheduled')
+            : t('downgrade_scheduled');
+        toast.success(`${plan.name} ${actionMsg}`);
         await refreshBilling();
         setPlansOpen(false);
       } else {
-        toast.error(res.message || "Greška");
+        toast.error(res.message || t('error'));
       }
     } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || "Greška";
-      if (msg.startsWith("PLAN_TOO_SMALL")) toast.error("Previše klijenata za ovaj paket");
-      else if (msg.startsWith("DOWNGRADE_BLOCKED")) toast.error("Smanji broj klijenata prije downgrade-a");
-      else if (msg === "NOT_AN_UPGRADE") toast.error("Odabrani paket nije upgrade");
+      const msg = e?.response?.data?.message || e?.message || t('error');
+      if (msg.startsWith("PLAN_TOO_SMALL")) toast.error(t('too_many_clients_for_plan'));
+      else if (msg.startsWith("DOWNGRADE_BLOCKED")) toast.error(t('reduce_clients_before_downgrade'));
+      else if (msg === "NOT_AN_UPGRADE") toast.error(t('not_an_upgrade'));
       else toast.error(msg);
     } finally {
       setPlanActionLoading(false);
@@ -241,7 +240,7 @@ export default function TrainerProfilePage({ trainerApi }: { trainerApi: ITraine
                         <p className="text-4xl font-bold text-white">{s.val ?? 0}</p>
                       </div>
                     </div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide">Overview</p>
+                    <p className="text-xs text-slate-500 uppercase tracking-wide">{t('overview')}</p>
                   </div>
                 );
               })}
@@ -299,21 +298,21 @@ export default function TrainerProfilePage({ trainerApi }: { trainerApi: ITraine
               <div className="bg-gradient-to-r from-[#1a1a25] to-[#111118] px-6 py-4 border-b border-[#27273a] flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-cyan-500/10 rounded-lg">
-                  <CreditCard className="w-5 h-5 text-cyan-400" />
+                    <CreditCard className="w-5 h-5 text-cyan-400" />
+                  </div>
+                  <h2 className="text-sm font-bold text-white uppercase tracking-[0.2em]">
+                    {t('your_plan') || 'Vaš plan'}
+                  </h2>
                 </div>
-                <h2 className="text-sm font-bold text-white uppercase tracking-[0.2em]">
-                  {t('your_plan') || 'Vaš plan'}
-                </h2>
+                <button
+                  onClick={openPlans}
+                  disabled={!!billing?.pending_plan || planActionLoading || planLocked}
+                  className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400 text-black text-xs font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
+                >
+                  <Zap className="w-3.5 h-3.5 fill-current" />
+                  {t('change_plan') || 'Promeni plan'}
+                </button>
               </div>
-              <button
-                onClick={openPlans}
-                disabled={!!billing?.pending_plan || planActionLoading || planLocked}
-                className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400 text-black text-xs font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
-              >
-                <Zap className="w-3.5 h-3.5 fill-current" />
-                {t('change_plan') || 'Promeni plan'}
-              </button>
-            </div>
 
               <div className="p-6 sm:p-8">
                 {billingLoading ? (
@@ -370,17 +369,15 @@ export default function TrainerProfilePage({ trainerApi }: { trainerApi: ITraine
                     {/* Info o trenutnom broju klijenata */}
                     <div className="mt-8 w-full flex flex-col items-center">
                       <div className="w-full max-w-md bg-white/5 h-1.5 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-amber-400 transition-all duration-1000" 
+                        <div
+                          className="h-full bg-amber-400 transition-all duration-1000"
                           style={{ width: `${Math.min((billing.client_count / (billing.current_plan.max_clients || 1)) * 100, 100)}%` }}
                         />
                       </div>
                       <p className="mt-3 text-xs text-slate-400 font-medium">
                         {t('using_clients')
-                          ? t('using_clients')
-                              .replace('{current}', String(billing.client_count))
-                              .replace('{max}', billing.current_plan.max_clients === 9999 ? '∞' : String(billing.current_plan.max_clients))
-                          : <>Using <span className="text-white font-bold">{billing.client_count}</span> of <span className="text-white font-bold">{billing.current_plan.max_clients === 9999 ? '∞' : billing.current_plan.max_clients}</span> client slots</>}
+                          .replace('{current}', String(billing.client_count))
+                          .replace('{max}', billing.current_plan.max_clients === 9999 ? '∞' : String(billing.current_plan.max_clients))}
                       </p>
                     </div>
 
@@ -389,7 +386,7 @@ export default function TrainerProfilePage({ trainerApi }: { trainerApi: ITraine
                       <div className="mt-6 w-full bg-orange-500/5 border border-orange-500/20 rounded-2xl p-4 flex items-center justify-center gap-3">
                         <Clock className="w-5 h-5 text-orange-400 shrink-0" />
                         <p className="text-sm text-orange-200">
-                          {t('pending_plan_change') || 'Zakazana promena na paket:'} <span className="font-bold text-white">{billing.pending_plan.name}</span>
+                          {t('pending_msg')} <span className="font-bold text-white">{billing.pending_plan.name}</span>
                         </p>
                       </div>
                     )}
@@ -521,22 +518,21 @@ export default function TrainerProfilePage({ trainerApi }: { trainerApi: ITraine
                         </div>
                         <div className="text-right">
                           <p className="text-2xl font-bold text-white">{plan.price_eur.toFixed(2)} €</p>
-                          <p className="text-xs text-slate-500">/ mesečno</p>
+                          <p className="text-xs text-slate-500">/ {t('month')}</p>
                         </div>
                       </div>
 
                       <button
                         disabled={disabled}
                         onClick={() => handlePlanAction(plan)}
-                        className={`w-full mt-4 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-                          isCurrent
+                        className={`w-full mt-4 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${isCurrent
                             ? 'bg-white/5 text-slate-400 border border-[#27273a]'
                             : action === 'upgrade'
                               ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-[#0a0a0f] border-0 btn-glow'
                               : action === 'select'
                                 ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-[#0a0a0f] border-0 btn-glow'
                                 : 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
-                        } disabled:opacity-50`}
+                          } disabled:opacity-50`}
                       >
                         {planActionLoading ? (t('loading') || 'Loading') : label}
                       </button>

@@ -93,14 +93,14 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
   };
 
   const cancelTerm = async (id: number) => {
-    const confirm = window.confirm("Are you sure you want to cancel this session?");
+    const confirm = window.confirm(t('confirm_cancel_term'));
     if (!confirm) return;
     try {
       const res = await trainerApi.cancelTerm(id);
-      if (!res.success) { toast.error(res.message || "Error canceling session"); return; }
+      if (!res.success) { toast.error(res.message || t('error_canceling_session')); return; }
       await load();
-      toast.success("Session canceled");
-    } catch (e: any) { toast.error(e?.message || "Cancellation failed"); }
+      toast.success(t('term_canceled'));
+    } catch (e: any) { toast.error(e?.message || t('cancellation_failed')); }
   };
 
   const openDetails = (id: number) => {
@@ -129,7 +129,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
     if (res.success) {
       setDetails({ open: false });
       load();
-      toast.success("Session deleted");
+      toast.success(t('term_deleted'));
     }
   };
 
@@ -141,11 +141,11 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
         setReqModal({ open: true, loading: false, items: res.data, actionId: null });
         setReqCount(res.data.length);
       } else {
-        toast.error("Greška pri učitavanju zahtjeva");
+        toast.error(t('error_loading_requests'));
         setReqModal(m => ({ ...m, loading: false }));
       }
     } catch (e: any) {
-      toast.error(e?.message || "Greška pri učitavanju zahtjeva");
+      toast.error(e?.message || t('error_loading_requests'));
       setReqModal(m => ({ ...m, loading: false }));
     }
   };
@@ -155,14 +155,14 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
     try {
       const res = await trainerApi.approveRequest(id);
       if (res.success) {
-        toast.success("Klijent odobren");
+        toast.success(t('client_approved'));
         await openRequests();
       } else {
-        toast.error(res.message || "Greška");
+        toast.error(res.message || t('error'));
       }
     } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || "Greška";
-      if (msg.startsWith("PLAN_LIMIT_REACHED")) toast.error("Dostignut limit paketa — uradi upgrade");
+      const msg = e?.response?.data?.message || e?.message || t('error');
+      if (msg.startsWith("PLAN_LIMIT_REACHED")) toast.error(t('plan_limit_reached'));
       else toast.error(msg);
     } finally {
       setReqModal(m => ({ ...m, actionId: null }));
@@ -174,13 +174,13 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
     try {
       const res = await trainerApi.rejectRequest(id);
       if (res.success) {
-        toast.success("Zahtjev odbijen");
+        toast.success(t('request_rejected'));
         await openRequests();
       } else {
-        toast.error(res.message || "Greška");
+        toast.error(res.message || t('error'));
       }
     } catch {
-      toast.error("Greška");
+      toast.error(t('error'));
     } finally {
       setReqModal(m => ({ ...m, actionId: null }));
     }
@@ -208,7 +208,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
               className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-white text-sm font-semibold transition-all"
             >
               <UserCheck className="w-4 h-4 text-amber-400" />
-              {t('pending_requests') || 'Zahtevi'}
+              {t('pending_requests')}
               <span className="inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-full bg-amber-400/15 text-amber-300 text-xs font-bold">
                 {reqCount}
               </span>
@@ -328,7 +328,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
                           <div>
                             <h3 className="text-lg font-semibold text-white mb-1">{p.programTitle}</h3>
                             <p className="text-sm text-slate-400">
-                              {format(new Date(p.startAt), "HH:mm")} • {p.count} participant{p.count !== 1 ? "s" : ""}
+                              {format(new Date(p.startAt), "HH:mm")} • {p.count} {p.count === 1 ? t('participant') : t('participants')}
                             </p>
                           </div>
                           <div className="w-10 h-10 rounded-xl bg-amber-400/10 flex items-center justify-center">
@@ -361,14 +361,14 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
               <div className="flex items-center gap-3">
                 <div className="w-1 h-6 bg-gradient-to-b from-amber-400 to-amber-500 rounded-full" />
                 <h3 className="text-lg font-bold text-white uppercase tracking-wide">
-                  {t('pending_requests') || 'Zahtevi klijenata'}
+                  {t('client_requests_title')}
                 </h3>
               </div>
               <button
                 className="text-slate-400 hover:text-white text-sm"
                 onClick={() => setReqModal(m => ({ ...m, open: false }))}
               >
-                {t('close') || 'Zatvori'}
+                {t('close')}
               </button>
             </div>
 
@@ -378,7 +378,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
               </div>
             ) : reqModal.items.length === 0 ? (
               <div className="text-center py-10 text-slate-400 text-sm">
-                {t('no_pending_requests') || 'Nema novih zahteva.'}
+                {t('no_new_requests')}
               </div>
             ) : (
               <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
@@ -394,7 +394,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
                       <p className="text-white font-semibold">{req.clientName}</p>
                       <p className="text-slate-400 text-sm break-all">{req.clientEmail}</p>
                       <p className="text-slate-600 text-xs mt-1 uppercase tracking-wider">
-                        {new Date(req.createdAt).toLocaleDateString('sr-RS')}
+                        {format(new Date(req.createdAt), "dd.MM.yyyy HH:mm")}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3">
@@ -404,7 +404,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
                         className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-400/5 hover:bg-red-400/10 border border-red-400/15 text-red-400 text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50"
                       >
                         <XCircle className="w-4 h-4" />
-                        {t('reject') || 'Odbij'}
+                        {t('reject')}
                       </button>
                       <button
                         disabled={reqModal.actionId === req.id}
@@ -412,7 +412,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
                         className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-[#0a0a0f] text-xs font-bold uppercase tracking-wider transition-all btn-glow disabled:opacity-50"
                       >
                         <CheckCircle className="w-4 h-4" />
-                        {t('approve') || 'Odobri'}
+                        {t('approve')}
                       </button>
                     </div>
                   </div>

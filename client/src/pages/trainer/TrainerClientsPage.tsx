@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { TrainerClient } from "../../types/trainer/TrainerClient";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
 import type { ProgramListItem } from "../../types/trainer/Program";
-import { Users, User, Search, ChevronRight, X, FileText, Download } from "lucide-react";
+import { Users, User, Search, ChevronRight, X, FileText, Download, UserPlus } from "lucide-react";
 import ClientStatsModal from "../../components/trainer/ClientStatsModal";
 import toast from "react-hot-toast";
 import { useSettings } from "../../context/SettingsContext";
@@ -17,6 +17,16 @@ export default function TrainerClientsPage({ trainerApi }: { trainerApi: ITraine
   const [programSessions, setProgramSessions] = useState<Record<number, { sessionId: number; date: string }[]>>({});
   const [openPrograms, setOpenPrograms] = useState<Record<number, boolean>>({});
   const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    birthDate: "",
+    gender: "musko" as "musko" | "zensko"
+  });
+  const [isCreating, setIsCreating] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -165,20 +175,36 @@ export default function TrainerClientsPage({ trainerApi }: { trainerApi: ITraine
             </div>
           </div>
 
-          {/* Search */}
-          <div className="relative w-full lg:w-[360px] opacity-0 animate-fade-in-up stagger-1" style={{ animationFillMode: "forwards" }}>
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-            <input
-              type="text"
-              placeholder={t('search_clients')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+          {/* Search + Create button */}
+          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto opacity-0 animate-fade-in-up stagger-1" style={{ animationFillMode: "forwards" }}>
+            <div className="relative flex-1 lg:w-[360px]">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                placeholder={t('search_clients')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="
+                w-full bg-[#111118] border border-[#27273a] rounded-xl
+                py-3 pl-11 pr-4 text-sm text-white
+                focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
+              "
+              />
+            </div>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
               className="
-              w-full bg-[#111118] border border-[#27273a] rounded-xl
-              py-3 pl-11 pr-4 text-sm text-white
-              focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40
-            "
-            />
+                flex items-center justify-center gap-2 px-5 py-3
+                bg-amber-400 hover:bg-amber-500
+                text-black font-bold text-sm uppercase
+                rounded-xl shadow-lg shadow-amber-400/20
+                transition-all transform hover:scale-105 active:scale-95
+                whitespace-nowrap w-full sm:w-auto
+              "
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>{t('create_client')}</span>
+            </button>
           </div>
         </div>
 
@@ -304,7 +330,7 @@ export default function TrainerClientsPage({ trainerApi }: { trainerApi: ITraine
                 </div>
                 <div className="bg-[#0a0a0f] border border-[#27273a] p-4 rounded-xl space-y-1">
                   <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">{t('gender')}</p>
-                  <p className="text-sm font-semibold text-white">{selectedClient.gender || "Not provided"}</p>
+                  <p className="text-sm font-semibold text-white">{selectedClient.gender || t('not_provided')}</p>
                 </div>
                 <div className="bg-[#0a0a0f] border border-[#27273a] p-4 rounded-xl space-y-1">
                   <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">{t('age')}</p>
@@ -313,7 +339,7 @@ export default function TrainerClientsPage({ trainerApi }: { trainerApi: ITraine
                 <div className="bg-[#0a0a0f] border border-[#27273a] p-4 rounded-xl space-y-1">
                   <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">{t('assigned_programs')}</p>
                   <p className="text-sm font-semibold text-white">
-                    {selectedPrograms.length ? `${selectedPrograms.length}` : "None"}
+                    {selectedPrograms.length ? `${selectedPrograms.length}` : t('none')}
                   </p>
                 </div>
               </div>
@@ -360,7 +386,7 @@ export default function TrainerClientsPage({ trainerApi }: { trainerApi: ITraine
                                         <FileText className="w-5 h-5 text-red-400 group-hover:scale-110 transition-transform" />
                                       </div>
                                       <div>
-                                        <span className="text-white font-bold block mb-0.5">Trening #{s.sessionId}</span>
+                                        <span className="text-white font-bold block mb-0.5">{t('training')} #{s.sessionId}</span>
                                         <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider">{formatDate(s.date)}</span>
                                       </div>
                                     </div>
@@ -393,6 +419,135 @@ export default function TrainerClientsPage({ trainerApi }: { trainerApi: ITraine
         onClose={() => setStatsModal({ open: false, clientId: null })}
         trainerApi={trainerApi}
       />
+
+      {/* CREATE CLIENT MODAL */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsCreateModalOpen(false)} />
+          <div className="relative w-full max-w-md bg-[#111118] border border-[#27273a] rounded-2xl overflow-hidden shadow-2xl animate-fade-in-up">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-white uppercase tracking-tight">{t('create_client_account')}</h3>
+              <button
+                onClick={() => setIsCreateModalOpen(false)}
+                className="p-2 rounded-lg hover:bg-white/5 text-slate-400 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setIsCreating(true);
+                try {
+                  const res = await trainerApi.createClient(createForm);
+                  if (res.success) {
+                    toast.success(t('success_create_client'));
+                    setIsCreateModalOpen(false);
+                    setCreateForm({
+                      firstName: "",
+                      lastName: "",
+                      email: "",
+                      password: "",
+                      birthDate: "",
+                      gender: "musko"
+                    });
+                    load();
+                  } else {
+                    toast.error(res.message || t('failed_create_client'));
+                  }
+                } catch (err: any) {
+                  toast.error(err?.response?.data?.message || t('error_create_client'));
+                } finally {
+                  setIsCreating(false);
+                }
+              }}
+              className="p-6 space-y-4"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('first_name')}</label>
+                  <input
+                    required
+                    type="text"
+                    value={createForm.firstName}
+                    onChange={e => setCreateForm({ ...createForm, firstName: e.target.value })}
+                    placeholder={t('enter_name')}
+                    className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40 outline-none transition-all"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('last_name')}</label>
+                  <input
+                    required
+                    type="text"
+                    value={createForm.lastName}
+                    onChange={e => setCreateForm({ ...createForm, lastName: e.target.value })}
+                    placeholder={t('enter_surname')}
+                    className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40 outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('email')}</label>
+                <input
+                  required
+                  type="email"
+                  value={createForm.email}
+                  onChange={e => setCreateForm({ ...createForm, email: e.target.value })}
+                  placeholder="client@email.com"
+                  className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40 outline-none transition-all"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('password')}</label>
+                <input
+                  required
+                  type="password"
+                  value={createForm.password}
+                  onChange={e => setCreateForm({ ...createForm, password: e.target.value })}
+                  placeholder="••••••••"
+                  className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40 outline-none transition-all"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('birth_date')}</label>
+                  <input
+                    required
+                    type="date"
+                    value={createForm.birthDate}
+                    onChange={e => setCreateForm({ ...createForm, birthDate: e.target.value })}
+                    className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40 outline-none transition-all text-white [color-scheme:dark]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('gender')}</label>
+                  <select
+                    value={createForm.gender}
+                    onChange={e => setCreateForm({ ...createForm, gender: e.target.value as "musko" | "zensko" })}
+                    className="w-full bg-[#0a0a0f] border border-[#27273a] rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400/40 outline-none transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="musko">{t('male')}</option>
+                    <option value="zensko">{t('female')}</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                disabled={isCreating}
+                type="submit"
+                className="w-full mt-4 py-3 bg-amber-400 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-amber-400/10"
+              >
+                {isCreating ? t('creating_account') : t('create_client_account')}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

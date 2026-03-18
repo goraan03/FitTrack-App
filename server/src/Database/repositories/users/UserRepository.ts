@@ -19,12 +19,12 @@ export class UserRepository implements IUserRepository {
       (row.pol as 'musko' | 'zensko' | null) ?? '',
       !!row.blokiran,
       row.assigned_trener_id ?? null,
-      row.trial_started_at    ? new Date(row.trial_started_at)    : null,
-      row.trial_ends_at       ? new Date(row.trial_ends_at)       : null,
-      row.current_plan_id     ?? null,
-      row.pending_plan_id     ?? null,
+      row.trial_started_at ? new Date(row.trial_started_at) : null,
+      row.trial_ends_at ? new Date(row.trial_ends_at) : null,
+      row.current_plan_id ?? null,
+      row.pending_plan_id ?? null,
       row.billing_anchor_date ? new Date(row.billing_anchor_date) : null,
-      row.billing_status      ?? 'none',
+      row.billing_status ?? 'none',
       row.billing_customer_code ?? null
     );
   }
@@ -32,8 +32,8 @@ export class UserRepository implements IUserRepository {
   async create(user: User): Promise<User> {
     try {
       const [result] = await db.execute<ResultSetHeader>(
-        `INSERT INTO users (korisnickoIme, lozinka, uloga, ime, prezime, datumRodjenja, pol)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO users (korisnickoIme, lozinka, uloga, ime, prezime, datumRodjenja, pol, assigned_trener_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           user.korisnickoIme,
           user.lozinka,
@@ -42,12 +42,14 @@ export class UserRepository implements IUserRepository {
           user.prezime,
           user.datumRodjenja ? toMysqlDate(user.datumRodjenja) : null,
           user.pol,
+          user.assigned_trener_id ?? null,
         ]
       );
       if (result.insertId) {
         return new User(
           result.insertId, user.korisnickoIme, user.lozinka, user.uloga,
-          user.ime, user.prezime, user.datumRodjenja, user.pol, false
+          user.ime, user.prezime, user.datumRodjenja, user.pol, false,
+          user.assigned_trener_id ?? null
         );
       }
       return new User();
@@ -235,12 +237,12 @@ export class UserRepository implements IUserRepository {
     if (rows.length === 0) return null;
     const r = rows[0];
     return {
-      billing_status:        r.billing_status ?? 'none',
-      trial_ends_at:         r.trial_ends_at         ? new Date(r.trial_ends_at)         : null,
-      current_plan_id:       r.current_plan_id       ?? null,
-      pending_plan_id:       r.pending_plan_id        ?? null,
+      billing_status: r.billing_status ?? 'none',
+      trial_ends_at: r.trial_ends_at ? new Date(r.trial_ends_at) : null,
+      current_plan_id: r.current_plan_id ?? null,
+      pending_plan_id: r.pending_plan_id ?? null,
       billing_customer_code: r.billing_customer_code ?? null,
-      billing_anchor_date:   r.billing_anchor_date   ? new Date(r.billing_anchor_date)   : null,
+      billing_anchor_date: r.billing_anchor_date ? new Date(r.billing_anchor_date) : null,
     };
   }
 }

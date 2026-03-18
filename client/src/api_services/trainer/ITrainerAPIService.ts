@@ -24,6 +24,7 @@ export interface ITrainerAPIService {
   setProgramExercises(programId: number, items: Omit<ProgramExerciseItem, 'name'>[]): Promise<BasicResponse>;
   assignProgramToClient(programId: number, clientId: number): Promise<BasicResponse>;
   listMyClients(): Promise<{ success: boolean; message: string; data: TrainerClient[] }>;
+  createClient(data: any): Promise<BasicResponse>;
   listTerms(fromISO?: string, toISO?: string): Promise<{ success: boolean; message: string; data: TrainerTerm[] }>;
   createTerm(dto: CreateTermDto): Promise<{ success: boolean; message: string; data: { id: number } }>;
   finishWorkout(payload: {

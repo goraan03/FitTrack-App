@@ -3,17 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import type { ITrainerAPIService } from '../../api_services/trainer/ITrainerAPIService';
 import toast from 'react-hot-toast';
 import { CheckCircle2, ChevronLeft, Dumbbell, Plus, User } from 'lucide-react';
+import { useSettings } from '../../context/SettingsContext';
 
 interface LiveWorkoutPageProps {
   trainerApi: ITrainerAPIService;
 }
 
 export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
+  const { t } = useSettings();
   const { termId } = useParams<{ termId: string }>();
   const navigate = useNavigate();
-  
+
   const [loading, setLoading] = useState(true);
-  const [participants, setParticipants] = useState<Array<{userId: number; userName: string}>>([]);
+  const [participants, setParticipants] = useState<Array<{ userId: number; userName: string }>>([]);
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
   const [programTitle, setProgramTitle] = useState("");
   const [logs, setLogs] = useState<any[]>([]);
@@ -42,14 +44,14 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
       if (!termId) return;
       try {
         setLoading(true);
-        
+
         const partRes = await trainerApi.getTermParticipants(Number(termId));
         setParticipants(partRes.data || []);
-        
+
         if (partRes.data && partRes.data.length === 1) {
           setSelectedClientId(partRes.data[0].userId);
         }
-        
+
         const termsRes = await trainerApi.listTerms();
         const currentTerm = termsRes.data.find((t: any) => t.id === Number(termId)) as any;
 
@@ -104,7 +106,7 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
   const addSet = (exerciseId: number, name: string) => {
     const exerciseSets = logs.filter(l => l.exerciseId === exerciseId);
     const newSetNumber = exerciseSets.length + 1;
-    
+
     const newSet = {
       exerciseId,
       name,
@@ -112,7 +114,7 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
       actualReps: exerciseSets.length > 0 ? exerciseSets[exerciseSets.length - 1].actualReps : 0,
       actualWeight: exerciseSets.length > 0 ? exerciseSets[exerciseSets.length - 1].actualWeight : 0,
     };
-    
+
     setLogs(prev => [...prev, newSet]);
     toast.success(`Added set ${newSetNumber} for ${name}`);
   };
@@ -132,9 +134,9 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
     const confirmed = window.confirm(
       `Are you sure you want to finish this workout?\n\nThis will save all data and mark the workout as completed.\n\nClient: ${participants.find(p => p.userId === selectedClientId)?.userName}`
     );
-    
+
     if (!confirmed) return;
-    
+
     try {
       const res = await trainerApi.finishWorkout({
         termId: Number(termId),
@@ -149,7 +151,7 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
           actualWeight: Number(l.actualWeight) || 0
         }))
       });
-      
+
       if (res.success) {
         toast.success("Workout successfully saved!");
         navigate('/trainer/dashboard');
@@ -167,7 +169,7 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
           <p className="text-slate-500 uppercase tracking-wide text-sm font-semibold">
-            Loading workout...
+            {t('loading_workout')}
           </p>
         </div>
       </div>
@@ -179,15 +181,15 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
       <div className="min-h-screen bg-[#0a0a0f] text-white px-4 grid place-items-center">
         <div className="w-full max-w-xl bg-[#111118] border border-[#27273a] rounded-2xl p-8 shadow-[0_18px_60px_rgba(0,0,0,0.40)] text-center space-y-4 opacity-0 animate-fade-in-up">
           <div className="text-5xl">⚠️</div>
-          <div className="text-xl font-bold">No participants</div>
+          <div className="text-xl font-bold uppercase">{t('no_participants')}</div>
           <div className="text-slate-400">
-            This session currently has no participants.
+            {t('no_participants_desc') || 'This session currently has no participants.'}
           </div>
           <button
             onClick={() => navigate("/trainer/dashboard")}
             className="mt-2 w-full py-4 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-[#0a0a0f] font-semibold active:scale-[0.99] transition-all"
           >
-            Back to Dashboard
+            {t('back_to_dashboard')}
           </button>
         </div>
       </div>
@@ -236,15 +238,15 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
                         opacity-0 animate-fade-in-up stagger-1"
             >
               <div className="text-6xl mb-3">⚠️</div>
-              <div className="text-xl font-black uppercase tracking-tight">No participants</div>
-              <div className="text-slate-400 mt-2">This session has no participants.</div>
+              <div className="text-xl font-black uppercase tracking-tight">{t('no_participants')}</div>
+              <div className="text-slate-400 mt-2">{t('no_participants_desc') || 'This session has no participants.'}</div>
 
               <button
                 onClick={() => navigate("/trainer/dashboard")}
                 className="mt-6 w-full btn-glow bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600
                           text-[#0a0a0f] font-black uppercase tracking-widest rounded-2xl py-4 transition-all active:scale-[0.99]"
               >
-                Back to dashboard
+                {t('back_to_dashboard')}
               </button>
             </div>
           </div>
@@ -262,9 +264,9 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
                 </div>
                 <div>
                   <div className="text-xs text-slate-400 uppercase tracking-widest font-bold">
-                    Select participant
+                    {t('select_participant')}
                   </div>
-                  <div className="text-xl font-black uppercase tracking-tight">Who are you training?</div>
+                  <div className="text-xl font-black uppercase tracking-tight">{t('choose_trainee')}</div>
                 </div>
               </div>
 
@@ -283,7 +285,7 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
                   >
                     <div className="font-black uppercase tracking-tight text-white">{p.userName}</div>
                     <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">
-                      Tap to start logging
+                      {t('tap_to_log')}
                     </div>
                   </button>
                 ))}
@@ -300,7 +302,7 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
                   <div className="flex items-center gap-2 min-w-0">
                     <User className="w-4 h-4 text-amber-400 shrink-0" />
                     <span className="text-sm text-amber-400 font-bold truncate">
-                      Client: {participants.find((p) => p.userId === selectedClientId)?.userName}
+                      {t('client')}: {participants.find((p) => p.userId === selectedClientId)?.userName}
                     </span>
                   </div>
                   {participants.length > 1 && (
@@ -308,7 +310,7 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
                       onClick={() => setSelectedClientId(null)}
                       className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors px-3 py-2 rounded-xl hover:bg-white/5"
                     >
-                      Change
+                      {t('change')}
                     </button>
                   )}
                 </div>
@@ -421,7 +423,7 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
               "
             >
               <CheckCircle2 className="w-6 h-6" />
-              Finish workout
+              {t('finish_workout')}
             </button>
           </div>
         )}

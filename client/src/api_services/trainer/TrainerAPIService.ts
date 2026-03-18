@@ -98,6 +98,11 @@ export const trainerApi: ITrainerAPIService = {
     return res.data;
   },
 
+  async createClient(data: any) {
+    const res = await axios.post<BasicResponse>(`${baseURL}/clients/create`, data, { headers: authHeaders() });
+    return res.data;
+  },
+
   async listTerms(fromISO?: string, toISO?: string) {
     const res = await axios.get<{ success: boolean; message: string; data: TrainerTerm[] }>(`${baseURL}/terms`, {
       headers: authHeaders(),
