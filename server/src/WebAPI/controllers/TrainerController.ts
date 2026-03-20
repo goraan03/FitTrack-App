@@ -2,11 +2,12 @@ import { Request, Response, Router } from "express";
 import { authenticate } from "../../Middlewares/authentification/AuthMiddleware";
 import { authorize } from "../../Middlewares/authorization/AuthorizeMiddleware";
 import { ITrainerService } from "../../Domain/services/trainer/ITrainerService";
+import { IAuditService } from "../../Domain/services/audit/IAuditService";
 
 export class TrainerController {
   private router: Router;
 
-  constructor(private trainer: ITrainerService) {
+  constructor(private trainer: ITrainerService, private audit: IAuditService) {
     this.router = Router();
     this.init();
   }
@@ -40,7 +41,6 @@ export class TrainerController {
     this.router.patch("/trainer/terms/:termId/program", authenticate, authorize("trener"), this.setTermProgram.bind(this));
     this.router.get("/trainer/terms/:termId/participants", authenticate, authorize("trener"), this.getTermParticipants.bind(this));
     this.router.get("/trainer/clients/:clientId/programs", authenticate, authorize("trener"), this.listProgramsForClient.bind(this));
-
 
     this.router.post("/trainer/workout/finish", authenticate, authorize("trener"), this.finishWorkout.bind(this));
     this.router.get("/trainer/workouts/:sessionId/pdf", authenticate, authorize("trener"), this.downloadWorkoutPdf.bind(this));
@@ -94,6 +94,9 @@ export class TrainerController {
         return res.status(400).json({ success: false, message: 'Bad input' });
       }
       await this.trainer.rateParticipant(user.id, Number(termId), Number(userId), Number(rating));
+      await this.audit.log('Informacija', 'TRAINER_RATE_CLIENT', user.id, user.korisnickoIme, {
+        termId, clientId: userId, rating
+      });
       res.json({ success: true, message: 'Rating saved' });
     } catch (err) {
       res.status(400).json({ success: false, message: (err as Error)?.message || 'Bad request' });
@@ -116,6 +119,7 @@ export class TrainerController {
       const termId = Number(req.params.termId);
       if (!Number.isFinite(termId)) return res.status(400).json({ success: false, message: 'Bad termId' });
       await this.trainer.cancelTerm(user.id, termId);
+      await this.audit.log('Upozorenje', 'TRAINER_CANCEL_TERM', user.id, user.korisnickoIme, { termId });
       res.json({ success: true, message: 'Canceled' });
     } catch (err) {
       res.status(400).json({ success: false, message: (err as Error)?.message || 'Bad request' });
@@ -145,6 +149,9 @@ export class TrainerController {
         equipment: body.equipment ?? 'none',
         level: body.level ?? 'beginner',
         videoUrl: body.videoUrl ?? null
+      });
+      await this.audit.log('Informacija', 'TRAINER_CREATE_EXERCISE', user.id, user.korisnickoIme, {
+        exerciseId: id, name: body.name, muscleGroup: body.muscleGroup
       });
       res.json({ success: true, message: 'Created', data: { id } });
     } catch (err) {
@@ -178,6 +185,7 @@ export class TrainerController {
       const id = Number(req.params.id);
       if (!Number.isFinite(id)) return res.status(400).json({ success: false, message: 'Bad input' });
       await this.trainer.deleteExercise(user.id, id);
+      await this.audit.log('Upozorenje', 'TRAINER_DELETE_EXERCISE', user.id, user.korisnickoIme, { exerciseId: id });
       res.json({ success: true, message: 'Deleted' });
     } catch (err) {
       res.status(400).json({ success: false, message: (err as Error)?.message || 'Bad request' });
@@ -205,6 +213,9 @@ export class TrainerController {
         description: body.description ?? null,
         level: body.level,
         isPublic: !!body.isPublic,
+      });
+      await this.audit.log('Informacija', 'TRAINER_CREATE_PROGRAM', user.id, user.korisnickoIme, {
+        programId: id, title: body.title, level: body.level
       });
       res.json({ success: true, message: 'Created', data: { id } });
     } catch (err) {
@@ -262,6 +273,9 @@ export class TrainerController {
       const clientId = Number(req.body?.clientId);
       if (!Number.isFinite(id) || !Number.isFinite(clientId)) return res.status(400).json({ success: false, message: 'Bad input' });
       await this.trainer.assignProgramToClient(user.id, id, clientId);
+      await this.audit.log('Informacija', 'TRAINER_ASSIGN_PROGRAM', user.id, user.korisnickoIme, {
+        programId: id, clientId
+      });
       res.json({ success: true, message: 'Assigned' });
     } catch (err) {
       res.status(400).json({ success: false, message: (err as Error)?.message || 'Bad request' });
@@ -290,6 +304,10 @@ export class TrainerController {
 
       await this.trainer.createClientAccount(trainerId, {
         firstName, lastName, email, password, birthDate, gender
+      });
+
+      await this.audit.log('Informacija', 'TRAINER_CREATE_CLIENT', req.user!.id, req.user!.korisnickoIme, {
+        clientEmail: email, clientName: `${firstName} ${lastName}`
       });
 
       res.status(201).json({ success: true, message: 'Client account created successfully' });
@@ -329,6 +347,9 @@ export class TrainerController {
         durationMin: Number(durationMin),
         capacity: Number(capacity)
       });
+      await this.audit.log('Informacija', 'TRAINER_CREATE_TERM', user.id, user.korisnickoIme, {
+        termId: id, type, startAt: startAtISO, capacity
+      });
       res.json({ success: true, message: 'Created', data: { id } });
     } catch (err) {
       res.status(400).json({ success: false, message: (err as Error)?.message || 'Bad request' });
@@ -366,6 +387,9 @@ export class TrainerController {
     try {
       const trainerId = req.user!.id;
       const result = await this.trainer.finishWorkout(trainerId, req.body);
+      await this.audit.log('Informacija', 'TRAINER_FINISH_WORKOUT', req.user!.id, req.user!.korisnickoIme, {
+        sessionId: result, termId: req.body?.termId, clientId: req.body?.clientId
+      });
       res.json({ success: true, message: "Trening uspešno sačuvan", sessionId: result });
     } catch (err) {
       res.status(400).json({ success: false, message: (err as Error).message || 'Bad request' });
@@ -413,6 +437,9 @@ export class TrainerController {
       }
 
       await this.trainer.updateMyProfile(user.id, { ime, prezime, pol, datumRodjenja });
+      await this.audit.log('Informacija', 'TRAINER_UPDATE_PROFILE', user.id, user.korisnickoIme, {
+        ime, prezime, pol
+      });
 
       res.json({ success: true, message: "Profil ažuriran" });
     } catch (err) {
@@ -478,6 +505,7 @@ export class TrainerController {
       const planId = Number(req.body?.planId);
       if (!Number.isFinite(planId)) return res.status(400).json({ success: false, message: 'Bad planId' });
       await this.trainer.selectPlan(req.user!.id, planId);
+      await this.audit.log('Informacija', 'TRAINER_SELECT_PLAN', req.user!.id, req.user!.korisnickoIme, { planId });
       res.json({ success: true, message: 'Plan aktiviran' });
     } catch (err) {
       const msg = (err as Error)?.message || 'Bad request';
@@ -492,6 +520,7 @@ export class TrainerController {
       const planId = Number(req.body?.planId);
       if (!Number.isFinite(planId)) return res.status(400).json({ success: false, message: 'Bad planId' });
       await this.trainer.upgradePlan(req.user!.id, planId);
+      await this.audit.log('Informacija', 'TRAINER_UPGRADE_PLAN', req.user!.id, req.user!.korisnickoIme, { planId });
       res.json({ success: true, message: 'Plan nadograđen' });
     } catch (err) {
       res.status(400).json({ success: false, message: (err as Error)?.message || 'Bad request' });
@@ -503,6 +532,7 @@ export class TrainerController {
       const planId = Number(req.body?.planId);
       if (!Number.isFinite(planId)) return res.status(400).json({ success: false, message: 'Bad planId' });
       await this.trainer.downgradePlan(req.user!.id, planId);
+      await this.audit.log('Upozorenje', 'TRAINER_DOWNGRADE_PLAN', req.user!.id, req.user!.korisnickoIme, { planId });
       res.json({ success: true, message: 'Downgrade zakazan za sledeći period' });
     } catch (err) {
       const msg = (err as Error)?.message || 'Bad request';
@@ -525,6 +555,7 @@ export class TrainerController {
       const id = Number(req.params.id);
       if (!Number.isFinite(id)) return res.status(400).json({ success: false, message: 'Bad id' });
       await this.trainer.approveRequest(req.user!.id, id);
+      await this.audit.log('Informacija', 'TRAINER_APPROVE_CLIENT_REQUEST', req.user!.id, req.user!.korisnickoIme, { requestId: id });
       res.json({ success: true, message: 'Zahtjev odobren' });
     } catch (err) {
       const msg = (err as Error)?.message || 'Bad request';
@@ -538,6 +569,7 @@ export class TrainerController {
       const id = Number(req.params.id);
       if (!Number.isFinite(id)) return res.status(400).json({ success: false, message: 'Bad id' });
       await this.trainer.rejectRequest(req.user!.id, id);
+      await this.audit.log('Upozorenje', 'TRAINER_REJECT_CLIENT_REQUEST', req.user!.id, req.user!.korisnickoIme, { requestId: id });
       res.json({ success: true, message: 'Zahtjev odbijen' });
     } catch (err) {
       res.status(400).json({ success: false, message: (err as Error)?.message || 'Bad request' });
@@ -549,6 +581,7 @@ export class TrainerController {
       const trainerId = Number(req.body?.trainerId);
       if (!Number.isFinite(trainerId)) return res.status(400).json({ success: false, message: 'Bad trainerId' });
       await this.trainer.sendClientRequest(req.user!.id, trainerId);
+      await this.audit.log('Informacija', 'CLIENT_SEND_TRAINER_REQUEST', req.user!.id, req.user!.korisnickoIme, { trainerId });
       res.json({ success: true, message: 'Zahtjev poslat' });
     } catch (err) {
       const msg = (err as Error)?.message || 'Bad request';

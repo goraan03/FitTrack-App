@@ -63,16 +63,16 @@ app.use(express.json());
 
 // Health
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'healthy', 
+  res.status(200).json({
+    status: 'healthy',
     timestamp: new Date().toISOString(),
     service: 'fittrack-api'
   });
 });
 
 // DI
-const exercisesRepo = new ExercisesRepository(); 
-const trainerProgramsRepo = new TrainerProgramsRepository(); 
+const exercisesRepo = new ExercisesRepository();
+const trainerProgramsRepo = new TrainerProgramsRepository();
 const userRepo = new UserRepository();
 const challengeRepo = new AuthChallengeRepository();
 const auditLogRepo = new AuditLogRepository();
@@ -99,7 +99,7 @@ const trainerService = new TrainerService(
   plansRepo,
   clientRequestsRepo
 );
-const trainerController = new TrainerController(trainerService);
+const trainerController = new TrainerController(trainerService, auditService);
 const publicContactController = new PublicContactController(emailService);
 
 
@@ -111,8 +111,8 @@ const trainingService = new TrainingTermsService(trainingTermsRepo, userRepo);
 
 // Controllers
 const authController = new AuthController(authService, auditService);
-const adminController = new AdminController(adminService);
-const clientController = new ClientController(clientService, trainingService);
+const adminController = new AdminController(adminService, auditService);
+const clientController = new ClientController(clientService, trainingService, auditService);
 const programsController = new ProgramsController(programsService);
 const backofficeCtrl = new BackofficeController()
 
@@ -124,9 +124,9 @@ app.use('/api', programsController.getRouter()); // /api/programs/public
 app.use('/api', trainerController.getRouter());   // /api/trainer/*
 app.use('/api', publicContactController.getRouter()); // /api/public/contact
 // Backoffice integration routes (secured by API key, ne JWT)
-app.get ('/api/backoffice/trainers',          (req, res) => backofficeCtrl.getTrainers(req, res))
-app.post('/api/backoffice/block',             (req, res) => backofficeCtrl.setBlock(req, res))
-app.get ('/api/backoffice/trainer/:id/status',(req, res) => backofficeCtrl.getTrainerStatus(req, res))
+app.get('/api/backoffice/trainers', (req, res) => backofficeCtrl.getTrainers(req, res))
+app.post('/api/backoffice/block', (req, res) => backofficeCtrl.setBlock(req, res))
+app.get('/api/backoffice/trainer/:id/status', (req, res) => backofficeCtrl.getTrainerStatus(req, res))
 app.get('/api/backoffice/metrics', (req, res) => backofficeCtrl.getMetrics(req, res))
 
 // ── Billing Cron ─────────────────────────────────────────────────────────────

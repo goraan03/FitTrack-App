@@ -85,7 +85,7 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
           for (let i = 1; i <= setsCount; i++) {
             initialLogs.push({
               exerciseId: ex.exerciseId,
-              name: ex.name || "Vježba",
+              name: ex.name || "Vežba",
               setNumber: i,
               plannedReps: ex.reps || null,
               actualReps: parseInt(ex.reps) || 0,
@@ -387,7 +387,7 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
                             </label>
                             <input
                               type="number"
-                              step="0.5"
+                              step="any"
                               className="bg-transparent w-full text-2xl font-black outline-none border-b border-white/10 focus:border-amber-400
                                         transition-colors tabular-nums"
                               value={s.actualWeight}

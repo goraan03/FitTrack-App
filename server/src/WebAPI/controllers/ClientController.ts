@@ -3,10 +3,11 @@ import { IClientService } from "../../Domain/services/client/IClientService";
 import { authenticate } from "../../Middlewares/authentification/AuthMiddleware";
 import { authorize } from "../../Middlewares/authorization/AuthorizeMiddleware";
 import { ITrainingTermsService } from "../../Domain/services/training_terms/ITrainingTermsService";
+import { IAuditService } from "../../Domain/services/audit/IAuditService";
 
 export class ClientController {
   private router: Router;
-  constructor(private client: IClientService, private training: ITrainingTermsService) {
+  constructor(private client: IClientService, private training: ITrainingTermsService, private audit: IAuditService) {
     this.router = Router();
     this.init();
   }
@@ -26,7 +27,6 @@ export class ClientController {
     this.router.get("/client/workouts/:sessionId/pdf", this.downloadWorkoutPdf.bind(this));
 
     this.router.get('/client/me/profile', this.myProfile.bind(this));
-
     this.router.put('/client/me/profile', this.updateMyProfile.bind(this));
   }
 
@@ -42,6 +42,9 @@ export class ClientController {
       const userId = this.getUserId(req);
       const { trainerId } = req.body;
       await this.client.chooseTrainer(userId, Number(trainerId));
+      await this.audit.log('Informacija', 'CLIENT_CHOOSE_TRAINER', userId, req.user?.korisnickoIme ?? null, {
+        trainerId: Number(trainerId)
+      });
       res.json({ success: true, message: 'Trener izabran' });
     } catch (e: any) {
       const msg = String(e?.message || '');
@@ -88,6 +91,9 @@ export class ClientController {
       const userId = this.getUserId(req);
       const { termId } = req.body;
       await this.client.bookTerm(userId, Number(termId));
+      await this.audit.log('Informacija', 'CLIENT_BOOK_TERM', userId, req.user?.korisnickoIme ?? null, {
+        termId: Number(termId)
+      });
       res.json({ success: true, message: 'Prijava uspešna' });
     } catch (e: any) {
       const msg = String(e?.message || '');
@@ -104,6 +110,9 @@ export class ClientController {
       const userId = this.getUserId(req);
       const { termId } = req.body;
       await this.client.cancelTerm(userId, Number(termId));
+      await this.audit.log('Upozorenje', 'CLIENT_CANCEL_TERM', userId, req.user?.korisnickoIme ?? null, {
+        termId: Number(termId)
+      });
       res.json({ success: true, message: 'Prijava otkazana' });
     } catch (e: any) {
       const msg = String(e?.message || '');
@@ -179,6 +188,9 @@ export class ClientController {
       }
 
       await this.client.updateMyProfile(userId, { ime, prezime, pol, datumRodjenja });
+      await this.audit.log('Informacija', 'CLIENT_UPDATE_PROFILE', userId, req.user?.korisnickoIme ?? null, {
+        ime, prezime, pol
+      });
 
       res.json({ success: true, message: 'Profil ažuriran' });
     } catch (e: any) {

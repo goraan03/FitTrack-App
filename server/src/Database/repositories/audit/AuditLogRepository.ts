@@ -24,38 +24,40 @@ export class AuditLogRepository implements IAuditLogRepository {
     const args: any[] = [];
 
     if (params.category) {
-      where.push("`category` = ?");
+      where.push("al.`category` = ?");
       args.push(params.category);
     }
     if (typeof params.userId === "number") {
-      where.push("`user_id` = ?");
+      where.push("al.`user_id` = ?");
       args.push(params.userId);
     }
     if (params.search) {
-      where.push("(`action` LIKE ? OR `username` LIKE ?)");
-      args.push(`%${params.search}%`, `%${params.search}%`);
+      where.push("(al.`action` LIKE ? OR al.`username` LIKE ? OR u.`korisnickoIme` LIKE ?)");
+      args.push(`%${params.search}%`, `%${params.search}%`, `%${params.search}%`);
     }
 
     const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
     const query = `
-      SELECT 
-        \`id\`,
-        \`category\`,
-        \`action\`,
-        \`user_id\`  AS userId,
-        \`username\`,
-        \`details\`,
-        \`created_at\` AS createdAt
-      FROM \`audit_log\`
+      SELECT
+        al.\`id\`,
+        al.\`category\`,
+        al.\`action\`,
+        al.\`user_id\`  AS userId,
+        COALESCE(al.\`username\`, u.\`korisnickoIme\`) AS username,
+        al.\`details\`,
+        al.\`created_at\` AS createdAt
+      FROM \`audit_log\` al
+      LEFT JOIN \`users\` u ON u.id = al.\`user_id\`
       ${whereSql}
-      ORDER BY \`created_at\` DESC
+      ORDER BY al.\`created_at\` DESC
       LIMIT ${pageSize} OFFSET ${offset}
     `;
 
     const countQuery = `
       SELECT COUNT(*) AS total
-      FROM \`audit_log\`
+      FROM \`audit_log\` al
+      LEFT JOIN \`users\` u ON u.id = al.\`user_id\`
       ${whereSql}
     `;
 
