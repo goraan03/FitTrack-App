@@ -7,6 +7,7 @@ import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIS
 import { Calendar, Clock, Users, Plus, Trash2, Activity, AlertCircle, ChevronDown, ChevronLeft, ChevronRight, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSettings } from "../../context/SettingsContext";
+import { confirmToast } from "../../components/common/confirmToast";
 
 const parseLocal = (iso: string) => {
   const [d, t] = iso.split("T");
@@ -54,7 +55,7 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
         trainerApi.listPrograms(),
         trainerApi.listMyClients(),
       ]);
-      if (t.success) setTerms(t.data);
+      if (t.success) setTerms(t.data.filter(term => !term.completed));
       if (p.success) setPrograms(p.data);
       if (c.success) setClients(c.data);
     } finally { setLoading(false); }
@@ -103,7 +104,14 @@ export default function TrainerTermsPage({ trainerApi }: { trainerApi: ITrainerA
   };
 
   const cancel = async (id: number) => {
-    if (!confirm(t('confirm_cancel_term'))) return;
+    const confirmed = await confirmToast({
+      title: t('cancel'),
+      message: t('confirm_cancel_term'),
+      confirmLabel: t('yes'),
+      cancelLabel: t('no'),
+      tone: "red",
+    });
+    if (!confirmed) return;
     const r = await trainerApi.cancelTerm(id);
     if (!r.success) return toast.error(r.message);
     toast.success(t('term_canceled'));

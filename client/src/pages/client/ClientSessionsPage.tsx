@@ -5,6 +5,7 @@ import { Filter, Search } from "lucide-react";
 import type { TermItem } from "../../types/client/TermItem";
 import toast from "react-hot-toast";
 import { useSettings } from "../../context/SettingsContext";
+import { confirmToast } from "../../components/common/confirmToast";
 
 interface ClientSessionsPageProps {
   clientApi: typeof clientApi;
@@ -30,7 +31,7 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
       const msg = axios.isAxiosError(err)
         ? (err.response?.data as any)?.message ?? err.message
         : 'Greška prilikom učitavanja termina';
-      alert(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -59,8 +60,14 @@ export default function ClientSessionsPage({ clientApi }: ClientSessionsPageProp
   };
 
   const cancelBooking = async (id: number) => {
-    const confirm = window.confirm(t('cancel_session_confirm'));
-    if (!confirm) return;
+    const confirmed = await confirmToast({
+      title: t('cancel'),
+      message: t('cancel_session_confirm'),
+      confirmLabel: t('yes'),
+      cancelLabel: t('no'),
+      tone: "red",
+    });
+    if (!confirmed) return;
     try {
       setBookingId(id);
       const r = await clientApi.cancel(id);

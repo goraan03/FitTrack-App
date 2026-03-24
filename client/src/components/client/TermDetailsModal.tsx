@@ -1,11 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { format, differenceInMinutes } from "date-fns";
+import { format } from "date-fns";
 import type { TermDetails } from "../../models/client/TermDetails";
 import { useLockBodyScroll } from "../../hooks/other/useLockBodyScroll";
 import { useEffect, useState } from "react";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
 import type { ProgramListItem } from "../../types/trainer/Program";
 import toast from "react-hot-toast";
+import { confirmToast } from "../common/confirmToast";
+import { useSettings } from "../../context/SettingsContext";
 
 type Props = {
   open: boolean;
@@ -17,9 +19,29 @@ type Props = {
   onProgramSet?: () => void;
 };
 
+const parseLocalDateTime = (value: string) => {
+  const [datePart, timePart] = value.split("T");
+  if (!datePart || !timePart) return new Date(value);
+
+  const normalizedTime = timePart.replace("Z", "");
+  const [hours, minutes, secondsPart] = normalizedTime.split(":");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const seconds = Number((secondsPart || "0").split(".")[0]);
+
+  return new Date(
+    year || 0,
+    (month || 1) - 1,
+    day || 1,
+    Number(hours) || 0,
+    Number(minutes) || 0,
+    seconds || 0
+  );
+};
+
 export default function TermDetailsModal({ open, onClose, data, isTrainer, onDelete, trainerApi, onProgramSet }: Props) {
   useLockBodyScroll(open);
   const navigate = useNavigate();
+  const { t } = useSettings();
 
   const [clientPrograms, setClientPrograms] = useState<ProgramListItem[]>([]);
   const [selectedProgramId, setSelectedProgramId] = useState<number>(0);
@@ -38,19 +60,73 @@ export default function TermDetailsModal({ open, onClose, data, isTrainer, onDel
 
   if (!open || !data) return null;
 
-  const start = new Date(data.startAt);
-  const end = new Date(data.endAt);
+  const start = parseLocalDateTime(data.startAt);
+  const end = parseLocalDateTime(data.endAt);
 
-  const handleStartWorkout = () => {
-    if (data.completed) return;
-    const now = new Date();
-    const diff = differenceInMinutes(start, now);
-    if (diff > 15) {
-      const confirm = window.confirm(`This session starts in ${diff} minutes. Start early anyway?`);
-      if (!confirm) return;
-    }
+  const navigateToWorkout = () => {
     onClose();
     navigate(`/trainer/live-workout/${data.id}`);
+  };
+
+  const confirmEarlyStart = (minutesUntilStart: number) =>
+    new Promise<boolean>((resolve) => {
+      const toastId = toast.custom(
+        (instance) => (
+          <div
+            className={`pointer-events-auto w-[min(92vw,420px)] rounded-2xl border border-amber-400/25 bg-[#111118] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.45)] transition-all ${
+              instance.visible ? "animate-enter" : "animate-leave"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400/15 text-lg">
+                ⏰
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold text-white">Workout starts later</div>
+                <p className="mt-1 text-sm leading-5 text-slate-300">
+                  This session starts in <span className="font-semibold text-amber-300">{minutesUntilStart} min</span>. Do you want to start it now?
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  toast.dismiss(toastId);
+                  resolve(false);
+                }}
+                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/10"
+              >
+                No
+              </button>
+              <button
+                onClick={() => {
+                  toast.dismiss(toastId);
+                  resolve(true);
+                }}
+                className="rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-4 py-2 text-sm font-semibold text-[#0a0a0f] transition-transform active:scale-[0.98]"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        ),
+        { duration: Infinity }
+      );
+    });
+
+  const handleStartWorkout = async () => {
+    if (data.completed) return;
+    const now = new Date();
+    const msUntilStart = start.getTime() - now.getTime();
+    const minutesUntilStart = Math.ceil(msUntilStart / 60000);
+
+    if (minutesUntilStart > 15) {
+      const confirmed = await confirmEarlyStart(minutesUntilStart);
+      if (!confirmed) return;
+    }
+
+    navigateToWorkout();
   };
 
   const handleSetProgram = async () => {
@@ -197,10 +273,15 @@ export default function TermDetailsModal({ open, onClose, data, isTrainer, onDel
               </button>
 
               <button
-                onClick={() => {
-                  if (window.confirm("WARNING: This will permanently delete the session and all client enrollments. Continue?")) {
-                    onDelete?.(data.id);
-                  }
+                onClick={async () => {
+                  const confirmed = await confirmToast({
+                    title: t('delete_session'),
+                    message: "This will permanently delete the session and all client enrollments. Continue?",
+                    confirmLabel: t('yes'),
+                    cancelLabel: t('no'),
+                    tone: "red",
+                  });
+                  if (confirmed) onDelete?.(data.id);
                 }}
                 className="w-full border border-red-500/20 text-red-400 hover:bg-red-500/10 py-3 rounded-xl font-semibold transition-all text-sm"
               >

@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
 import type { BillingStatus, PlanInfo } from "../../types/trainer/Billing";
 import { useSettings } from "../../context/SettingsContext";
+import { confirmToast } from "../../components/common/confirmToast";
 
 interface Props { trainerApi: ITrainerAPIService; }
 
@@ -233,9 +234,12 @@ export default function TrainerBillingPage({ trainerApi }: Props) {
 
   const handleAction = async (plan: PlanInfo, action: 'select' | 'upgrade' | 'downgrade') => {
     if (action === 'upgrade' || action === 'downgrade') {
-      const ok = window.confirm(
-        `Prelazak na ${plan.name} (${plan.price_eur.toFixed(2)} EUR/mj.) biće primjenjen na sljedeći billing ciklus.\n\nNastaviti?`
-      );
+      const ok = await confirmToast({
+        title: plan.name,
+        message: `Prelazak na ${plan.name} (${plan.price_eur.toFixed(2)} EUR/mj.) biće primjenjen na sljedeći billing ciklus. Nastaviti?`,
+        confirmLabel: t('yes'),
+        cancelLabel: t('no'),
+      });
       if (!ok) return;
     }
 

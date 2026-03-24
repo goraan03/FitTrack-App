@@ -12,8 +12,28 @@ import { Activity, Clock, Users, Star, UserCheck, XCircle, CheckCircle } from "l
 import toast from "react-hot-toast";
 import { useSettings } from "../../context/SettingsContext";
 import type { PendingRequest } from "../../types/trainer/Billing";
+import { confirmToast } from "../../components/common/confirmToast";
 
 interface TrainerDashboardPageProps { trainerApi: ITrainerAPIService; }
+
+const parseLocalDateTime = (value: string) => {
+  const [datePart, timePart] = value.split("T");
+  if (!datePart || !timePart) return new Date(value);
+
+  const normalizedTime = timePart.replace("Z", "");
+  const [hours, minutes, secondsPart] = normalizedTime.split(":");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const seconds = Number((secondsPart || "0").split(".")[0]);
+
+  return new Date(
+    year || 0,
+    (month || 1) - 1,
+    day || 1,
+    Number(hours) || 0,
+    Number(minutes) || 0,
+    seconds || 0
+  );
+};
 
 export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPageProps) {
   const { t } = useSettings();
@@ -47,7 +67,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
             const normalizedType: "individual" | "group" =
               String(e.type).toLowerCase() === "individual" ? "individual" : "group";
 
-            const startDate = e.startAt ? new Date(e.startAt) : toDate(weekStart, e.day, e.start);
+            const startDate = e.startAt ? parseLocalDateTime(e.startAt) : toDate(weekStart, e.day, e.start);
             const endDate = e.durationMin
               ? new Date(startDate.getTime() + e.durationMin * 60000)
               : toDate(weekStart, e.day, e.end);
@@ -93,8 +113,14 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
   };
 
   const cancelTerm = async (id: number) => {
-    const confirm = window.confirm(t('confirm_cancel_term'));
-    if (!confirm) return;
+    const confirmed = await confirmToast({
+      title: t('cancel'),
+      message: t('confirm_cancel_term'),
+      confirmLabel: t('yes'),
+      cancelLabel: t('no'),
+      tone: "red",
+    });
+    if (!confirmed) return;
     try {
       const res = await trainerApi.cancelTerm(id);
       if (!res.success) { toast.error(res.message || t('error_canceling_session')); return; }
@@ -113,8 +139,8 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
       data: {
         id: ev.id,
         title: ev.title,
-        startAt: start.toISOString(),
-        endAt: end.toISOString(),
+        startAt: format(start, "yyyy-MM-dd'T'HH:mm:ss"),
+        endAt: format(end, "yyyy-MM-dd'T'HH:mm:ss"),
         type: ev.type,
         completed: ev.completed,
         enrolledClientId: ev.enrolledClientId,
@@ -328,7 +354,7 @@ export default function TrainerDashboardPage({ trainerApi }: TrainerDashboardPag
                           <div>
                             <h3 className="text-lg font-semibold text-white mb-1">{p.programTitle}</h3>
                             <p className="text-sm text-slate-400">
-                              {format(new Date(p.startAt), "HH:mm")} • {p.count} {p.count === 1 ? t('participant') : t('participants')}
+                              {format(parseLocalDateTime(p.startAt), "HH:mm")} • {p.count} {p.count === 1 ? t('participant') : t('participants')}
                             </p>
                           </div>
                           <div className="w-10 h-10 rounded-xl bg-amber-400/10 flex items-center justify-center">

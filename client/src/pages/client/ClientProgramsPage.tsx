@@ -6,6 +6,7 @@ import { clientApi } from "../../api_services/client/ClientAPIService";
 import ProgramDetailsModal from "../../components/client/ProgramDetailsModal";
 import type { ProgramDetails } from "../../types/programs/ProgramDetails";
 import { useSettings } from "../../context/SettingsContext";
+import toast from "react-hot-toast";
 
 interface ClientProgramsPageProps {
   programsApi: IProgramsAPIService;
@@ -91,10 +92,10 @@ export default function ClientProgramsPage({ programsApi }: ClientProgramsPagePr
         setDetailsData(res.data);
         setDetailsOpen(true);
       } else {
-        alert(res.message || "Details not available");
+        toast.error(res.message || "Details not available");
       }
     } catch (e: any) {
-      alert(e?.message || "Failed to load details");
+      toast.error(e?.message || "Failed to load details");
     } finally {
       setDetailsLoading(false);
     }

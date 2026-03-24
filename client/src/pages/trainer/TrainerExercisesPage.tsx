@@ -4,6 +4,7 @@ import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIS
 import { Plus, Dumbbell, Edit3, Trash2, Video, Activity, X, Save, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSettings } from "../../context/SettingsContext";
+import { confirmToast } from "../../components/common/confirmToast";
 
 interface TrainerExercisesPageProps { trainerApi: ITrainerAPIService; }
 
@@ -76,7 +77,14 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
   };
 
   const del = async (id: number) => {
-    if (!confirm(t('delete_exercise_confirm'))) return;
+    const confirmed = await confirmToast({
+      title: t('delete_session'),
+      message: t('delete_exercise_confirm'),
+      confirmLabel: t('yes'),
+      cancelLabel: t('no'),
+      tone: "red",
+    });
+    if (!confirmed) return;
     try {
       const r = await trainerApi.deleteExercise(id);
       if (!r.success) return toast.error(r.message);

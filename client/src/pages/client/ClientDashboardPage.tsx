@@ -22,6 +22,7 @@ import type { IClientAPIService } from "../../api_services/client/IClientAPIServ
 import { programsApi } from "../../api_services/programs/ProgramsAPIService";
 import toast from "react-hot-toast";
 import { useSettings } from "../../context/SettingsContext";
+import { confirmToast } from "../../components/common/confirmToast";
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Legend, Filler);
 
 const normalizeType = (t: unknown): 'individual' | 'group' =>
@@ -125,11 +126,17 @@ export default function ClientDashboardPage({ clientApi }: ClientDashboardPagePr
   useEffect(() => { loadWeekly(); }, [weekStart]);
 
   const handleCancel = async (id: number) => {
-    const confirm = window.confirm(t('cancel_session_confirm'));
-    if (!confirm) return;
+    const confirmed = await confirmToast({
+      title: t('cancel'),
+      message: t('cancel_session_confirm'),
+      confirmLabel: t('yes'),
+      cancelLabel: t('no'),
+      tone: "red",
+    });
+    if (!confirmed) return;
     const r = await clientApi.cancel(id);
     if (!r.success) {
-      alert(r.message || "Cancel failed");
+      toast.error(r.message || "Cancel failed");
       return;
     }
     toast.success(t('session_canceled'));

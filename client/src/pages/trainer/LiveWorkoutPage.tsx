@@ -4,6 +4,7 @@ import type { ITrainerAPIService } from '../../api_services/trainer/ITrainerAPIS
 import toast from 'react-hot-toast';
 import { CheckCircle2, ChevronLeft, Dumbbell, Plus, User } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
+import { confirmToast } from '../../components/common/confirmToast';
 
 interface LiveWorkoutPageProps {
   trainerApi: ITrainerAPIService;
@@ -131,9 +132,13 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Are you sure you want to finish this workout?\n\nThis will save all data and mark the workout as completed.\n\nClient: ${participants.find(p => p.userId === selectedClientId)?.userName}`
-    );
+    const clientName = participants.find(p => p.userId === selectedClientId)?.userName || "Client";
+    const confirmed = await confirmToast({
+      title: t('finish_workout'),
+      message: `This will save all data and mark the workout as completed. Client: ${clientName}`,
+      confirmLabel: t('yes'),
+      cancelLabel: t('no'),
+    });
 
     if (!confirmed) return;
 

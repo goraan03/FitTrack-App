@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { IAdminAPIService } from "../../api_services/admin/IAdminAPIService";
 import { RefreshCcw } from "lucide-react";
 import type { Invoice, InvoiceStatus } from "../../types/admin/Invoice";
+import toast from "react-hot-toast";
 
 type Props = { adminApi: IAdminAPIService };
 
@@ -39,7 +40,7 @@ export default function InvoicesTable({ adminApi }: Props) {
     await adminApi.downloadInvoicePdf(inv.id);
   } catch (e: any) {
     console.error(e);
-    alert(e.message || "Greška pri preuzimanju računa.");
+    toast.error(e.message || "Greška pri preuzimanju računa.");
   }
 };
 
