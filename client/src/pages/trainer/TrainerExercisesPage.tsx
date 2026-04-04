@@ -193,7 +193,7 @@ export default function TrainerExercisesPage({ trainerApi }: TrainerExercisesPag
                   </div>
 
                   <div className="mb-3">
-                    <h3 className="text-lg font-semibold text-white truncate">
+                    <h3 className="text-lg font-semibold text-white leading-tight">
                       {ex.name}
                     </h3>
                     <p className="text-xs text-slate-400 uppercase tracking-wide mt-1">

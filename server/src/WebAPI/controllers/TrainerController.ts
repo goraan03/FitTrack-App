@@ -468,13 +468,15 @@ export class TrainerController {
     try {
       const trainerId = req.user!.id;
       const clientId = Number(req.params.clientId);
+      const month = req.query.month ? Number(req.query.month) : undefined;
+      const year = req.query.year ? Number(req.query.year) : undefined;
 
       if (!Number.isFinite(clientId) || clientId <= 0) {
         res.status(400).json({ success: false, message: 'Invalid client ID' });
         return;
       }
 
-      const data = await this.trainer.getClientProgressStats(trainerId, clientId);
+      const data = await this.trainer.getClientProgressStats(trainerId, clientId, month, year);
       res.status(200).json({ success: true, data });
     } catch (e: any) {
       console.error('getClientStats error:', e);

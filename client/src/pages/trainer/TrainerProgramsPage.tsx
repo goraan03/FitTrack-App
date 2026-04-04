@@ -303,7 +303,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                   bg-[#0a0a0f] border-[#27273a] hover:border-white/15 hover:bg-white/5
                 `}
                 >
-                  <h4 className="font-semibold text-sm text-white truncate">
+                  <h4 className="font-semibold text-sm text-white leading-tight">
                     {p.title}
                   </h4>
                   <span className={`text-[10px] font-semibold uppercase px-2.5 py-1 mt-2 inline-block rounded-md border ${levelStyles[p.level]}`}>
@@ -360,7 +360,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                         : "bg-[#0a0a0f] border-[#27273a] hover:border-white/15 hover:bg-white/5"}
                   `}
                   >
-                    <h4 className="font-semibold text-sm text-white truncate">{p.title}</h4>
+                    <h4 className="font-semibold text-sm text-white leading-tight">{p.title}</h4>
                     <span className={`text-[10px] font-semibold uppercase px-2.5 py-1 mt-2 inline-block rounded-md border ${levelStyles[p.level]}`}>
                       {t(p.level)}
                     </span>
@@ -636,7 +636,7 @@ export default function TrainerProgramsPage({ trainerApi }: TrainerProgramsPageP
                 <div className="text-[10px] uppercase tracking-[0.2em] text-amber-400/80 font-bold mb-1">
                   {selected ? t('edit_program').toUpperCase() : t('create_program').toUpperCase()}
                 </div>
-                <div className="text-lg font-bold text-white truncate max-w-[220px]">
+                <div className="text-lg font-bold text-white leading-tight max-w-[240px]">
                   {form.title?.trim() ? form.title : selected ? t('program') : t('New Program')}
                 </div>
               </div>

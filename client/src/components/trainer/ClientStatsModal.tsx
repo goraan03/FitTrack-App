@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { format } from "date-fns";
 import { X, TrendingUp, Dumbbell, BarChart3 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import toast from "react-hot-toast";
 import type { ITrainerAPIService } from "../../api_services/trainer/ITrainerAPIService";
+import MonthSwitcher from "./MonthSwitcher";
 
 interface Props {
   open: boolean;
@@ -14,6 +16,7 @@ interface Props {
 export default function ClientStatsModal({ open, clientId, onClose, trainerApi }: Props) {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date()); // Current month by default
 
   // lock background scroll when open
   useEffect(() => {
@@ -28,13 +31,16 @@ export default function ClientStatsModal({ open, clientId, onClose, trainerApi }
     if (open && clientId) {
       loadStats();
     }
-  }, [open, clientId]);
+  }, [open, clientId, selectedDate]);
 
   const loadStats = async () => {
     if (!clientId) return;
     setLoading(true);
     try {
-      const res = await trainerApi.getClientStats(clientId);
+      const month = selectedDate ? selectedDate.getMonth() + 1 : undefined;
+      const year = selectedDate ? selectedDate.getFullYear() : undefined;
+
+      const res = await trainerApi.getClientStats(clientId, month, year);
       if (res.success) {
         setStats(res.data);
       } else {
@@ -53,21 +59,37 @@ export default function ClientStatsModal({ open, clientId, onClose, trainerApi }
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-6 pt-28 overflow-y-auto">
       <div className="bg-gradient-to-br from-[#1a1a1a] to-[#161616] rounded-2xl border border-white/10 w-full max-w-4xl sm:max-w-5xl lg:max-w-5xl max-h-[82vh] overflow-y-auto shadow-[0_30px_90px_rgba(0,0,0,0.65)]">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-br from-[#1a1a1a] to-[#161616] border-b border-white/10 p-6 flex items-center justify-between z-10">
-          <div>
-            <h2 className="text-2xl font-black uppercase">CLIENT PROGRESS</h2>
-            {stats && (
-              <p className="text-gray-400 text-sm mt-1">
-                {stats.client.firstName} {stats.client.lastName}
-              </p>
-            )}
+        <div className="sticky top-0 bg-[#1a1a1a] border-b border-white/10 p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 z-20">
+          <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tighter">
+                CLIENT <span className="text-yellow-400">PROGRESS</span>
+              </h2>
+              {stats && (
+                <p className="text-gray-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-1">
+                  {stats.client.firstName} {stats.client.lastName}
+                </p>
+              )}
+            </div>
+
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition sm:hidden"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition"
-          >
-            <X className="w-6 h-6" />
-          </button>
+
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            <MonthSwitcher selectedDate={selectedDate} onChange={setSelectedDate} />
+
+            <button
+              onClick={onClose}
+              className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition hidden sm:block border border-white/5"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -133,35 +155,35 @@ export default function ClientStatsModal({ open, clientId, onClose, trainerApi }
                   <ResponsiveContainer width="100%" height={250}>
                     <LineChart data={ex.progressData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                      <XAxis 
-                        dataKey="date" 
-                        stroke="#9ca3af" 
-                        style={{ fontSize: '12px' }}
-                      />
-                      <YAxis 
+                      <XAxis
+                        dataKey="date"
                         stroke="#9ca3af"
                         style={{ fontSize: '12px' }}
                       />
-                      <Tooltip 
-                        contentStyle={{ 
-                          background: '#1a1a1a', 
+                      <YAxis
+                        stroke="#9ca3af"
+                        style={{ fontSize: '12px' }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: '#1a1a1a',
                           border: '1px solid rgba(255,255,255,0.1)',
                           borderRadius: '8px'
                         }}
                       />
                       <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="maxWeight" 
-                        stroke="#EAB308" 
+                      <Line
+                        type="monotone"
+                        dataKey="maxWeight"
+                        stroke="#EAB308"
                         strokeWidth={2}
                         name="Max Weight (kg)"
                         dot={{ fill: '#EAB308' }}
                       />
-                      <Line 
-                        type="monotone" 
-                        dataKey="totalVolume" 
-                        stroke="#3b82f6" 
+                      <Line
+                        type="monotone"
+                        dataKey="totalVolume"
+                        stroke="#3b82f6"
                         strokeWidth={2}
                         name="Total Volume (kg)"
                         dot={{ fill: '#3b82f6' }}
@@ -173,9 +195,16 @@ export default function ClientStatsModal({ open, clientId, onClose, trainerApi }
             ))}
           </div>
         ) : (
-          <div className="p-20 text-center opacity-30">
-            <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-600" />
-            <p className="text-gray-500">No stats available</p>
+          <div className="p-20 text-center">
+            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5">
+              <BarChart3 className="w-10 h-10 text-gray-600" />
+            </div>
+            <h3 className="text-xl font-bold uppercase tracking-tight text-white mb-2">No Data Found</h3>
+            <p className="text-gray-500 max-w-xs mx-auto text-sm">
+              {selectedDate
+                ? `No sessions recorded for ${format(selectedDate, "MMMM yyyy")}.`
+                : "No workout history found for this client."}
+            </p>
           </div>
         )}
       </div>

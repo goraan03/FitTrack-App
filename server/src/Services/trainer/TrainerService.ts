@@ -769,14 +769,13 @@ export class TrainerService implements ITrainerService {
     return { pdfBuffer, filename };
   }
 
-  async getClientProgressStats(trainerId: number, clientId: number): Promise<any> {
+  async getClientProgressStats(trainerId: number, clientId: number, month?: number, year?: number): Promise<any> {
     // Verify client belongs to trainer
     const client = await this.userRepo.getById(clientId);
     if (client.id === 0) throw new Error('Client not found');
 
-    // Get workout history
-    const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT 
+    let query = `
+      SELECT 
         ws.id as sessionId,
         ws.start_time,
         ws.end_time,
@@ -793,9 +792,19 @@ export class TrainerService implements ITrainerService {
       LEFT JOIN workout_exercise_logs wel ON ws.id = wel.session_id
       LEFT JOIN exercises e ON wel.exercise_id = e.id
       WHERE ws.trainer_id = ? AND ws.client_id = ?
-      ORDER BY ws.start_time DESC, wel.exercise_id, wel.set_number`,
-      [trainerId, clientId]
-    );
+    `;
+
+    const params: any[] = [trainerId, clientId];
+
+    if (year && month) {
+      query += ` AND YEAR(ws.start_time) = ? AND MONTH(ws.start_time) = ? `;
+      params.push(year, month);
+    }
+
+    query += ` ORDER BY ws.start_time DESC, wel.exercise_id, wel.set_number`;
+
+    // Get workout history
+    const [rows] = await db.execute<RowDataPacket[]>(query, params);
 
     // Group by exercise
     const exerciseMap = new Map<number, any>();

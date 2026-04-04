@@ -223,7 +223,7 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
               <div className="text-amber-400 text-3xl font-black tabular-nums leading-none">
                 {formatTime(secondsRemaining)}
               </div>
-              <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold truncate max-w-[260px] mx-auto">
+              <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold max-w-[280px] mx-auto leading-tight">
                 {programTitle}
               </div>
             </div>
@@ -343,7 +343,7 @@ export default function LiveWorkoutPage({ trainerApi }: LiveWorkoutPageProps) {
                         <div className="p-2 bg-amber-400 rounded-xl shrink-0">
                           <Dumbbell className="text-black w-5 h-5" />
                         </div>
-                        <h3 className="font-black text-lg uppercase tracking-tight truncate">{name}</h3>
+                        <h3 className="font-black text-lg uppercase tracking-tight leading-tight">{name}</h3>
                       </div>
 
                       <button

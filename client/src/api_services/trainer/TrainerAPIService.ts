@@ -134,10 +134,13 @@ export const trainerApi: ITrainerAPIService = {
     return res.data;
   },
 
-  async getClientStats(clientId: number) {
+  async getClientStats(clientId: number, month?: number, year?: number) {
     const res: AxiosResponse<{ success: boolean; data: any; message?: string }> = await axios.get(
       `${baseURL}/clients/${clientId}/stats`,
-      { headers: authHeaders() }
+      {
+        headers: authHeaders(),
+        params: { month, year }
+      }
     );
     return res.data;
   },
